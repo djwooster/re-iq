@@ -5,12 +5,14 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useSyncExte
 export type ThemePreference = "light" | "dark" | "system";
 
 const STORAGE_KEY = "reiq.theme";
+/** Set once the user has seen the dark-mode prompt or picked a theme themselves. */
+export const THEME_PROMPT_KEY = "reiq.theme-prompted";
 
 /**
  * Runs before first paint (see InlineScript) so the right theme class is on
  * <html> before anything renders. Kept tiny and dependency-free.
  */
-export const themeScript = `(function(){try{var p=localStorage.getItem("${STORAGE_KEY}")||"system";var d=p==="dark"||(p==="system"&&matchMedia("(prefers-color-scheme: dark)").matches);document.documentElement.classList.toggle("dark",d);document.documentElement.style.colorScheme=d?"dark":"light"}catch(e){}})()`;
+export const themeScript = `(function(){try{var p=localStorage.getItem("${STORAGE_KEY}")||"light";var d=p==="dark"||(p==="system"&&matchMedia("(prefers-color-scheme: dark)").matches);document.documentElement.classList.toggle("dark",d);document.documentElement.style.colorScheme=d?"dark":"light"}catch(e){}})()`;
 
 interface ThemeContextValue {
   preference: ThemePreference;
@@ -31,9 +33,9 @@ function subscribe(cb: () => void) {
 function readPreference(): ThemePreference {
   try {
     const v = window.localStorage.getItem(STORAGE_KEY);
-    return v === "light" || v === "dark" ? v : "system";
+    return v === "dark" || v === "system" ? v : "light";
   } catch {
-    return "system";
+    return "light";
   }
 }
 
@@ -53,7 +55,7 @@ function apply(p: ThemePreference) {
 }
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
-  const preference = useSyncExternalStore(subscribe, readPreference, () => "system" as ThemePreference);
+  const preference = useSyncExternalStore(subscribe, readPreference, () => "light" as ThemePreference);
   const resolved = useSyncExternalStore<"light" | "dark">(
     subscribe,
     () => (document.documentElement.classList.contains("dark") ? "dark" : "light"),
@@ -83,8 +85,9 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
 
   const setPreference = useCallback((p: ThemePreference) => {
     try {
-      if (p === "system") window.localStorage.removeItem(STORAGE_KEY);
+      if (p === "light") window.localStorage.removeItem(STORAGE_KEY);
       else window.localStorage.setItem(STORAGE_KEY, p);
+      window.localStorage.setItem(THEME_PROMPT_KEY, "1");
     } catch {
       // Storage unavailable: the choice lasts for this page view.
     }
