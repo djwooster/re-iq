@@ -1,26 +1,147 @@
 @import "tailwindcss";
 
+@custom-variant dark (&:where(.dark, .dark *));
+
+/*
+ * Semantic tokens. Components reference these (through the Tailwind theme
+ * below), never raw colors. Text steps are one ink color at stepped opacity;
+ * the muted step is tuned per theme to stay at WCAG AA on surfaces.
+ */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --bg: #ffffff;
+  --surface: #fafafa;
+  --surface-2: #f4f4f5;
+  --border: #e5e5e5;
+  --border-strong: #c9c9cc;
+  --text-primary: #0a0a0a;
+  --text-secondary: rgb(10 10 10 / 0.72);
+  --text-muted: rgb(10 10 10 / 0.6);
+  --favorable: #15803d;
+  --unfavorable: #b91c1c;
+  --warning: #b45309;
+  --data: #0e7490;
+  --data-soft: rgb(14 116 144 / 0.14);
+  --inverted: #0a0a0a;
+  --inverted-text: #ffffff;
+  --inverted-muted: rgb(255 255 255 / 0.62);
+  --backdrop: rgb(10 10 10 / 0.18);
+  --overlay-shadow: 0 12px 40px -12px rgb(0 0 0 / 0.18), 0 2px 8px -2px rgb(0 0 0 / 0.06);
+  color-scheme: light;
+}
+
+.dark {
+  --bg: #0a0a0b;
+  --surface: #111113;
+  --surface-2: #18181b;
+  --border: rgb(255 255 255 / 0.08);
+  --border-strong: rgb(255 255 255 / 0.2);
+  --text-primary: #ffffff;
+  --text-secondary: rgb(255 255 255 / 0.7);
+  --text-muted: rgb(255 255 255 / 0.5);
+  --favorable: #4ade80;
+  --unfavorable: #f87171;
+  --warning: #fbbf24;
+  --data: #22d3ee;
+  --data-soft: rgb(34 211 238 / 0.16);
+  --inverted: #ffffff;
+  --inverted-text: #0a0a0a;
+  --inverted-muted: rgb(10 10 10 / 0.6);
+  --backdrop: rgb(0 0 0 / 0.5);
+  --overlay-shadow: 0 16px 48px -12px rgb(0 0 0 / 0.7), 0 0 0 1px rgb(255 255 255 / 0.06);
+  color-scheme: dark;
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-border: var(--border);
+  --color-border-strong: var(--border-strong);
+  --color-fg: var(--text-primary);
+  --color-fg-2: var(--text-secondary);
+  --color-fg-3: var(--text-muted);
+  --color-favorable: var(--favorable);
+  --color-unfavorable: var(--unfavorable);
+  --color-warning: var(--warning);
+  --color-data: var(--data);
+  --color-data-soft: var(--data-soft);
+  --color-inverted: var(--inverted);
+  --color-inverted-fg: var(--inverted-text);
+  --color-inverted-muted: var(--inverted-muted);
+  --color-backdrop: var(--backdrop);
+  --shadow-overlay: var(--overlay-shadow);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
+  --text-2xs: 10px;
+  --text-2xs--line-height: 14px;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+@layer base {
+  * {
+    border-color: var(--border);
+  }
+
+  html {
+    background: var(--bg);
+  }
+
+  body {
+    background: var(--bg);
+    color: var(--text-primary);
+    font-family: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+    font-size: 12px;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  button,
+  [role="button"],
+  a,
+  select,
+  summary,
+  label[for],
+  input[type="checkbox"],
+  input[type="radio"] {
+    cursor: pointer;
+  }
+
+  button:disabled {
+    cursor: not-allowed;
+  }
+
+  :focus-visible {
+    outline: 1px solid var(--text-secondary);
+    outline-offset: 2px;
+  }
+
+  ::selection {
+    background: var(--data-soft);
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+@utility num {
+  font-family: var(--font-geist-mono), ui-monospace, monospace;
+  font-variant-numeric: tabular-nums;
+}
+
+@utility eyebrow {
+  font-family: var(--font-geist-mono), ui-monospace, monospace;
+  font-size: 10px;
+  line-height: 14px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+/* Recharts focus rings are noise in this UI. */
+.recharts-surface:focus,
+.recharts-wrapper:focus,
+.recharts-sector:focus {
+  outline: none;
+}
+
+.theme-switching *,
+.theme-switching *::before,
+.theme-switching *::after {
+  transition: none !important;
 }
