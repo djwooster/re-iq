@@ -6,6 +6,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Field, Input } from "@/components/ui/controls";
 import { SESSION_COOKIE } from "@/lib/data";
+import { PRODUCT_NAME } from "@/lib/labels";
 
 type Mode = "login" | "signup";
 
@@ -51,7 +52,7 @@ export function AuthForm({ mode }: { mode: Mode }) {
       <p className="mt-6 text-xs text-fg-3">
         {mode === "login" ? (
           <>
-            New to RE-IQ?{" "}
+            New to {PRODUCT_NAME}?{" "}
             <Link href="/signup" className="text-fg-2 underline-offset-2 hover:text-fg hover:underline">
               Create a workspace
             </Link>

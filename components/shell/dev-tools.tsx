@@ -23,10 +23,7 @@ export function DevTools() {
       <div className="mb-1.5 flex items-center justify-between">
         <span className="eyebrow !text-warning">Internal · dev tools</span>
       </div>
-      <label className="sr-only" htmlFor="role-preview">
-        Preview as role
-      </label>
-      <div className="flex flex-col gap-px" role="radiogroup" aria-label="Preview as role" id="role-preview">
+      <div className="flex flex-col gap-px" role="radiogroup" aria-label="Preview as role">
         {(Object.keys(ROLE_LABELS) as Role[]).map((r) => (
           <button
             key={r}

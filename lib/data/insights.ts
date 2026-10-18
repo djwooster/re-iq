@@ -10,12 +10,13 @@ import {
   periodPhrase,
 } from "@/lib/dates";
 import { formatCurrency, formatCurrencyShort, formatPercent, joinList, pluralize } from "@/lib/format";
-import { REPORT_TYPE_SHORT } from "@/lib/labels";
+import { DRIVER_LABELS, REPORT_TYPE_SHORT } from "@/lib/labels";
 import type {
   EvidenceSource,
   Import,
   Insight,
   MonthKey,
+  Period,
   PropertyRecord,
   ReportType,
   Role,
@@ -507,4 +508,69 @@ export async function getExecutiveSummary(orgId: string, role: Role): Promise<Ex
 
 export function isLagging(record: PropertyRecord) {
   return compareMonths(monthOf(record.data_through), LATEST_MONTH) < 0;
+}
+
+/** A short AI summary for one property, built from its numbers and insights. */
+export async function getPropertySummary(propertyId: string, period: Period = "qtd"): Promise<SummarySentence[]> {
+  const records = propertyRecords();
+  const property = records.find((r) => r.id === propertyId);
+  if (!property) return [];
+  const perf = propertyPerformance(property, period);
+  const f = perf.financials;
+  const variance = f.noi.actual - f.noi.budget;
+  const sources = sourcesFor(property, ["t12", "rent_roll"]);
+  const sentences: SummarySentence[] = [];
+
+  if (f.months.length === 0) {
+    sentences.push({
+      text: `No ${formatMonth(LATEST_MONTH, "long").split(" ")[0]} actuals yet for ${property.name}; the latest data runs through ${formatDate(property.data_through)}.`,
+      evidence: [{ label: "Data through", value: formatDate(property.data_through, true) }],
+      sources,
+    });
+    return sentences;
+  }
+
+  sentences.push({
+    text: `NOI is ${formatCurrencyShort(f.noi.actual)} ${periodPhrase(period)}, ${money(variance)} (${pct(Math.abs(variance / f.noi.budget))}) ${variance < 0 ? "below" : "above"} budget.`,
+    evidence: [
+      { label: "NOI", value: formatCurrency(f.noi.actual) },
+      { label: "Budget", value: formatCurrency(f.noi.budget) },
+      { label: "Revenue", value: formatCurrency(f.revenue.actual), detail: `Budget ${formatCurrency(f.revenue.budget)}` },
+      { label: "Expenses", value: formatCurrency(f.expenses.actual), detail: `Budget ${formatCurrency(f.expenses.budget)}` },
+    ],
+    sources,
+  });
+
+  const worst = [...perf.drivers].sort((a, b) => a.variance - b.variance)[0];
+  const best = [...perf.drivers].sort((a, b) => b.variance - a.variance)[0];
+  if (worst.variance < -1_000) {
+    sentences.push({
+      text: `The largest drag is ${DRIVER_LABELS[worst.driver].toLowerCase()}, ${money(worst.variance)} against budget${best.variance > 1_000 ? `, partly offset by ${DRIVER_LABELS[best.driver].toLowerCase()} (${formatCurrencyShort(best.variance)} favorable)` : ""}.`,
+      evidence: perf.drivers.map((d) => ({ label: DRIVER_LABELS[d.driver], value: formatCurrency(d.variance), detail: d.variance >= 0 ? "Favorable" : "Unfavorable" })),
+      sources,
+    });
+  }
+
+  const o = perf.occupancy;
+  sentences.push({
+    text: `Physical occupancy is ${pct(o.physical)} against a ${pct(o.physical_budget)} budget; economic occupancy is ${pct(o.economic)}.`,
+    evidence: [
+      { label: "Physical occupancy", value: pct(o.physical), detail: `Budget ${pct(o.physical_budget)} · month end` },
+      { label: "Economic occupancy", value: pct(o.economic), detail: `Budget ${pct(o.economic_budget)} · ${periodPhrase(period)}` },
+      { label: "Delinquency", value: pct(o.delinquency), detail: formatCurrency(o.delinquent_balance) },
+    ],
+    sources,
+  });
+
+  for (const insight of computeInsights().filter((i) => i.property_id === propertyId)) {
+    sentences.push({ text: insight.summary, evidence: insight.evidence, sources: insight.sources, insight_id: insight.id, is_estimate: insight.is_estimate });
+  }
+  if (isLagging(property)) {
+    sentences.push({
+      text: `The ${formatMonth(LATEST_MONTH, "long").split(" ")[0]} T12 has not posted yet, so these numbers run through ${formatDate(property.data_through)}.`,
+      evidence: [{ label: "Data through", value: formatDate(property.data_through, true) }],
+      sources,
+    });
+  }
+  return sentences;
 }
