@@ -65,7 +65,7 @@ property, report type, and period from the name; anything it can't tell, you cho
 ## Structure
 
 - `app/(app)/app/*`: the product. `app/(auth)`: login and signup. `app/(marketing)`:
-  reserved for the marketing site.
+  the public landing page and waitlist (see its README).
 - `proxy.ts`: mock auth gate (a session cookie).
 - `components/ui`: primitives (buttons, tables, drawers, toasts, metrics).
 - Design tokens are CSS variables in `app/globals.css`, exposed to Tailwind v4 via

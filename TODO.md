@@ -6,7 +6,7 @@
 - [ ] New-organization onboarding: signup currently enters the demo org; a fresh org should
       start empty and point every empty state at uploading a first report.
 - [ ] Phase 2 write-back to property management systems, with approvals.
-- [ ] Marketing site in `app/(marketing)`.
+- [ ] Marketing site: landing page with waitlist is live at `/`; add pricing, security, and a real email destination (`WAITLIST_WEBHOOK_URL`).
 
 ## Data ingestion
 - [ ] Real report parsing pipeline: Excel/CSV/PDF → AI extraction → account mapping with

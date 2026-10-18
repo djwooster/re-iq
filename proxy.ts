@@ -10,9 +10,6 @@ export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const hasSession = request.cookies.has(SESSION_COOKIE);
 
-  if (pathname === "/") {
-    return NextResponse.redirect(new URL(hasSession ? "/app" : "/login", request.url));
-  }
   if (pathname.startsWith("/app") && !hasSession) {
     const url = new URL("/login", request.url);
     if (pathname !== "/app") url.searchParams.set("next", pathname);
@@ -22,5 +19,5 @@ export function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/", "/app/:path*"],
+  matcher: ["/app/:path*"],
 };
