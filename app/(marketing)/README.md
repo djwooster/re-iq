@@ -9,5 +9,10 @@ Signups go through the `joinWaitlist` server action (`actions.ts`) to
 `.data/waitlist.jsonl` (gitignored) and production returns an error instead of
 dropping the signup.
 
-Example numbers on the page come from the sample portfolio (Q3 2026). If the
-seeded stories change, update `product-preview.tsx` and `sections.tsx`.
+Each feature section pairs short copy with an animated product vignette
+(`*-visual.tsx`, plus `product-preview.tsx` in the hero). Vignettes use
+`Scene` (`scene.tsx`): it plays a step timeline when scrolled into view, has a
+replay button, and jumps to the final state under reduced motion.
+
+The vignettes hard-code numbers from the sample portfolio (Q3 2026, data through
+Sep 30) so they match the demo. If the seeded stories change, update them.

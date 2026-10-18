@@ -1,37 +1,29 @@
+import { CalendarClock, FileSearch, Gauge, Tag } from "lucide-react";
 import Link from "next/link";
 import { FadeIn } from "@/components/ui/motion";
+import { cn } from "@/lib/cn";
+import { IngestVisual } from "./ingest-visual";
+import { PrioritizeVisual } from "./prioritize-visual";
 import { ProductPreview } from "./product-preview";
+import { RenewalsVisual } from "./renewals-visual";
+import { VarianceVisual } from "./variance-visual";
 import { WaitlistForm } from "./waitlist-form";
 
 /*
- * Examples on this page come from the sample portfolio (Alder Peak Capital,
- * Q3 2026), so they match what visitors see if they open the demo.
+ * Every example on this page comes from the sample portfolio (Alder Peak
+ * Capital, Q3 2026), so it matches what visitors see if they open the demo.
  */
-
-function Section({ id, eyebrow, title, intro, children }: { id?: string; eyebrow: string; title: string; intro?: string; children: React.ReactNode }) {
-  return (
-    <section id={id} className="scroll-mt-16 border-t border-border">
-      <div className="mx-auto max-w-[1080px] px-4 py-16 sm:px-6 sm:py-20">
-        <div className="eyebrow">{eyebrow}</div>
-        <h2 className="mt-2 max-w-[560px] text-[22px] font-semibold leading-[1.25] tracking-[-0.01em] text-fg sm:text-[26px]">{title}</h2>
-        {intro && <p className="mt-3 max-w-[560px] text-[14px] leading-[1.6] text-fg-2">{intro}</p>}
-        <div className="mt-10">{children}</div>
-      </div>
-    </section>
-  );
-}
 
 export function Hero() {
   return (
-    <section className="mx-auto max-w-[1080px] px-4 pt-16 pb-16 sm:px-6 sm:pt-24 sm:pb-20">
-      <FadeIn className="max-w-[640px]">
+    <section className="mx-auto max-w-[1080px] px-4 pt-16 pb-20 sm:px-6 sm:pt-24 sm:pb-28">
+      <FadeIn className="max-w-[620px]">
         <div className="eyebrow">Early access · Multifamily asset management</div>
-        <h1 className="mt-3 text-[32px] font-semibold leading-[1.1] tracking-[-0.02em] text-fg sm:text-[44px]">
-          See what moved NOI across every property, from the reports you already get.
+        <h1 className="mt-3 text-[34px] font-semibold leading-[1.08] tracking-[-0.025em] text-fg sm:text-[48px]">
+          Know what moved NOI at every property.
         </h1>
-        <p className="mt-5 max-w-[540px] text-[15px] leading-[1.6] text-fg-2">
-          RE-IQ reads the T12s, rent rolls, and work orders your property managers send, puts them on one chart of accounts, and tells you
-          what&apos;s off budget, why, and what to do about it this week.
+        <p className="mt-5 max-w-[500px] text-[15px] leading-[1.6] text-fg-2">
+          RE-IQ turns the reports your property managers already send into variance, ranked issues, and next steps.
         </p>
         <WaitlistForm source="hero" className="mt-8" />
       </FadeIn>
@@ -42,116 +34,98 @@ export function Hero() {
   );
 }
 
-const QUESTIONS = [
+const FEATURES = [
   {
-    q: "Are we on budget?",
-    a: "NOI is $391K (4.0%) below budget this quarter. Vacancy, concessions, R&M, and every other driver are broken out, and they add up to the total.",
+    step: "01",
+    name: "Ingest",
+    title: "Send the reports you already get.",
+    body: "T12s, rent rolls, and work orders from Yardi, Entrata, AppFolio, ResMan, or Rent Manager. Each manager's accounts map to one standard; you only check what it isn't sure about.",
+    visual: <IngestVisual />,
   },
   {
-    q: "Where are we losing money?",
-    a: "R&M at Mesa Verde is $57K over budget since May. 26 of 45 HVAC work orders since May were repeat calls to the same 4 units.",
+    step: "02",
+    name: "Explain",
+    title: "See where the gap comes from.",
+    body: "Budget to actual by driver and by property, expressed as NOI impact. The drivers always add up to the total.",
+    visual: <VarianceVisual />,
   },
   {
-    q: "What needs attention?",
-    a: "Delinquency at Magnolia Court reached 9.1% of billed charges, up from 5.1% in March. Its September T12 is still waiting on review.",
+    step: "03",
+    name: "Prioritize",
+    title: "Start with what costs the most.",
+    body: "Issues ranked by dollars, each with the numbers and source behind it and a next step you can assign.",
+    visual: <PrioritizeVisual />,
   },
   {
-    q: "Where can NOI grow?",
-    a: "58 below-market leases at Brookstone Park expire by Jan 16. Renewing them closer to market is worth an estimated $66K a year.",
-  },
-  {
-    q: "What should we do this week?",
-    a: "Each finding becomes an action with an owner and a status, so the next call with your manager starts from a list, not a spreadsheet.",
+    step: "04",
+    name: "Grow",
+    title: "Find the NOI you're leaving on the table.",
+    body: "Below-market renewals, vendor costs above benchmark, and the assumption behind every estimate.",
+    visual: <RenewalsVisual />,
   },
 ];
 
-export function Questions() {
+export function Features() {
   return (
-    <Section
-      eyebrow="What it answers"
-      title="The questions you ask every month, answered from the ledger."
-      intro="Examples from a 14-property, 3,790-unit sample portfolio with data through September 30."
-    >
-      <dl className="grid gap-px overflow-hidden rounded-lg border border-border bg-border sm:grid-cols-2 lg:grid-cols-3">
-        {QUESTIONS.map(({ q, a }) => (
-          <div key={q} className="bg-surface p-5">
-            <dt className="text-[13px] font-semibold text-fg">{q}</dt>
-            <dd className="mt-2 text-[13px] leading-[1.6] text-fg-2">{a}</dd>
+    <>
+      {FEATURES.map((f, i) => (
+        <section key={f.step} className="border-t border-border">
+          <div className="mx-auto grid max-w-[1080px] items-center gap-8 px-4 py-16 sm:px-6 sm:py-24 lg:grid-cols-[minmax(0,4fr)_minmax(0,7fr)] lg:gap-14">
+            <div className={cn("max-w-[420px]", i % 2 === 1 && "lg:order-2")}>
+              <div className="eyebrow">
+                {f.step} · {f.name}
+              </div>
+              <h2 className="mt-2 text-[24px] font-semibold leading-[1.2] tracking-[-0.015em] text-fg sm:text-[28px]">{f.title}</h2>
+              <p className="mt-3 text-[14px] leading-[1.6] text-fg-2">{f.body}</p>
+            </div>
+            <div className={cn(i % 2 === 1 && "lg:order-1")}>{f.visual}</div>
           </div>
-        ))}
-        <div className="flex flex-col justify-end bg-surface p-5">
-          <Link href="/login" className="text-[13px] text-fg-2 underline-offset-2 hover:text-fg hover:underline">
-            Open the sample portfolio →
-          </Link>
-        </div>
-      </dl>
-    </Section>
-  );
-}
-
-const STEPS = [
-  {
-    title: "Send the reports you already get",
-    body: "Upload the monthly package from each manager: T12, rent roll, work orders. Excel, CSV, or PDF, from whatever property management system they run.",
-  },
-  {
-    title: "Confirm the mapping once",
-    body: "Each manager's chart of accounts is mapped to one standard. You review only the lines it isn't sure about, and it remembers them next month.",
-  },
-  {
-    title: "Read the variance, then act",
-    body: "Budget vs. actual by property and by driver, issues ranked by dollar impact, and opportunities with the assumptions behind each estimate.",
-  },
-];
-
-export function HowItWorks() {
-  return (
-    <Section eyebrow="How it works" title="No new system for your managers. No re-keying for you.">
-      <ol className="grid gap-8 sm:grid-cols-3">
-        {STEPS.map((s, i) => (
-          <li key={s.title}>
-            <span className="num text-[11px] text-fg-3">0{i + 1}</span>
-            <h3 className="mt-2 text-[14px] font-semibold text-fg">{s.title}</h3>
-            <p className="mt-2 text-[13px] leading-[1.6] text-fg-2">{s.body}</p>
-          </li>
-        ))}
-      </ol>
-    </Section>
+        </section>
+      ))}
+    </>
   );
 }
 
 const PRINCIPLES = [
-  { title: "Evidence one click away", body: "Every AI statement opens to the numbers behind it and the report or sync they came from." },
-  { title: "Estimates are labeled", body: "Projected savings and revenue say they're estimates and show the assumption, like renewing at 60% of the gap to market." },
-  { title: "Freshness is visible", body: "If a property's September T12 hasn't arrived, its numbers say “through Aug 31” instead of quietly going stale." },
-  { title: "Physical and economic occupancy", body: "Shown side by side, so a full building that isn't collecting doesn't look healthy." },
+  { icon: FileSearch, title: "Evidence one click away", body: "Every AI statement opens to its numbers and source report." },
+  { icon: Tag, title: "Estimates are labeled", body: "With the assumption, so you can disagree with it." },
+  { icon: CalendarClock, title: "Freshness is visible", body: "A late report shows “through Aug 31”, not stale numbers." },
+  { icon: Gauge, title: "Physical and economic", body: "Occupancy side by side, so a full building that isn't paying shows." },
 ];
 
 export function Trust() {
   return (
-    <Section eyebrow="Built to be checked" title="Every number traces back to a report.">
-      <ul className="grid gap-x-10 gap-y-8 sm:grid-cols-2">
-        {PRINCIPLES.map((p) => (
-          <li key={p.title} className="border-l border-border-strong pl-4">
-            <h3 className="text-[14px] font-semibold text-fg">{p.title}</h3>
-            <p className="mt-1.5 text-[13px] leading-[1.6] text-fg-2">{p.body}</p>
-          </li>
-        ))}
-      </ul>
-    </Section>
+    <section className="border-t border-border">
+      <div className="mx-auto max-w-[1080px] px-4 py-14 sm:px-6">
+        <h2 className="text-[13px] font-semibold text-fg">Every number traces back to a report.</h2>
+        <ul className="mt-6 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+          {PRINCIPLES.map(({ icon: Icon, title, body }) => (
+            <li key={title}>
+              <Icon className="size-4 text-fg-3" strokeWidth={1.75} aria-hidden />
+              <h3 className="mt-2.5 text-[13px] font-medium text-fg">{title}</h3>
+              <p className="mt-1 text-[12px] leading-[1.55] text-fg-3">{body}</p>
+            </li>
+          ))}
+        </ul>
+      </div>
+    </section>
   );
 }
 
 export function FinalCta() {
   return (
     <section id="early-access" className="scroll-mt-16 border-t border-border bg-surface">
-      <div className="mx-auto max-w-[1080px] px-4 py-16 sm:px-6 sm:py-20">
-        <h2 className="max-w-[560px] text-[22px] font-semibold leading-[1.25] tracking-[-0.01em] text-fg sm:text-[26px]">Get early access</h2>
-        <p className="mt-3 max-w-[520px] text-[14px] leading-[1.6] text-fg-2">
-          We&apos;re onboarding a small group of owners and asset managers first. Leave your email and we&apos;ll reach out to set up your
-          portfolio.
-        </p>
-        <WaitlistForm source="footer" className="mt-6" />
+      <div className="mx-auto flex max-w-[1080px] flex-col gap-8 px-4 py-16 sm:px-6 sm:py-20 lg:flex-row lg:items-end lg:justify-between">
+        <div className="max-w-[460px]">
+          <h2 className="text-[24px] font-semibold leading-[1.2] tracking-[-0.015em] text-fg sm:text-[28px]">Get early access</h2>
+          <p className="mt-3 text-[14px] leading-[1.6] text-fg-2">
+            We&apos;re onboarding a small group of owners and asset managers first.{" "}
+            <Link href="/login" className="text-fg underline-offset-2 hover:underline">
+              Or explore the sample portfolio now.
+            </Link>
+          </p>
+        </div>
+        <WaitlistForm source="footer" />
       </div>
     </section>
   );
