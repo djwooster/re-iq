@@ -4,7 +4,7 @@ import { PRODUCT_NAME } from "@/lib/labels";
 export function SiteHeader() {
   return (
     <header className="sticky top-0 z-20 border-b border-border bg-bg/85 backdrop-blur">
-      <div className="mx-auto flex h-12 max-w-[1080px] items-center justify-between px-4 sm:px-6">
+      <div className="mx-auto flex h-12 max-w-[1280px] items-center justify-between px-4 sm:px-6">
         <Link href="/" className="num text-[13px] font-semibold tracking-[0.06em] text-fg">
           {PRODUCT_NAME}
         </Link>
@@ -24,7 +24,7 @@ export function SiteHeader() {
 export function SiteFooter() {
   return (
     <footer className="border-t border-border">
-      <div className="mx-auto flex max-w-[1080px] flex-col gap-2 px-4 py-6 text-[11px] text-fg-3 sm:flex-row sm:items-center sm:justify-between sm:px-6">
+      <div className="mx-auto flex max-w-[1280px] flex-col gap-2 px-4 py-6 text-[11px] text-fg-3 sm:flex-row sm:items-center sm:justify-between sm:px-6">
         <span className="num tracking-[0.06em]">{PRODUCT_NAME}</span>
         <span>Portfolio intelligence for multifamily owners and asset managers.</span>
       </div>

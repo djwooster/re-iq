@@ -16,7 +16,7 @@ import { WaitlistForm } from "./waitlist-form";
 
 export function Hero() {
   return (
-    <section className="mx-auto grid max-w-[1080px] items-center gap-12 px-4 pt-16 pb-20 sm:px-6 sm:pt-24 sm:pb-28 lg:grid-cols-[minmax(0,5fr)_minmax(0,7fr)] lg:gap-12">
+    <section className="mx-auto grid max-w-[1280px] items-center gap-12 px-4 pt-16 pb-20 sm:px-6 sm:pt-24 sm:pb-28 lg:grid-cols-[minmax(0,5fr)_minmax(0,7fr)] lg:gap-12">
       <FadeIn className="max-w-[640px]">
         <div className="eyebrow">Early access · Multifamily asset management</div>
         <h1 className="mt-3 text-[48px] font-semibold leading-[1.02] tracking-[-0.035em] text-fg sm:text-[64px]">Month-end, done.</h1>
@@ -65,7 +65,7 @@ export function Features() {
     <>
       {FEATURES.map((f, i) => (
         <section key={f.step} className="border-t border-border">
-          <div className="mx-auto grid max-w-[1080px] items-center gap-8 px-4 py-16 sm:px-6 sm:py-24 lg:grid-cols-[minmax(0,4fr)_minmax(0,7fr)] lg:gap-14">
+          <div className="mx-auto grid max-w-[1280px] items-center gap-8 px-4 py-16 sm:px-6 sm:py-24 lg:grid-cols-[minmax(0,4fr)_minmax(0,7fr)] lg:gap-14">
             <div className={cn("max-w-[420px]", i % 2 === 1 && "lg:order-2")}>
               <div className="eyebrow">
                 {f.step} · {f.name}
@@ -91,7 +91,7 @@ const PRINCIPLES = [
 export function Trust() {
   return (
     <section className="border-t border-border">
-      <div className="mx-auto max-w-[1080px] px-4 py-14 sm:px-6">
+      <div className="mx-auto max-w-[1280px] px-4 py-14 sm:px-6">
         <h2 className="text-[13px] font-semibold text-fg">Every number traces back to a report.</h2>
         <ul className="mt-6 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
           {PRINCIPLES.map(({ icon: Icon, title, body }) => (
@@ -110,7 +110,7 @@ export function Trust() {
 export function FinalCta() {
   return (
     <section id="early-access" className="scroll-mt-16 border-t border-border bg-surface">
-      <div className="mx-auto flex max-w-[1080px] flex-col gap-8 px-4 py-16 sm:px-6 sm:py-20 lg:flex-row lg:items-end lg:justify-between">
+      <div className="mx-auto flex max-w-[1280px] flex-col gap-8 px-4 py-16 sm:px-6 sm:py-20 lg:flex-row lg:items-end lg:justify-between">
         <div className="max-w-[460px]">
           <h2 className="text-[24px] font-semibold leading-[1.2] tracking-[-0.015em] text-fg sm:text-[28px]">Get early access</h2>
           <p className="mt-3 text-[14px] leading-[1.6] text-fg-2">
