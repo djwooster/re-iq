@@ -11,7 +11,7 @@ npm install
 npm run dev        # http://localhost:3000
 ```
 
-Sign in with any credentials (the form is prefilled). You land in the Alder Peak Capital
+Sign in with any credentials (the form is prefilled), or open `/demo` to skip the form. You land in the Alder Peak Capital
 sample portfolio: 14 properties, 3,790 units, 6 markets, 4 property managers, 24 months
 of history through Sep 30, 2026. The demo clock is fixed at Oct 18, 2026 (`lib/dates.ts`).
 

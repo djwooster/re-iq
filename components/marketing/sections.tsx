@@ -1,5 +1,4 @@
 import { CalendarClock, FileSearch, Gauge, Tag } from "lucide-react";
-import Link from "next/link";
 import { FadeIn } from "@/components/ui/motion";
 import { cn } from "@/lib/cn";
 import { HeroVisual } from "./hero-visual";
@@ -118,9 +117,9 @@ export function FinalCta() {
           <h2 className="text-[24px] font-semibold leading-[1.2] tracking-[-0.015em] text-fg sm:text-[28px]">Get early access</h2>
           <p className="mt-3 text-[14px] leading-[1.6] text-fg-2">
             We&apos;re onboarding a small group of owners and asset managers first.{" "}
-            <Link href="/login" className="text-fg underline-offset-2 hover:underline">
+            <a href="/demo" className="text-fg underline-offset-2 hover:underline">
               Or explore the sample portfolio now.
-            </Link>
+            </a>
           </p>
         </div>
         <WaitlistForm source="footer" />
