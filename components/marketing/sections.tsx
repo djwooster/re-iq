@@ -4,7 +4,6 @@ import { FadeIn } from "@/components/ui/motion";
 import { cn } from "@/lib/cn";
 import { HeroVisual } from "./hero-visual";
 import { IngestVisual } from "./ingest-visual";
-import { MonthEndChecklist } from "./month-end-checklist";
 import { PrioritizeVisual } from "./prioritize-visual";
 import { RenewalsVisual } from "./renewals-visual";
 import { VarianceVisual } from "./variance-visual";
@@ -21,7 +20,6 @@ export function Hero() {
       <FadeIn className="max-w-[640px]">
         <div className="eyebrow">Early access · Multifamily asset management</div>
         <h1 className="mt-3 text-[48px] font-semibold leading-[1.02] tracking-[-0.035em] text-fg sm:text-[64px] sm:whitespace-nowrap lg:text-[52px] xl:text-[64px]">Month-end, done.</h1>
-        <MonthEndChecklist className="mt-6 max-w-[440px]" />
         <WaitlistForm source="hero" className="mt-8" />
       </FadeIn>
       <FadeIn delay={0.1}>
@@ -66,7 +64,7 @@ export function Features() {
   return (
     <>
       {FEATURES.map((f, i) => (
-        <section key={f.step} className="border-t border-border">
+        <section key={f.step} id={f.name.toLowerCase()} className="scroll-mt-12 border-t border-border">
           <div className="mx-auto grid max-w-[1280px] items-center gap-8 px-4 py-16 sm:px-6 sm:py-24 lg:grid-cols-[minmax(0,4fr)_minmax(0,7fr)] lg:gap-14">
             <div className={cn("max-w-[420px]", i % 2 === 1 && "lg:order-2")}>
               <div className="eyebrow">
