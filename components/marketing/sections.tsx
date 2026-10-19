@@ -2,9 +2,9 @@ import { CalendarClock, FileSearch, Gauge, Tag } from "lucide-react";
 import Link from "next/link";
 import { FadeIn } from "@/components/ui/motion";
 import { cn } from "@/lib/cn";
+import { HeroVisual } from "./hero-visual";
 import { IngestVisual } from "./ingest-visual";
 import { PrioritizeVisual } from "./prioritize-visual";
-import { ProductPreview } from "./product-preview";
 import { RenewalsVisual } from "./renewals-visual";
 import { VarianceVisual } from "./variance-visual";
 import { WaitlistForm } from "./waitlist-form";
@@ -17,18 +17,19 @@ import { WaitlistForm } from "./waitlist-form";
 export function Hero() {
   return (
     <section className="mx-auto max-w-[1080px] px-4 pt-16 pb-20 sm:px-6 sm:pt-24 sm:pb-28">
-      <FadeIn className="max-w-[620px]">
+      <FadeIn className="max-w-[760px]">
         <div className="eyebrow">Early access · Multifamily asset management</div>
-        <h1 className="mt-3 text-[34px] font-semibold leading-[1.08] tracking-[-0.025em] text-fg sm:text-[48px]">
-          Know what moved NOI at every property.
+        <h1 className="mt-3 text-[34px] font-semibold leading-[1.08] tracking-[-0.025em] text-balance text-fg sm:text-[52px]">
+          Your month-end variance, done before you open Excel.
         </h1>
-        <p className="mt-5 max-w-[500px] text-[15px] leading-[1.6] text-fg-2">
-          RE-IQ turns the reports your property managers already send into variance, ranked issues, and next steps.
+        <p className="mt-5 max-w-[580px] text-[15px] leading-[1.6] text-fg-2">
+          No more chasing T12s, re-keying charts of accounts, or finding out about the HVAC problem three months late. RE-IQ reads the
+          reports your managers already send and tells you what changed, why, and what to do this week.
         </p>
         <WaitlistForm source="hero" className="mt-8" />
       </FadeIn>
       <FadeIn delay={0.1} className="mt-14 sm:mt-16">
-        <ProductPreview />
+        <HeroVisual />
       </FadeIn>
     </section>
   );

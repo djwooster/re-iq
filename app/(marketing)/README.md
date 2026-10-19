@@ -10,7 +10,7 @@ Signups go through the `joinWaitlist` server action (`actions.ts`) to
 dropping the signup.
 
 Each feature section pairs short copy with an animated product vignette
-(`*-visual.tsx`, plus `product-preview.tsx` in the hero). Vignettes use
+(`*-visual.tsx`; the hero's before/after is `hero-visual.tsx` with `overview-panel.tsx`). Vignettes use
 `Scene` (`scene.tsx`): it plays a step timeline when scrolled into view, has a
 replay button, and jumps to the final state under reduced motion.
 
