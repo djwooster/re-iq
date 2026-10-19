@@ -16,19 +16,19 @@ import { WaitlistForm } from "./waitlist-form";
 
 export function Hero() {
   return (
-    <section className="mx-auto max-w-[1080px] px-4 pt-16 pb-20 sm:px-6 sm:pt-24 sm:pb-28">
-      <FadeIn className="max-w-[760px]">
+    <section className="mx-auto grid max-w-[1080px] items-center gap-12 px-4 pt-16 pb-20 sm:px-6 sm:pt-24 sm:pb-28 lg:grid-cols-[minmax(0,5fr)_minmax(0,7fr)] lg:gap-12">
+      <FadeIn className="max-w-[640px]">
         <div className="eyebrow">Early access · Multifamily asset management</div>
-        <h1 className="mt-3 text-[34px] font-semibold leading-[1.08] tracking-[-0.025em] text-balance text-fg sm:text-[52px]">
+        <h1 className="mt-3 text-[34px] font-semibold leading-[1.08] tracking-[-0.025em] text-balance text-fg sm:text-[48px] lg:text-[42px]">
           Your month-end variance, done before you open Excel.
         </h1>
-        <p className="mt-5 max-w-[580px] text-[15px] leading-[1.6] text-fg-2">
+        <p className="mt-5 max-w-[540px] text-[15px] leading-[1.6] text-fg-2">
           No more chasing T12s, re-keying charts of accounts, or finding out about the HVAC problem three months late. RE-IQ reads the
           reports your managers already send and tells you what changed, why, and what to do this week.
         </p>
         <WaitlistForm source="hero" className="mt-8" />
       </FadeIn>
-      <FadeIn delay={0.1} className="mt-14 sm:mt-16">
+      <FadeIn delay={0.1}>
         <HeroVisual />
       </FadeIn>
     </section>

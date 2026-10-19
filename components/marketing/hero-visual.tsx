@@ -153,7 +153,7 @@ export function HeroVisual() {
             <div className="mb-2 flex justify-center">
               <PhaseToggle after={after} />
             </div>
-            <div className="relative min-h-[470px] sm:min-h-[420px]">
+            <div className="relative min-h-[470px] sm:min-h-[420px] lg:min-h-[520px]">
               <AnimatePresence mode="popLayout" initial={false}>
                 {after ? (
                   <motion.div key="after" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.3 }}>
