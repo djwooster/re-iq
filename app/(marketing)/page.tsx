@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { MonthEndChecklist } from "@/components/marketing/month-end-checklist";
+// import { MonthEndChecklist } from "@/components/marketing/month-end-checklist";
 import { Features, FinalCta, Hero, Trust } from "@/components/marketing/sections";
 
 export const metadata: Metadata = {
@@ -12,7 +12,8 @@ export default function HomePage() {
   return (
     <>
       <Hero />
-      <MonthEndChecklist />
+      {/* Checklist band: hidden while its presentation is reworked. */}
+      {/* <MonthEndChecklist /> */}
       <Features />
       <Trust />
       <FinalCta />

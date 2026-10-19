@@ -20,6 +20,9 @@ export function Hero() {
       <FadeIn className="max-w-[640px]">
         <div className="eyebrow">Early access · Multifamily asset management</div>
         <h1 className="mt-3 text-[48px] font-semibold leading-[1.02] tracking-[-0.035em] text-fg sm:text-[64px] sm:whitespace-nowrap lg:text-[52px] xl:text-[64px]">Month-end, done.</h1>
+        <p className="mt-5 max-w-[480px] text-[16px] leading-[1.55] text-fg-2">
+          RE-IQ reads the reports your property managers already send and shows what changed, why, and where NOI can grow.
+        </p>
         <WaitlistForm source="hero" className="mt-8" />
       </FadeIn>
       <FadeIn delay={0.1}>
