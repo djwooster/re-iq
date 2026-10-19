@@ -16,10 +16,10 @@ import { WaitlistForm } from "./waitlist-form";
 
 export function Hero() {
   return (
-    <section className="mx-auto grid max-w-[1280px] items-center gap-12 px-4 pt-16 pb-20 sm:px-6 sm:pt-24 sm:pb-28 lg:grid-cols-[minmax(0,5fr)_minmax(0,7fr)] lg:gap-12">
+    <section className="mx-auto grid max-w-[1280px] items-center gap-12 px-4 pt-16 pb-20 sm:px-6 sm:pt-24 sm:pb-28 lg:grid-cols-2 lg:gap-12">
       <FadeIn className="max-w-[640px]">
         <div className="eyebrow">Early access · Multifamily asset management</div>
-        <h1 className="mt-3 text-[48px] font-semibold leading-[1.02] tracking-[-0.035em] text-fg sm:text-[64px]">Month-end, done.</h1>
+        <h1 className="mt-3 text-[48px] font-semibold leading-[1.02] tracking-[-0.035em] text-fg sm:text-[64px] sm:whitespace-nowrap lg:text-[52px] xl:text-[64px]">Month-end, done.</h1>
         <WaitlistForm source="hero" className="mt-8" />
       </FadeIn>
       <FadeIn delay={0.1}>
