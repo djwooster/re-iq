@@ -14,6 +14,7 @@ import { ALL_MONTHS, formatDate, formatMonth, LATEST_MONTH, monthEnd } from "@/l
 import {
   confirmUpload,
   findSupersededImport,
+  listExampleReports,
   listPropertyOptions,
   uploadReport,
   UPLOAD_STEPS,
@@ -49,8 +50,10 @@ export function UploadFlow({ compact, onImported }: { compact?: boolean; onImpor
   const [jobs, setJobs] = useState<Job[]>([]);
   const patch = useCallback((id: string, p: Partial<Job>) => setJobs((js) => js.map((j) => (j.id === id ? { ...j, ...p } : j))), []);
 
+  const { data: examples } = useData(() => listExampleReports(), []);
+
   const start = useCallback(
-    (files: File[]) => {
+    (files: { name: string; size: number }[]) => {
       const created: Job[] = files.map((f) => ({ id: `job_${++jobSeq}`, file: { name: f.name, size: f.size }, phase: "parsing", step: "reading" }));
       setJobs((js) => [...created, ...js]);
       // Parse sequentially, like a single ingestion worker would.
@@ -74,10 +77,11 @@ export function UploadFlow({ compact, onImported }: { compact?: boolean; onImpor
     },
     [patch],
   );
+  const pendingExamples = (examples ?? []).filter((e) => !jobs.some((j) => j.file.name === e.name));
 
   return (
     <div className="flex flex-col gap-3">
-      <UploadZone onFiles={start} compact={compact} />
+      <UploadZone onFiles={start} onExamples={pendingExamples.length ? () => start(pendingExamples) : undefined} compact={compact} />
       <AnimatePresence initial={false}>
         {jobs.map((job) => (
           <motion.div

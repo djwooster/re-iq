@@ -28,7 +28,8 @@ named for the company entered; Overview, Performance, Properties, and Actions sh
 states until the first T12 is confirmed, and each property joins the portfolio with its
 first T12. (`/login` and plain `/demo` still enter the Alder Peak sample portfolio.)
 
-Participants upload the files in `/test-files/re-iq-test-files.zip` (download it from the
+Participants can click **Use example reports** in the upload area (new workspaces only) to
+load the same files without handling any, or upload `/test-files/re-iq-test-files.zip` (download it from the
 preview URL and hand it over before the session). The mock parser reads file names, so it
 recognizes these: seven T12s (Gulch Terrace's is a month behind), a Brookstone rent roll,
 and a Hickory budget whose fiscal year has to be picked by hand. Regenerate them with

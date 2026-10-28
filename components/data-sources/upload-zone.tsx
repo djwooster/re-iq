@@ -11,7 +11,16 @@ const ACCEPT = {
   "application/pdf": [".pdf"],
 };
 
-export function UploadZone({ onFiles, compact }: { onFiles: (files: File[]) => void; compact?: boolean }) {
+export function UploadZone({
+  onFiles,
+  onExamples,
+  compact,
+}: {
+  onFiles: (files: File[]) => void;
+  /** Shown when example reports are available to upload without real files. */
+  onExamples?: () => void;
+  compact?: boolean;
+}) {
   const { getRootProps, getInputProps, isDragActive, open } = useDropzone({
     // Unsupported types are passed through so the pipeline can explain why it rejects them.
     onDrop: (accepted, rejected) => onFiles([...accepted, ...rejected.map((r) => r.file)]),
@@ -35,13 +44,24 @@ export function UploadZone({ onFiles, compact }: { onFiles: (files: File[]) => v
       <p className="mt-1 text-[11px] text-fg-3">
         Rent roll, T12, budget, AR aging, or work orders · Excel, CSV, or PDF from any system
       </p>
-      <button
-        type="button"
-        onClick={open}
-        className="mt-3.5 cursor-pointer rounded-md border border-border bg-surface px-3 py-1.5 text-xs font-medium text-fg transition-colors hover:border-border-strong"
-      >
-        Choose files
-      </button>
+      <div className="mt-3.5 flex flex-wrap items-center justify-center gap-2">
+        <button
+          type="button"
+          onClick={open}
+          className="cursor-pointer rounded-md border border-border bg-surface px-3 py-1.5 text-xs font-medium text-fg transition-colors hover:border-border-strong"
+        >
+          Choose files
+        </button>
+        {onExamples && (
+          <button
+            type="button"
+            onClick={onExamples}
+            className="cursor-pointer rounded-md border border-transparent bg-inverted px-3 py-1.5 text-xs font-medium text-inverted-fg transition-opacity hover:opacity-90"
+          >
+            Use example reports
+          </button>
+        )}
+      </div>
     </div>
   );
 }

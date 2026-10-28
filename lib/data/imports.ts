@@ -1,6 +1,6 @@
 import { LATEST_MONTH, TODAY, periodMonths } from "@/lib/dates";
 import type { AccountMapping, FileFormat, Import, MappingTarget, MonthKey, PmsSystem, PropertyRecord, ReportType } from "@/lib/types";
-import { allPropertyRecords, delay, effectiveImports, ledgerRow, mappingsFor, propertyRecords } from "./core";
+import { allPropertyRecords, delay, effectiveImports, isNewWorkspace, ledgerRow, mappingsFor, propertyRecords } from "./core";
 import { CURRENT_MEMBER_ID, ORG_ID } from "./mock/catalog";
 import { UNUSUAL_LINES, detect, detectFormat } from "./mock/detect";
 import { REVIEW_THRESHOLD, mappingTemplate } from "./mock/imports";
@@ -44,6 +44,30 @@ export async function listPropertyOptions(orgId: string): Promise<PropertyOption
   return allPropertyRecords(imports)
     .filter((p) => p.org_id === orgId)
     .map((property) => ({ property, in_portfolio: inPortfolio.has(property.id) }));
+}
+
+/**
+ * The files in public/test-files (see scripts/make-test-files.ts), so a usability-test
+ * participant can upload them with one click instead of handling files.
+ */
+const EXAMPLE_REPORTS: { name: string; size: number }[] = [
+  { name: "Oakridge_T12_Sep2026.csv", size: 3_150 },
+  { name: "Brookstone_T12_Sep2026.csv", size: 3_134 },
+  { name: "PeachtreeLanding_IncomeStatement_2026-09.csv", size: 2_300 },
+  { name: "magnolia-court-twelve-month-income-statement-2026-09.csv", size: 2_083 },
+  { name: "WillowBend_TwelveMonthIS_Sep26.csv", size: 1_858 },
+  { name: "Hickory Station - 12 Month Income Statement - Sep 2026.csv", size: 1_751 },
+  { name: "GulchTerrace_T12_Aug2026.csv", size: 3_141 },
+  { name: "Brookstone_RentRoll_09302026.csv", size: 20_507 },
+  { name: "Hickory Station - Budget 2026.csv", size: 1_752 },
+];
+
+/** Example reports not uploaded yet. Offered only in a new workspace. */
+export async function listExampleReports(): Promise<{ name: string; size: number }[]> {
+  await delay();
+  if (!isNewWorkspace()) return [];
+  const uploaded = new Set(effectiveImports().map((i) => i.file_name));
+  return EXAMPLE_REPORTS.filter((r) => !uploaded.has(r.name));
 }
 
 // ---- Upload pipeline (mock) ---------------------------------------------
