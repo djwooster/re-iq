@@ -13,8 +13,8 @@
   - [x] `waitlist` table created from `supabase/waitlist.sql`.
   - [ ] In the Supabase dashboard: delete the empty-ish `avatars` and `listing-photos` buckets
         (SQL can't), revoke the old API keys and create a new secret key, rename the project.
-  - [ ] Put `SUPABASE_URL` and `SUPABASE_SECRET_KEY` in `.env.local`; test a signup locally.
-  - [ ] Add both to Vercel production (DJ runs `vercel env add`; agent writes to Vercel secrets are blocked).
+  - [x] Put `SUPABASE_URL` and `SUPABASE_SECRET_KEY` in `.env.local`; test a signup locally.
+  - [x] Add both to Vercel production (DJ runs `vercel env add`; agent writes to Vercel secrets are blocked).
   - [ ] Push `a88f09d` and test a live signup.
   - [ ] Clean up Notion leftovers: `NOTION_*` in Vercel and `.env.local`, the RE-IQ waitlist database
         and its integration.
