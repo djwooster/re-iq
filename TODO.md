@@ -11,13 +11,12 @@
   - [x] Supabase MCP connected (`.mcp.json`, project `dixlcrxxnmoivfrnvaqv`).
   - [x] Old Dearly Found data exported to `.data/dearly-found-export/` (gitignored), then cleared.
   - [x] `waitlist` table created from `supabase/waitlist.sql`.
-  - [ ] In the Supabase dashboard: delete the empty-ish `avatars` and `listing-photos` buckets
-        (SQL can't), revoke the old API keys and create a new secret key, rename the project.
+  - [x] Supabase dashboard: old buckets deleted, old keys revoked, project renamed.
   - [x] Put `SUPABASE_URL` and `SUPABASE_SECRET_KEY` in `.env.local`; test a signup locally.
   - [x] Add both to Vercel production (DJ runs `vercel env add`; agent writes to Vercel secrets are blocked).
   - [x] Push and test a live signup.
-  - [ ] Clean up Notion leftovers: `NOTION_*` in Vercel and `.env.local`, the RE-IQ waitlist database
-        and its integration.
+  - [ ] Notion leftovers: `.env.local` lines and the database (in Notion's Trash) are gone; DJ still
+        removes `NOTION_TOKEN` from Vercel and deletes the "RE-IQ site" integration.
 - [ ] Rework and restore the month-end checklist band under the hero (`month-end-checklist.tsx`, hidden in `page.tsx`).
 
 ## Data ingestion
