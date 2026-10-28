@@ -6,7 +6,18 @@
 - [ ] New-organization onboarding: signup currently enters the demo org; a fresh org should
       start empty and point every empty state at uploading a first report.
 - [ ] Phase 2 write-back to property management systems, with approvals.
-- [ ] Marketing site: landing page with waitlist is live at `/`; add pricing, security, and set `SUPABASE_URL` and `SUPABASE_SECRET_KEY` in Vercel so signups reach Supabase.
+- [ ] Marketing site: landing page with waitlist is live at `/`; add pricing and security pages.
+- [ ] Waitlist on Supabase (live signups fail until this is done):
+  - [ ] Approve the `supabase` MCP server (`.mcp.json`, project `dixlcrxxnmoivfrnvaqv`) and log in via `/mcp`.
+  - [ ] That project is a repurposed old one: list what's in it, confirm with DJ, then clear it out,
+        rotate its keys, and rename it.
+  - [ ] Run `supabase/waitlist.sql`.
+  - [ ] Put `SUPABASE_URL` and `SUPABASE_SECRET_KEY` in `.env.local`; test a signup locally.
+  - [ ] Add both to Vercel production (DJ runs `vercel env add`; agent writes to Vercel secrets are blocked).
+  - [ ] Push `a88f09d` and test a live signup.
+  - [ ] Clean up Notion leftovers: `NOTION_*` in Vercel and `.env.local`, the RE-IQ waitlist database
+        and its integration.
+- [ ] Rework and restore the month-end checklist band under the hero (`month-end-checklist.tsx`, hidden in `page.tsx`).
 
 ## Data ingestion
 - [ ] Real report parsing pipeline: Excel/CSV/PDF → AI extraction → account mapping with
