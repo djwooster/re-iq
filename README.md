@@ -17,6 +17,14 @@ of history through Sep 30, 2026. The demo clock is fixed at Oct 18, 2026 (`lib/d
 
 Other scripts: `npm run build`, `npm run lint`.
 
+## Usability testing
+
+Sessions run on the `testing` branch, which Vercel deploys to its own preview URL, so
+changes there never touch production (`main`). Merge what tests well back into `main`.
+
+Start each participant at `/demo?fresh=1`: it signs in and clears every change earlier
+participants made in that browser (uploads, mappings, action status, invites, theme).
+
 ## Dev tools
 
 Set `NEXT_PUBLIC_SHOW_DEV_TOOLS=true` in `.env.local` (see `.env.example`) and restart the

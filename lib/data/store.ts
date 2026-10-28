@@ -22,6 +22,13 @@ export interface Overlay {
 
 const KEY = "reiq.demo.v1";
 
+/**
+ * Inline script for the root layout. `/demo?fresh=1` lands on `/app#fresh`; before
+ * anything reads storage, this clears every `reiq.*` key (demo changes, theme) so each
+ * usability-test participant starts from the seeded portfolio on a shared machine.
+ */
+export const freshStartScript = `(function(){try{if(location.hash!=="#fresh")return;Object.keys(localStorage).forEach(function(k){if(k.indexOf("reiq.")===0)localStorage.removeItem(k)});history.replaceState(null,"",location.pathname+location.search)}catch(e){}})()`;
+
 const empty = (): Overlay => ({
   version: 1,
   imports: [],
