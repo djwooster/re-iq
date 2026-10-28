@@ -8,10 +8,11 @@
 - [ ] Phase 2 write-back to property management systems, with approvals.
 - [ ] Marketing site: landing page with waitlist is live at `/`; add pricing and security pages.
 - [ ] Waitlist on Supabase (live signups fail until this is done):
-  - [ ] Approve the `supabase` MCP server (`.mcp.json`, project `dixlcrxxnmoivfrnvaqv`) and log in via `/mcp`.
-  - [ ] That project is a repurposed old one: list what's in it, confirm with DJ, then clear it out,
-        rotate its keys, and rename it.
-  - [ ] Run `supabase/waitlist.sql`.
+  - [x] Supabase MCP connected (`.mcp.json`, project `dixlcrxxnmoivfrnvaqv`).
+  - [x] Old Dearly Found data exported to `.data/dearly-found-export/` (gitignored), then cleared.
+  - [x] `waitlist` table created from `supabase/waitlist.sql`.
+  - [ ] In the Supabase dashboard: delete the empty-ish `avatars` and `listing-photos` buckets
+        (SQL can't), revoke the old API keys and create a new secret key, rename the project.
   - [ ] Put `SUPABASE_URL` and `SUPABASE_SECRET_KEY` in `.env.local`; test a signup locally.
   - [ ] Add both to Vercel production (DJ runs `vercel env add`; agent writes to Vercel secrets are blocked).
   - [ ] Push `a88f09d` and test a live signup.
