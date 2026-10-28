@@ -40,15 +40,15 @@ export function AuthForm({ mode }: { mode: Mode }) {
       <form onSubmit={submit} className="mt-6 flex flex-col gap-3">
         {mode === "signup" && (
           <>
-            <Field label="Full name">{(id) => <Input id={id} name="name" autoComplete="name" placeholder="Jordan Reyes" required />}</Field>
-            <Field label="Company">{(id) => <Input id={id} name="company" autoComplete="organization" placeholder="Alder Peak Capital" required />}</Field>
+            <Field label="Full name">{(id) => <Input id={id} name="name" autoComplete="name" defaultValue="Jordan Reyes" placeholder="Jordan Reyes" required />}</Field>
+            <Field label="Company">{(id) => <Input id={id} name="company" autoComplete="organization" defaultValue="Alder Peak Capital" placeholder="Alder Peak Capital" required />}</Field>
           </>
         )}
         <Field label="Work email">
-          {(id) => <Input id={id} name="email" type="email" autoComplete="email" defaultValue={mode === "login" ? "jordan@alderpeak.com" : undefined} placeholder="you@company.com" required />}
+          {(id) => <Input id={id} name="email" type="email" autoComplete="email" defaultValue="jordan@alderpeak.com" placeholder="you@company.com" required />}
         </Field>
         <Field label="Password">
-          {(id) => <Input id={id} name="password" type="password" autoComplete={mode === "login" ? "current-password" : "new-password"} defaultValue={mode === "login" ? "demo-password" : undefined} required />}
+          {(id) => <Input id={id} name="password" type="password" autoComplete={mode === "login" ? "current-password" : "new-password"} defaultValue="demo-password" required />}
         </Field>
         <Button type="submit" variant="primary" loading={loading} className="mt-2 w-full">
           {mode === "login" ? "Sign in" : "Create workspace"}
