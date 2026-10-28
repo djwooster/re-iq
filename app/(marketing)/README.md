@@ -4,11 +4,11 @@ Public pages, starting with `/`: a landing page that collects early-access email
 Sections live in `components/marketing`; the page only composes them.
 
 Signups go through the `joinWaitlist` server action (`actions.ts`) to
-`lib/waitlist.ts`, which adds a row to the "RE-IQ waitlist" Notion database
-(columns: Email, Source, Submitted). Set `NOTION_TOKEN` (an internal integration
-secret; connect the integration to the database) and `NOTION_WAITLIST_DB` (the
-database ID). Without them, development appends to `.data/waitlist.jsonl`
-(gitignored) and production returns an error instead of dropping the signup.
+`lib/waitlist.ts`, which inserts a row into the Supabase `waitlist` table
+(`supabase/waitlist.sql`: email, source, submitted_at; one row per email). Set
+`SUPABASE_URL` and `SUPABASE_SECRET_KEY` (server-only). Without them, development
+appends to `.data/waitlist.jsonl` (gitignored) and production returns an error
+instead of dropping the signup.
 
 Each feature section pairs short copy with an animated product vignette
 (`*-visual.tsx`, including the hero). Vignettes use

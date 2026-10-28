@@ -6,7 +6,7 @@
 - [ ] New-organization onboarding: signup currently enters the demo org; a fresh org should
       start empty and point every empty state at uploading a first report.
 - [ ] Phase 2 write-back to property management systems, with approvals.
-- [ ] Marketing site: landing page with waitlist is live at `/`; add pricing, security, and set `NOTION_TOKEN` and `NOTION_WAITLIST_DB` in Vercel so signups reach Notion.
+- [ ] Marketing site: landing page with waitlist is live at `/`; add pricing, security, and set `SUPABASE_URL` and `SUPABASE_SECRET_KEY` in Vercel so signups reach Supabase.
 
 ## Data ingestion
 - [ ] Real report parsing pipeline: Excel/CSV/PDF → AI extraction → account mapping with
