@@ -1,6 +1,6 @@
 import { LATEST_MONTH, TODAY, periodMonths } from "@/lib/dates";
 import type { AccountMapping, FileFormat, Import, MappingTarget, MonthKey, PmsSystem, PropertyRecord, ReportType } from "@/lib/types";
-import { delay, effectiveImports, ledgerRow, mappingsFor, propertyRecords } from "./core";
+import { allPropertyRecords, delay, effectiveImports, ledgerRow, mappingsFor, propertyRecords } from "./core";
 import { CURRENT_MEMBER_ID, ORG_ID } from "./mock/catalog";
 import { UNUSUAL_LINES, detect, detectFormat } from "./mock/detect";
 import { REVIEW_THRESHOLD, mappingTemplate } from "./mock/imports";
@@ -26,8 +26,24 @@ export async function getImport(id: string): Promise<ImportDetail | null> {
   await delay();
   const imp = effectiveImports().find((i) => i.id === id);
   if (!imp) return null;
-  const property = propertyRecords().find((p) => p.id === imp.property_id)!;
+  const property = allPropertyRecords().find((p) => p.id === imp.property_id)!;
   return { import: imp, property, mappings: imp.status === "failed" ? [] : mappingsFor(imp) };
+}
+
+export interface PropertyOption {
+  property: PropertyRecord;
+  /** False for a property a new workspace hasn't received a T12 for yet. */
+  in_portfolio: boolean;
+}
+
+/** Properties an upload can be filed under, including ones not yet in the portfolio. */
+export async function listPropertyOptions(orgId: string): Promise<PropertyOption[]> {
+  await delay();
+  const imports = effectiveImports();
+  const inPortfolio = new Set(propertyRecords(imports).map((r) => r.id));
+  return allPropertyRecords(imports)
+    .filter((p) => p.org_id === orgId)
+    .map((property) => ({ property, in_portfolio: inPortfolio.has(property.id) }));
 }
 
 // ---- Upload pipeline (mock) ---------------------------------------------
@@ -86,7 +102,7 @@ export async function uploadReport(
   await delay(rng.int(700, 1_200));
   const draftId = `draft_${Date.now().toString(36)}`;
   const mappings = buildDraftMappings(draftId, d.reportType ?? "t12", d.system, d.propertyId, d.period, rng);
-  const rowCount = d.reportType === "rent_roll" ? (propertyRecords().find((p) => p.id === d.propertyId)?.units ?? 240) : mappings.length;
+  const rowCount = d.reportType === "rent_roll" ? (allPropertyRecords().find((p) => p.id === d.propertyId)?.units ?? 240) : mappings.length;
 
   return {
     id: draftId,
@@ -167,11 +183,14 @@ export interface ConfirmUploadResult {
   property: PropertyRecord;
   previous_data_through: string;
   data_through: string;
+  /** True when this upload brought the property into a new workspace's portfolio. */
+  added_to_portfolio: boolean;
 }
 
 export async function confirmUpload(input: ConfirmUploadInput): Promise<ConfirmUploadResult> {
   await delay(500);
-  const before = propertyRecords().find((p) => p.id === input.property_id)!;
+  const before = allPropertyRecords().find((p) => p.id === input.property_id)!;
+  const wasInPortfolio = propertyRecords().some((p) => p.id === input.property_id);
   const now = `${TODAY}T${new Date().toISOString().slice(11, 19)}Z`;
   const unresolved = input.mappings.filter((m) => m.confidence < REVIEW_THRESHOLD && !m.confirmed_by_user).length;
   const status = input.saveForReview && unresolved ? "needs_review" : "processed";
@@ -197,8 +216,9 @@ export async function confirmUpload(input: ConfirmUploadInput): Promise<ConfirmU
     d.imports.unshift(imp);
     d.mappings.push(...input.mappings.map((m) => ({ ...stripDraft(m), import_id: imp.id })));
   });
-  const after = propertyRecords().find((p) => p.id === input.property_id)!;
-  return { import: imp, property: after, previous_data_through: before.data_through, data_through: after.data_through };
+  const after = allPropertyRecords().find((p) => p.id === input.property_id)!;
+  const added = !wasInPortfolio && propertyRecords().some((p) => p.id === input.property_id);
+  return { import: imp, property: after, previous_data_through: before.data_through, data_through: after.data_through, added_to_portfolio: added };
 }
 
 function stripDraft(m: AccountMapping): AccountMapping {
@@ -211,7 +231,8 @@ export async function confirmImportReview(importId: string, targets: Record<stri
   await delay(500);
   const imp = effectiveImports().find((i) => i.id === importId);
   if (!imp) throw new Error("Import not found");
-  const before = propertyRecords().find((p) => p.id === imp.property_id)!;
+  const before = allPropertyRecords().find((p) => p.id === imp.property_id)!;
+  const wasInPortfolio = propertyRecords().some((p) => p.id === imp.property_id);
   const now = `${TODAY}T${new Date().toISOString().slice(11, 19)}Z`;
   writeOverlay((d) => {
     for (const [mappingId, target] of Object.entries(targets)) {
@@ -219,8 +240,9 @@ export async function confirmImportReview(importId: string, targets: Record<stri
     }
     d.importPatches[importId] = { ...d.importPatches[importId], status: "processed", status_detail: null, processed_at: now };
   });
-  const after = propertyRecords().find((p) => p.id === imp.property_id)!;
-  return { import: { ...imp, status: "processed" }, property: after, previous_data_through: before.data_through, data_through: after.data_through };
+  const after = allPropertyRecords().find((p) => p.id === imp.property_id)!;
+  const added = !wasInPortfolio && propertyRecords().some((p) => p.id === imp.property_id);
+  return { import: { ...imp, status: "processed" }, property: after, previous_data_through: before.data_through, data_through: after.data_through, added_to_portfolio: added };
 }
 
 export async function deleteImport(importId: string): Promise<{ property: PropertyRecord }> {
@@ -236,7 +258,7 @@ export async function deleteImport(importId: string): Promise<{ property: Proper
       d.deletedImportIds.push(importId);
     }
   });
-  return { property: propertyRecords().find((p) => p.id === imp.property_id)! };
+  return { property: allPropertyRecords().find((p) => p.id === imp.property_id)! };
 }
 
 /** Imports for the same property, type, and period that a new upload would replace. */

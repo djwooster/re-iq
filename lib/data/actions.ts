@@ -1,6 +1,6 @@
 import { TODAY } from "@/lib/dates";
 import type { Action, ActionStatus } from "@/lib/types";
-import { delay } from "./core";
+import { delay, isNewWorkspace } from "./core";
 import { ORG_ID } from "./mock/catalog";
 import { listInsights } from "./insights";
 import { readOverlay, writeOverlay } from "./store";
@@ -28,7 +28,12 @@ export async function listActions(orgId: string): Promise<Action[]> {
   await delay();
   const insights = await listInsights(orgId);
   const patches = readOverlay().actionPatches;
-  return SEED.map((a) => {
+  const fresh = isNewWorkspace();
+  // A new workspace gets each action untouched, dated when its insight first appears.
+  const seed = fresh
+    ? SEED.filter((a) => insights.some((i) => i.id === a.insight_id)).map((a) => ({ ...a, status: "new" as const, assignee_id: null, due_date: null, created_at: `${TODAY}T07:00:00Z`, updated_at: undefined }))
+    : SEED;
+  return seed.map((a) => {
     const insight = insights.find((i) => i.id === a.insight_id);
     return {
       ...a,

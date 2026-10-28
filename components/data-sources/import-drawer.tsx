@@ -55,7 +55,11 @@ export function ImportDrawer({ importId, onClose }: { importId: string | null; o
     setSaving(false);
     setEdits({});
     toast(`${res.property.name} ${REPORT_TYPE_LABELS[imp.report_type]} posted`, {
-      detail: res.data_through !== res.previous_data_through ? `Data through moved from ${formatDate(res.previous_data_through)} to ${formatDate(res.data_through)}` : undefined,
+      detail: res.added_to_portfolio
+        ? `${res.property.name} is now in your portfolio`
+        : res.data_through !== res.previous_data_through
+          ? `Data through moved from ${formatDate(res.previous_data_through)} to ${formatDate(res.data_through)}`
+          : undefined,
     });
   };
 

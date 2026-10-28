@@ -3,8 +3,10 @@
 ## Product
 - [ ] Refined microinteractions (Rive-style, subtle), once the core flow is validated.
 - [ ] "Ask" interface for natural-language questions about the portfolio.
-- [ ] New-organization onboarding: signup currently enters the demo org; a fresh org should
-      start empty and point every empty state at uploading a first report.
+- [x] New-organization onboarding: signup starts an empty workspace; empty states point at
+      uploading a first T12 (on `testing`, for usability sessions).
+- [ ] Empty workspace: require an uploaded budget before showing budget variance, and let a
+      file with an unrecognized name create a new property instead of picking a sample one.
 - [ ] Phase 2 write-back to property management systems, with approvals.
 - [ ] Marketing site: landing page with waitlist is live at `/`; add pricing and security pages.
 - [ ] Waitlist on Supabase (live and working since 2026-10-27; tidy-up left):

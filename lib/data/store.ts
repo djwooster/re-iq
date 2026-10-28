@@ -18,14 +18,18 @@ export interface Overlay {
   members: Member[];
   organization: Partial<Organization> & { logo?: string | null };
   role: Role;
+  /** "sample" shows the seeded portfolio; "new" starts empty, the way a fresh signup does. */
+  workspace: "sample" | "new";
+  /** Who signed up, in a new workspace. Replaces the sample member's name and email. */
+  profile: { name: string; email: string } | null;
 }
 
 const KEY = "reiq.demo.v1";
 
 /**
- * Inline script for the root layout. `/demo?fresh=1` lands on `/app#fresh`; before
- * anything reads storage, this clears every `reiq.*` key (demo changes, theme) so each
- * usability-test participant starts from the seeded portfolio on a shared machine.
+ * Inline script for the root layout. `/demo?fresh=1` lands on `/signup#fresh`; before
+ * anything reads storage, this clears every `reiq.*` key (workspace, theme) so each
+ * usability-test participant signs up into an empty workspace on a shared machine.
  */
 export const freshStartScript = `(function(){try{if(location.hash!=="#fresh")return;Object.keys(localStorage).forEach(function(k){if(k.indexOf("reiq.")===0)localStorage.removeItem(k)});history.replaceState(null,"",location.pathname+location.search)}catch(e){}})()`;
 
@@ -40,6 +44,8 @@ const empty = (): Overlay => ({
   members: [],
   organization: {},
   role: "asset_manager",
+  workspace: "sample",
+  profile: null,
 });
 
 let state: Overlay | null = null;
@@ -76,11 +82,12 @@ export function writeOverlay(update: (draft: Overlay) => void) {
   listeners.forEach((l) => l());
 }
 
-export function resetOverlay() {
-  state = empty();
+export function resetOverlay(start: Partial<Overlay> = {}) {
+  state = { ...empty(), ...start };
   revision++;
   try {
-    window.localStorage.removeItem(KEY);
+    if (Object.keys(start).length) window.localStorage.setItem(KEY, JSON.stringify(state));
+    else window.localStorage.removeItem(KEY);
   } catch {
     // ignore
   }

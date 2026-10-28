@@ -23,16 +23,19 @@ import type {
   SummarySentence,
 } from "@/lib/types";
 import {
+  allPropertyRecords,
   categoryVariance,
   combineFinancials,
   delay,
   effectiveImports,
+  isNewWorkspace,
+  memberName,
   occupancyRow,
   propertyPerformance,
   propertyRecords,
   sumFinancials,
 } from "./core";
-import { ORG_ID, members, propertyManagers } from "./mock/catalog";
+import { ORG_ID, properties, propertyManagers } from "./mock/catalog";
 import { getGenerated } from "./mock/generate";
 import { estimatedCashFlow, getPortfolioSummary } from "./portfolio";
 import { BELOW_MARKET_THRESHOLD, RENEWAL_CAPTURE, RENEWAL_WINDOW_DAYS, portfolioRentRoll, renewalWindowEnd, vendorSpend } from "./properties";
@@ -42,8 +45,6 @@ import { BELOW_MARKET_THRESHOLD, RENEWAL_CAPTURE, RENEWAL_WINDOW_DAYS, portfolio
  * every number in a diagnosis matches the tables and charts. With a real
  * backend these become rows written by the analysis pipeline.
  */
-
-const memberName = (id: string) => members.find((m) => m.id === id)?.name ?? "A teammate";
 
 /** The uploads or connector syncs behind a property's numbers. */
 export function sourcesFor(property: PropertyRecord, types: ReportType[] = ["t12"], imports: Import[] = effectiveImports()): EvidenceSource[] {
@@ -87,7 +88,7 @@ function monthsSince(from: MonthKey, property: PropertyRecord) {
 
 function computeInsights(): Insight[] {
   const imports = effectiveImports();
-  const records = propertyRecords(imports);
+  const records = allPropertyRecords(imports);
   const byId = (id: string) => records.find((r) => r.id === id)!;
   const { workOrders } = getGenerated();
   const out: Insight[] = [];
@@ -374,13 +375,27 @@ function computeInsights(): Insight[] {
   return out;
 }
 
+/** Properties a portfolio-level insight draws on; it shows only once all of them are in. */
+const PORTFOLIO_SCOPE: Record<string, string[]> = {
+  opp_landscaping_rebid: properties.filter((p) => p.property_manager_id === "pm_crestline").map((p) => p.id),
+  opp_portfolio_renewals: properties.map((p) => p.id),
+};
+
+/** Insights for the properties in the portfolio. A new workspace sees only what its uploads support. */
+function visibleInsights(): Insight[] {
+  const all = computeInsights();
+  if (!isNewWorkspace()) return all;
+  const inPortfolio = new Set(propertyRecords().map((r) => r.id));
+  return all.filter((i) => (i.property_id ? [i.property_id] : (PORTFOLIO_SCOPE[i.id] ?? [])).every((id) => inPortfolio.has(id)));
+}
+
 function monthEndOfLatest(records: PropertyRecord[]) {
   return records.map((r) => r.data_through).sort()[0];
 }
 
 export async function listInsights(orgId: string, filter: { type?: Insight["type"]; propertyId?: string } = {}): Promise<Insight[]> {
   await delay();
-  return computeInsights()
+  return visibleInsights()
     .filter((i) => i.org_id === orgId)
     .filter((i) => !filter.type || i.type === filter.type)
     .filter((i) => !filter.propertyId || i.property_id === filter.propertyId)
@@ -389,7 +404,7 @@ export async function listInsights(orgId: string, filter: { type?: Insight["type
 
 export async function getInsight(id: string): Promise<Insight | null> {
   await delay();
-  return computeInsights().find((i) => i.id === id) ?? null;
+  return visibleInsights().find((i) => i.id === id) ?? null;
 }
 
 // ---- Executive summary --------------------------------------------------
@@ -562,7 +577,7 @@ export async function getPropertySummary(propertyId: string, period: Period = "q
     sources,
   });
 
-  for (const insight of computeInsights().filter((i) => i.property_id === propertyId)) {
+  for (const insight of visibleInsights().filter((i) => i.property_id === propertyId)) {
     sentences.push({ text: insight.summary, evidence: insight.evidence, sources: insight.sources, insight_id: insight.id, is_estimate: insight.is_estimate });
   }
   if (isLagging(property)) {

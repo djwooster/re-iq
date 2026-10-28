@@ -14,7 +14,7 @@ import { ALL_MONTHS, formatDate, formatMonth, LATEST_MONTH, monthEnd } from "@/l
 import {
   confirmUpload,
   findSupersededImport,
-  listProperties,
+  listPropertyOptions,
   uploadReport,
   UPLOAD_STEPS,
   type UploadDraft,
@@ -154,7 +154,7 @@ function periodOptions(reportType?: ReportType) {
 function Review({ job, onChange, onImported }: { job: Job; onChange: (p: Partial<Job>) => void; onImported?: () => void }) {
   const { orgId } = useApp();
   const toast = useToast();
-  const { data: properties } = useData(() => listProperties(orgId), [orgId]);
+  const { data: properties } = useData(() => listPropertyOptions(orgId), [orgId]);
   const [saving, setSaving] = useState<"confirm" | "review" | null>(null);
   const draft = job.draft!;
   const mappings = job.mappings ?? [];
@@ -162,7 +162,8 @@ function Review({ job, onChange, onImported }: { job: Job; onChange: (p: Partial
   const unresolved = flagged.filter((m) => !m.confirmed_by_user).length;
   const ready = Boolean(job.propertyId && job.period && job.reportType);
   const superseded = ready ? findSupersededImport(job.propertyId!, job.reportType!, job.period!) : null;
-  const property = properties?.find((p) => p.property.id === job.propertyId)?.property;
+  const option = properties?.find((p) => p.property.id === job.propertyId);
+  const property = option?.property;
 
   const detectionLine = draft.detected_source_format
     ? `Looks like ${/^[aeiou]/i.test(SYSTEM_LABELS[draft.detected_source_format]) ? "an" : "a"} ${SYSTEM_LABELS[draft.detected_source_format]} ${draft.report_type ? REPORT_TYPE_SHORT[draft.report_type] : "report"} export`
@@ -177,7 +178,13 @@ function Review({ job, onChange, onImported }: { job: Job; onChange: (p: Partial
       const res = await confirmUpload({ draft, property_id: job.propertyId!, period: job.period!, report_type: job.reportType!, mappings, saveForReview });
       const changed = res.data_through !== res.previous_data_through;
       const label = `${res.property.name} ${REPORT_TYPE_SHORT[res.import.report_type]}`;
-      if (res.import.status === "needs_review") {
+      if (res.added_to_portfolio) {
+        toast(`${res.property.name} added to your portfolio`, { detail: `Data through ${formatDate(res.data_through)}` });
+        onChange({
+          phase: "done",
+          result: `${REPORT_TYPE_LABELS[res.import.report_type]} for ${res.property.name}, ${formatMonth(res.import.period)}. ${res.property.name} is now in your portfolio with data through ${formatDate(res.data_through)}.`,
+        });
+      } else if (res.import.status === "needs_review") {
         toast(`${label} saved for review`, { detail: `${unresolved} flagged ${unresolved === 1 ? "line" : "lines"} to confirm before it posts`, tone: "warning" });
         onChange({ phase: "done", result: `Saved to Needs review. Confirm ${unresolved} flagged ${unresolved === 1 ? "line" : "lines"} from Import history to post it.` });
       } else {
@@ -240,7 +247,14 @@ function Review({ job, onChange, onImported }: { job: Job; onChange: (p: Partial
             )}
           </Field>
         </div>
-        {property && job.reportType === "t12" && job.period && (
+        {property && option && !option.in_portfolio && job.reportType && (
+          <p className="mt-2 text-[11px] text-fg-3">
+            {job.reportType === "t12"
+              ? `Confirming adds ${property.name} to your portfolio.`
+              : `${property.name} joins your portfolio once its T12 is uploaded. This report is saved until then.`}
+          </p>
+        )}
+        {property && option?.in_portfolio && job.reportType === "t12" && job.period && (
           <p className="mt-2 text-[11px] text-fg-3">
             {property.name} currently has data through {formatDate(property.data_through)}.
             {job.period > property.data_through.slice(0, 7) && job.period <= LATEST_MONTH ? ` Confirming moves it to ${formatDate(monthEnd(job.period))}.` : ""}

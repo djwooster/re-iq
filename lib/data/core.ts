@@ -14,7 +14,7 @@ import type {
   PropertyRecord,
   VarianceDriver,
 } from "@/lib/types";
-import { dataSources, propertyManagers, properties } from "./mock/catalog";
+import { CURRENT_MEMBER_ID, dataSources, members, propertyManagers, properties } from "./mock/catalog";
 import { getGenerated } from "./mock/generate";
 import { getSeedImports, seedMappingsFor } from "./mock/imports";
 import { readOverlay } from "./store";
@@ -128,12 +128,26 @@ export function occupancyRow(propertyId: string, month: MonthKey) {
   return getIndexes().occupancy.get(key(propertyId, month));
 }
 
+// ---- Workspace ----------------------------------------------------------------
+
+/** A new workspace starts empty; properties appear as their first T12 is confirmed. */
+export function isNewWorkspace() {
+  return readOverlay().workspace === "new";
+}
+
+/** Display name for a member, using the signed-up profile in a new workspace. */
+export function memberName(id: string) {
+  const profile = readOverlay().profile;
+  if (profile && id === CURRENT_MEMBER_ID) return profile.name;
+  return members.find((m) => m.id === id)?.name ?? "A teammate";
+}
+
 // ---- Imports and freshness ----------------------------------------------------
 
 export function effectiveImports(): Import[] {
   const overlay = readOverlay();
   const deleted = new Set(overlay.deletedImportIds);
-  const seeded = getSeedImports()
+  const seeded = (overlay.workspace === "new" ? [] : getSeedImports())
     .filter((i) => !deleted.has(i.id))
     .map((i) => ({ ...i, ...overlay.importPatches[i.id] }));
   const added = overlay.imports.filter((i) => !deleted.has(i.id)).map((i) => ({ ...i, ...overlay.importPatches[i.id] }));
@@ -143,17 +157,25 @@ export function effectiveImports(): Import[] {
 /** Months before the earliest seeded upload came from the onboarding backfill. */
 const BACKFILL_THROUGH: MonthKey = "2026-06";
 
+function latestT12(propertyId: string, imports: Import[]): MonthKey | null {
+  return (
+    imports
+      .filter((i) => i.property_id === propertyId && i.report_type === "t12" && i.status === "processed")
+      .map((i) => i.period)
+      .sort(compareMonths)
+      .pop() ?? null
+  );
+}
+
 /** Latest month with actuals for a property, derived from its sources. */
 export function dataThroughMonth(propertyId: string, imports = effectiveImports()): MonthKey {
   const property = properties.find((p) => p.id === propertyId);
   if (!property) return LATEST_MONTH;
-  if (!property.data_source_ids.includes("src_upload")) return LATEST_MONTH;
-  const latest = imports
-    .filter((i) => i.property_id === propertyId && i.report_type === "t12" && i.status === "processed")
-    .map((i) => i.period)
-    .sort(compareMonths)
-    .pop();
-  const month = latest && compareMonths(latest, BACKFILL_THROUGH) > 0 ? latest : BACKFILL_THROUGH;
+  const latest = latestT12(propertyId, imports);
+  let month: MonthKey;
+  if (isNewWorkspace()) month = latest ?? LATEST_MONTH;
+  else if (!property.data_source_ids.includes("src_upload")) return LATEST_MONTH;
+  else month = latest && compareMonths(latest, BACKFILL_THROUGH) > 0 ? latest : BACKFILL_THROUGH;
   return compareMonths(month, LATEST_MONTH) > 0 ? LATEST_MONTH : month;
 }
 
@@ -163,13 +185,27 @@ export function sourceById(id: string): DataSource {
   return source;
 }
 
-export function propertyRecords(imports = effectiveImports()): PropertyRecord[] {
+/**
+ * Every catalog property, whether or not the workspace has data for it. Uploads
+ * can name any of them, and insights compute over all of them before filtering.
+ * In a new workspace nothing is connected, so every property is fed by uploads.
+ */
+export function allPropertyRecords(imports = effectiveImports()): PropertyRecord[] {
+  const fresh = isNewWorkspace();
   return properties.map((p) => ({
     ...p,
+    data_source_ids: fresh ? ["src_upload"] : p.data_source_ids,
     property_manager: propertyManagers.find((m) => m.id === p.property_manager_id)!,
-    primary_source: sourceById(p.data_source_ids[0]),
+    primary_source: sourceById(fresh ? "src_upload" : p.data_source_ids[0]),
     data_through: monthEnd(dataThroughMonth(p.id, imports)),
   }));
+}
+
+/** Properties in the portfolio: all of them in the sample, those with a confirmed T12 in a new workspace. */
+export function propertyRecords(imports = effectiveImports()): PropertyRecord[] {
+  const all = allPropertyRecords(imports);
+  if (!isNewWorkspace()) return all;
+  return all.filter((r) => latestT12(r.id, imports));
 }
 
 export function mappingsFor(imp: Import): AccountMapping[] {

@@ -5,12 +5,15 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Field, Input } from "@/components/ui/controls";
-import { SESSION_COOKIE } from "@/lib/data";
+import { SESSION_COOKIE, startNewWorkspace } from "@/lib/data";
 import { PRODUCT_NAME } from "@/lib/labels";
 
 type Mode = "login" | "signup";
 
-/** Placeholder auth: any input sets a mock session cookie and enters the demo org. */
+/**
+ * Placeholder auth: any input sets a mock session cookie. Signing in enters the
+ * sample portfolio; signing up starts an empty workspace named for the company.
+ */
 export function AuthForm({ mode }: { mode: Mode }) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
@@ -18,6 +21,11 @@ export function AuthForm({ mode }: { mode: Mode }) {
   const submit = (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
+    if (mode === "signup") {
+      const form = new FormData(e.currentTarget as HTMLFormElement);
+      const value = (k: string) => String(form.get(k) ?? "").trim();
+      startNewWorkspace({ company: value("company"), name: value("name"), email: value("email") });
+    }
     document.cookie = `${SESSION_COOKIE}=demo; path=/; max-age=${60 * 60 * 24 * 30}; samesite=lax`;
     const next = new URLSearchParams(window.location.search).get("next");
     window.setTimeout(() => router.push(next?.startsWith("/app") ? next : "/app"), 450);
@@ -47,7 +55,9 @@ export function AuthForm({ mode }: { mode: Mode }) {
         </Button>
       </form>
       <p className="mt-4 rounded-md border border-dashed border-border px-3 py-2 text-[11px] text-fg-3">
-        Demo environment: any credentials work and you&apos;ll enter the Alder Peak Capital sample portfolio.
+        {mode === "login"
+          ? "Demo environment: any credentials work and you'll enter the Alder Peak Capital sample portfolio."
+          : "Preview: your workspace and uploads stay in this browser. Nothing is sent or stored on our servers."}
       </p>
       <p className="mt-6 text-xs text-fg-3">
         {mode === "login" ? (

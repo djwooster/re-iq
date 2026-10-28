@@ -1,8 +1,13 @@
 import { ALL_MONTHS, TODAY, addDays, compareMonths, daysBetween, monthOf, periodMonths } from "@/lib/dates";
 import type { Import, Lease, MonthKey, Period, PropertyPerformance, PropertyRecord, Unit, VendorSpend, WorkOrder } from "@/lib/types";
-import { delay, effectiveImports, ledgerRow, occupancyRow, propertyPerformance, propertyRecords } from "./core";
+import { delay, effectiveImports, ledgerRow, occupancyRow, propertyPerformance, propertyRecords, allPropertyRecords } from "./core";
 import { vendors } from "./mock/catalog";
 import { getGenerated } from "./mock/generate";
+
+/** Whether the portfolio has any property yet. A new workspace has none until its first T12. */
+export function hasPortfolio() {
+  return propertyRecords().length > 0;
+}
 
 export async function listProperties(orgId: string, period: Period = "qtd"): Promise<PropertyPerformance[]> {
   await delay();
@@ -114,7 +119,7 @@ export function portfolioRentRoll(propertyIds: string[]): RentRollUnit[] {
 
 /** T12 vendor spend, allocated from GL actuals by each vendor's share. */
 export function vendorSpend(propertyId: string, asOf: MonthKey): VendorSpend[] {
-  const property = propertyRecords().find((p) => p.id === propertyId);
+  const property = allPropertyRecords().find((p) => p.id === propertyId);
   if (!property) return [];
   const months = periodMonths("t12", asOf);
   return vendors

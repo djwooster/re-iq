@@ -1,5 +1,5 @@
 import type { PmsSystem } from "@/lib/types";
-import { delay, propertyRecords } from "./core";
+import { delay, isNewWorkspace, propertyRecords } from "./core";
 import { dataSources } from "./mock/catalog";
 
 export interface Connector {
@@ -22,8 +22,9 @@ const CONNECTORS: Omit<Connector, "source" | "property_names">[] = [
 export async function listConnectors(orgId: string): Promise<Connector[]> {
   await delay();
   const records = propertyRecords();
+  const fresh = isNewWorkspace();
   return CONNECTORS.map((c) => {
-    const source = dataSources.find((s) => s.org_id === orgId && s.type === c.system) ?? null;
+    const source = fresh ? null : (dataSources.find((s) => s.org_id === orgId && s.type === c.system) ?? null);
     return {
       ...c,
       source,
@@ -34,5 +35,5 @@ export async function listConnectors(orgId: string): Promise<Connector[]> {
 
 export async function listDataSources(orgId: string) {
   await delay();
-  return dataSources.filter((s) => s.org_id === orgId);
+  return dataSources.filter((s) => s.org_id === orgId && (!isNewWorkspace() || s.type === "upload"));
 }

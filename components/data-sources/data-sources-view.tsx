@@ -7,7 +7,7 @@ import { Card } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/empty-state";
 import { FadeIn } from "@/components/ui/motion";
 import { LATEST_MONTH, formatDate, monthEnd } from "@/lib/dates";
-import { listConnectors, listImports, listMembers, listProperties } from "@/lib/data";
+import { listConnectors, listImports, listMembers, listProperties, listPropertyOptions } from "@/lib/data";
 import { useData } from "@/lib/hooks/use-data";
 import { SOURCE_LABELS } from "@/lib/labels";
 import { Connectors } from "./connectors";
@@ -23,8 +23,14 @@ export function DataSourcesView() {
   const selectedId = params.get("import");
 
   const { data } = useData(async () => {
-    const [imports, properties, members, connectors] = await Promise.all([listImports(orgId), listProperties(orgId), listMembers(orgId), listConnectors(orgId)]);
-    return { imports, properties: properties.map((p) => p.property), members, connectors };
+    const [imports, properties, options, members, connectors] = await Promise.all([
+      listImports(orgId),
+      listProperties(orgId),
+      listPropertyOptions(orgId),
+      listMembers(orgId),
+      listConnectors(orgId),
+    ]);
+    return { imports, properties: properties.map((p) => p.property), allProperties: options.map((o) => o.property), members, connectors };
   }, [orgId]);
 
   const select = (id: string | null) => router.replace(id ? `${pathname}?import=${id}` : pathname, { scroll: false });
@@ -43,7 +49,9 @@ export function DataSourcesView() {
               <Card className="flex flex-col gap-3 p-4 text-xs">
                 <div>
                   <div className="eyebrow mb-1.5">Coverage</div>
-                  {data ? (
+                  {data && data.properties.length === 0 ? (
+                    <p className="text-fg-2">No properties yet. A property is added when its first T12 is confirmed.</p>
+                  ) : data ? (
                     <p className="text-fg-2">
                       <span className="num text-fg">{current}</span> of <span className="num text-fg">{data.properties.length}</span> properties have data through{" "}
                       {formatDate(monthEnd(LATEST_MONTH))}.
@@ -73,7 +81,7 @@ export function DataSourcesView() {
 
           <FadeIn delay={0.06}>
             {data ? (
-              <ImportHistory imports={data.imports} properties={data.properties} members={data.members} selectedId={selectedId} onSelect={select} />
+              <ImportHistory imports={data.imports} properties={data.allProperties} members={data.members} selectedId={selectedId} onSelect={select} />
             ) : (
               <Skeleton className="h-64 w-full rounded-lg" />
             )}

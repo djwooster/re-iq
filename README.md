@@ -22,8 +22,22 @@ Other scripts: `npm run build`, `npm run lint`.
 Sessions run on the `testing` branch, which Vercel deploys to its own preview URL, so
 changes there never touch production (`main`). Merge what tests well back into `main`.
 
-Start each participant at `/demo?fresh=1`: it signs in and clears every change earlier
-participants made in that browser (uploads, mappings, action status, invites, theme).
+Start each participant at `/demo?fresh=1`: it signs out, clears everything earlier
+participants did in that browser, and opens signup. Signing up creates an empty workspace
+named for the company entered; Overview, Performance, Properties, and Actions show empty
+states until the first T12 is confirmed, and each property joins the portfolio with its
+first T12. (`/login` and plain `/demo` still enter the Alder Peak sample portfolio.)
+
+Participants upload the files in `/test-files/re-iq-test-files.zip` (download it from the
+preview URL and hand it over before the session). The mock parser reads file names, so it
+recognizes these: seven T12s (Gulch Terrace's is a month behind), a Brookstone rent roll,
+and a Hickory budget whose fiscal year has to be picked by hand. Regenerate them with
+`npx tsx scripts/make-test-files.ts`.
+
+Known shortcuts in the empty workspace: a T12 brings its property's budget and rent roll
+with it, so budget variance shows before a budget is uploaded; connectors stay
+"not available in this preview"; files with unrecognized names can be filed under any of
+the 14 sample properties.
 
 ## Dev tools
 
