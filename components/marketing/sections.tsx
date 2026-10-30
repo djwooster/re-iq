@@ -6,6 +6,7 @@ import { BridgeArt } from "./bridge-art";
 import { CompareArt } from "./compare-art";
 import { IngestArt } from "./ingest-art";
 import { RankArt } from "./rank-art";
+import { SectionCta } from "./section-cta";
 import { ReconcileArt } from "./reconcile-art";
 import { ValueArt } from "./value-art";
 import { WaitlistForm } from "./waitlist-form";
@@ -53,6 +54,7 @@ function ProductSection({
   visual,
   reverse,
   tinted,
+  demo,
 }: {
   id: string;
   eyebrow: string;
@@ -63,6 +65,8 @@ function ProductSection({
   reverse?: boolean;
   /** A slightly different background, so long runs of sections read as separate bands. */
   tinted?: boolean;
+  /** The demo page that shows this feature, for the section's call to action. */
+  demo: string;
 }) {
   return (
     <section id={id} className={cn("scroll-mt-12 border-t border-border", tinted && "bg-surface")}>
@@ -72,6 +76,7 @@ function ProductSection({
           <h2 className={cn(H2, "mt-2")}>{title}</h2>
           <div className={cn(BODY, "mt-3")}>{body}</div>
           {extra && <div className="mt-6">{extra}</div>}
+          <SectionCta demo={demo} className="mt-8" />
         </div>
         <div className={cn("min-w-0", reverse && "lg:order-1")}>{visual}</div>
       </div>
@@ -83,6 +88,7 @@ export function Ingest() {
   return (
     <ProductSection
       id="ingest"
+      demo="/app/data-sources"
       eyebrow="Ingest"
       title="Every manager, one format."
       body={
@@ -109,6 +115,7 @@ export function Reconcile() {
       id="reconcile"
       reverse
       tinted
+      demo="/app/data-sources"
       eyebrow="Reconcile"
       title="Numbers you can trust."
       body={<p>RE-IQ is designed to tie every total to the manager&apos;s own statements and flag any break, and every number traces back to a source line.</p>}
@@ -132,6 +139,7 @@ export function Explain() {
   return (
     <ProductSection
       id="explain"
+      demo="/app/performance"
       eyebrow="Explain"
       title="See where the gap comes from."
       body={<p>Budget to actual by driver and by property, expressed as NOI impact. The drivers always add up to the total.</p>}
@@ -146,6 +154,7 @@ export function Prioritize() {
       id="prioritize"
       reverse
       tinted
+      demo="/app"
       eyebrow="Prioritize"
       title="Start with what costs the most."
       body={<p>Diagnosis, not dashboards. Issues ranked by dollars, each with the numbers and source behind it and a next step you can assign.</p>}
@@ -163,6 +172,7 @@ export function CompareManagers() {
   return (
     <ProductSection
       id="managers"
+      demo="/app/performance"
       eyebrow="Compare managers"
       title="Compare managers on the same scale."
       body={<p>Once every package maps to one standard, you can put managers side by side on the same metrics. No property management system can, because each one only sees its own data.</p>}
@@ -177,6 +187,7 @@ export function Grow() {
       id="grow"
       reverse
       tinted
+      demo="/app/properties/prop_brookstone"
       eyebrow="Grow"
       title="Find the NOI you're leaving on the table."
       body={
@@ -211,6 +222,7 @@ export function WhyNotManagerAi() {
           <ComparisonColumn title="Manager software" rows={COMPARISON.map((r) => r.them)} />
           <ComparisonColumn title="RE-IQ" rows={COMPARISON.map((r) => r.us)} ours />
         </div>
+        <SectionCta demo="/app/performance" className="mt-10" />
       </div>
     </section>
   );

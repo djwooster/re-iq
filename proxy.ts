@@ -6,7 +6,9 @@ const SESSION_COOKIE = "reiq_session";
  * Mock auth gate. A session is just a cookie set by /login or /signup, or by
  * /demo, which the marketing site links to so visitors skip the sign-in form.
  * /demo?fresh=1 also wipes the browser's demo changes (see freshStartScript) so
- * each usability-test participant starts clean. Real auth (Supabase) replaces this.
+ * each usability-test participant starts clean. /demo?to=/app/... lands on a
+ * specific page (the marketing sections link to the feature they describe).
+ * Real auth (Supabase) replaces this.
  */
 export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
@@ -14,7 +16,10 @@ export function proxy(request: NextRequest) {
 
   if (pathname === "/demo") {
     const fresh = request.nextUrl.searchParams.has("fresh");
-    const response = NextResponse.redirect(new URL(fresh ? "/app#fresh" : "/app", request.url));
+    const to = request.nextUrl.searchParams.get("to");
+    // Only plain in-app paths, so the parameter can't redirect anywhere else.
+    const target = to && /^\/app(\/[\w-]+)*$/.test(to) ? to : "/app";
+    const response = NextResponse.redirect(new URL(fresh ? `${target}#fresh` : target, request.url));
     response.cookies.set(SESSION_COOKIE, "demo", { path: "/", maxAge: 60 * 60 * 24 * 30, sameSite: "lax" });
     return response;
   }
