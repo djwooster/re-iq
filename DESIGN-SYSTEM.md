@@ -14,8 +14,7 @@ copied from source; if they ever disagree, the code wins and this file should be
 - **Neutral by default.** Backgrounds, borders, and text are grayscale. Hierarchy comes from
   opacity and size, not hue.
 - **Color means something.** Green / red / amber only for state (good / bad / needs attention).
-  Brand blue for data visualization, data highlights, and RE-IQ's own moments (AI, links,
-  the marketing glow and navy band). Never for good/bad. Nothing else is colored for decoration.
+  Cyan only for data visualization and data highlights. Nothing is colored for decoration.
 - **Color is never the only cue.** Signed numbers always print their sign; badges carry a
   word; variance can append "fav" / "unfav".
 - **Flat.** Cards have a 1px border and no shadow. Only floating layers (drawers, modals,
@@ -48,10 +47,8 @@ Tailwind name is what components use.
 | `--favorable`       | `favorable`                   | `#15803d`                              | `#4ade80`                              | Good state, positive impact |
 | `--unfavorable`     | `unfavorable`                 | `#b91c1c`                              | `#f87171`                              | Bad state, negative impact, destructive actions |
 | `--warning`         | `warning`                     | `#b45309`                              | `#fbbf24`                              | Needs attention, late, low confidence |
-| `--brand`           | `brand`                       | `#2b3fa0`                              | `#8fa2ff`                              | Brand accent: AI moments, links, highlights |
-| `--navy`            | `navy`                        | `#0f1440`                              | `#11163f`                              | Marketing navy band (`.on-navy` re-points tokens inside it) |
-| `--data`            | `data`                        | `var(--brand)`                         | `var(--brand)`                         | Chart series, data highlights |
-| `--data-soft`       | `data-soft`                   | `var(--brand-soft)`                    | `var(--brand-soft)`                    | Text selection, highlighted inline text |
+| `--data`            | `data`                        | `#0e7490`                              | `#22d3ee`                              | Chart series, data highlights |
+| `--data-soft`       | `data-soft`                   | `rgb(14 116 144 / 0.14)`               | `rgb(34 211 238 / 0.16)`               | Text selection, highlighted inline text |
 | `--inverted`        | `inverted`                    | `#0a0a0a`                              | `#ffffff`                              | Primary button, toasts, chart tooltips |
 | `--inverted-text`   | `inverted-fg`                 | `#ffffff`                              | `#0a0a0a`                              | Text on `inverted` |
 | `--inverted-muted`  | `inverted-muted`              | `rgb(255 255 255 / 0.62)`              | `rgb(10 10 10 / 0.6)`                  | Secondary text on `inverted` |

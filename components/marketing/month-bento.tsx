@@ -46,7 +46,7 @@ export function MonthBento() {
           <h2 className="text-[28px] font-semibold leading-[1.2] tracking-[-0.02em] text-fg sm:text-[40px]">
             Month-end takes three weeks.
             <br />
-            <span className="mt-1 inline-block rounded-lg border border-brand/20 bg-brand-soft px-2 text-brand">RE-IQ gives them back.</span>
+            <span className="mt-1 inline-block rounded-lg border border-border bg-surface-2 px-2">RE-IQ gives them back.</span>
           </h2>
           <p className="max-w-[520px] text-[15px] leading-[1.6] text-fg-2">
             Wait for close, rebuild every package in Excel, check the math if there&apos;s time, skim for the big misses, then email managers and wait. RE-IQ handles the
