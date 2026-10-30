@@ -29,34 +29,30 @@ const FILES: FileNode[] = [
   { kind: "XLS", x: 248, y: 292, tilt: -5 },
 ];
 
-const CARD = { left: 438, right: 762 };
-const READ = { x: 380, y: 180 };
-const ACT = { x: 820, y: 180 };
-const RESULT = { left: 900, x: 990 };
+const CARD = { left: 438, right: 762, y: 180 };
+const RESULT = { left: 860 };
 
 const ISSUES = [280_430, 57_153, 28_547, 24_715];
 const MAX = ISSUES[0];
 const NOI_FOUND = 176_939;
 
-/** Each file's line swings up or down before settling into Read, so neighbours cross. */
+/** Each file's line swings up or down before settling into the card, so neighbours cross. */
 const SWING = [60, -55, 45, -65, 40, -50];
 
 const pct = (v: number, of: number) => `${(v / of) * 100}%`;
 
 function fileLine(f: FileNode, i: number) {
   const start = f.x + 26;
-  const end = READ.x - 34;
+  const end = CARD.left;
   const span = end - start;
-  return `M${start} ${f.y} C ${start + span * 0.5} ${f.y + SWING[i]}, ${end - span * 0.45} ${READ.y - SWING[i] * 0.5}, ${end} ${READ.y}`;
+  return `M${start} ${f.y} C ${start + span * 0.5} ${f.y + SWING[i]}, ${end - span * 0.45} ${CARD.y - SWING[i] * 0.5}, ${end} ${CARD.y}`;
 }
 
 type Flow = { d: string; dur: number; begin: number; tone: "bad" | "good" };
 
 const FLOWS: Flow[] = [
   ...FILES.map((f, i) => ({ d: fileLine(f, i), dur: 2.6 + (i % 3) * 0.4, begin: i * 0.4, tone: "bad" as const })),
-  { d: `M${READ.x + 34} ${READ.y} L${CARD.left} ${READ.y}`, dur: 1.2, begin: 0.3, tone: "bad" },
-  { d: `M${CARD.right} ${ACT.y} L${ACT.x - 30} ${ACT.y}`, dur: 1.2, begin: 0.8, tone: "good" },
-  { d: `M${ACT.x + 30} ${ACT.y} L${RESULT.left} ${ACT.y}`, dur: 1.4, begin: 1.3, tone: "good" },
+  { d: `M${CARD.right} ${CARD.y} L${RESULT.left} ${CARD.y}`, dur: 1.4, begin: 0.8, tone: "good" },
 ];
 
 export function HeroFlow() {
@@ -84,21 +80,15 @@ export function HeroFlow() {
             <FileGlyph {...f} />
           </Positioned>
         ))}
-        <Positioned x={READ.x} y={READ.y}>
-          <Pill>Read</Pill>
-        </Positioned>
         <div className="absolute top-1/2 -translate-y-1/2" style={{ left: pct(CARD.left, W), width: pct(CARD.right - CARD.left, W) }}>
           <RankedCard />
         </div>
-        <Positioned x={ACT.x} y={ACT.y}>
-          <Pill>Act</Pill>
-        </Positioned>
         <div className="absolute top-1/2 -translate-y-1/2" style={{ left: pct(RESULT.left, W) }}>
           <ResultTile />
         </div>
       </div>
 
-      {/* Stacked for phones and tablets: files, read, the card, the result */}
+      {/* Stacked for phones and tablets: files, the card, the result */}
       <div className="flex flex-col items-center gap-3 lg:hidden">
         <div className="flex items-end justify-center gap-2.5">
           {FILES.slice(0, 5).map((f, i) => (
@@ -149,10 +139,6 @@ function FileGlyph({ kind, tilt }: FileNode) {
       <span className="num absolute bottom-[7px] left-[7px] rounded-[4px] bg-inverted px-1 py-px text-[8.5px] font-semibold tracking-[0.04em] text-inverted-fg">{kind}</span>
     </span>
   );
-}
-
-function Pill({ children }: { children: React.ReactNode }) {
-  return <span className="block rounded-full bg-inverted px-3.5 py-1.5 text-[12px] font-medium text-inverted-fg">{children}</span>;
 }
 
 function ResultTile() {
