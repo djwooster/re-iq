@@ -1,4 +1,4 @@
-import { ArrowRight, CalendarClock, Check, FileSearch, Flag, Forward, Gauge, GitCompareArrows, Tag, X } from "lucide-react";
+import { CalendarClock, Check, FileSearch, Flag, Forward, Gauge, GitCompareArrows, Tag, X } from "lucide-react";
 import { FadeIn } from "@/components/ui/motion";
 import { cn } from "@/lib/cn";
 import { formatCurrencyShort } from "@/lib/format";
@@ -25,17 +25,17 @@ export function Hero() {
   return (
     <section className="mx-auto max-w-[1280px] px-4 pt-16 pb-16 sm:px-6 sm:pt-24 sm:pb-24">
       <FadeIn className="mx-auto flex max-w-[720px] flex-col items-center text-center">
-        <div className="eyebrow">Early access · Multifamily asset management</div>
-        <h1 className="mt-3 text-[48px] font-semibold leading-[1.02] tracking-[-0.035em] text-fg sm:text-[72px]">Month-end, done.</h1>
+        <span className="eyebrow inline-flex items-center gap-2 rounded-full border border-border bg-surface px-3 py-1 text-[11px]! text-fg-2">
+          <span className="size-1.5 rounded-full bg-fg-2" aria-hidden />
+          Early access · Multifamily asset management
+        </span>
+        <h1 className="mt-5 text-[36px] font-semibold leading-[1.08] tracking-[-0.03em] text-balance text-fg sm:text-[56px]">
+          Property manager reports, checked and explained.
+        </h1>
         <p className="mt-5 max-w-[560px] text-[16px] leading-[1.55] text-fg-2">
-          RE-IQ reads every property manager&apos;s monthly package, checks the math, and tells you what&apos;s wrong, why, and what to do about it.
+          RE-IQ reads every manager&apos;s monthly package, checks the math, and tells you what&apos;s wrong, why, and what to do about it.
         </p>
-        <WaitlistForm source="hero" className="mt-8 text-left" />
-        <a href="/demo" className="mt-3 inline-flex items-center gap-1 text-[12px] text-fg-2 transition-colors hover:text-fg">
-          Try the demo
-          <ArrowRight className="size-3" strokeWidth={1.75} aria-hidden />
-        </a>
-        <p className="mt-6 text-[11px] text-fg-3">For owners and asset managers with 5–30 properties and multiple managers.</p>
+        <WaitlistForm source="hero" hint={false} className="mt-8 text-left" />
       </FadeIn>
       <FadeIn delay={0.1} className="mt-12 sm:mt-14">
         <HeroFlow />
