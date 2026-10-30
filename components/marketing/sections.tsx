@@ -37,7 +37,7 @@ export function Hero() {
         </a>
         <p className="mt-6 text-[11px] text-fg-3">For owners and asset managers with 5–30 properties and multiple managers.</p>
       </FadeIn>
-      <FadeIn delay={0.1} className="mt-14 sm:mt-20">
+      <FadeIn delay={0.1} className="mt-12 sm:mt-14">
         <HeroFlow />
       </FadeIn>
     </section>
