@@ -17,10 +17,9 @@ code, `*-art.tsx`, paced by `use-cycle.ts`), then one section per pain:
 ingest, reconcile, explain, prioritize, compare managers, grow. Each product section opens
 with a muted "Today:" line. Then why-not-manager-AI, who it's for, and the final CTA.
 
-Product sections pair short copy with an animated vignette (`*-visual.tsx`) or a
-static one (`proof-visuals.tsx`: label merge, T-12 tie-out, manager scorecard). Vignettes use
-`Scene` (`scene.tsx`): it plays a step timeline when scrolled into view, has a
-replay button, and jumps to the final state under reduced motion.
+Every illustration is built in code as a small looping diagram (`*-art.tsx`):
+one idea each, real sample numbers, theme-aware. `use-cycle.ts` paces them; they
+loop only while on screen and hold their final frame under reduced motion.
 
-The vignettes hard-code numbers from the sample portfolio (Q3 2026, data through
+The illustrations hard-code numbers from the sample portfolio (Q3 2026, data through
 Sep 30) so they match the demo. If the seeded stories change, update them.

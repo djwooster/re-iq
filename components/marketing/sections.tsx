@@ -1,13 +1,13 @@
 import { CalendarClock, Check, FileSearch, Gauge, Tag, X } from "lucide-react";
 import { FadeIn } from "@/components/ui/motion";
 import { cn } from "@/lib/cn";
-import { formatCurrencyShort } from "@/lib/format";
 import { HeroFlow } from "./hero-flow";
+import { BridgeArt } from "./bridge-art";
+import { CompareArt } from "./compare-art";
 import { IngestArt } from "./ingest-art";
-import { PrioritizeVisual } from "./prioritize-visual";
-import { ScorecardVisual, TieOutVisual } from "./proof-visuals";
-import { RenewalsVisual } from "./renewals-visual";
-import { VarianceVisual } from "./variance-visual";
+import { RankArt } from "./rank-art";
+import { ReconcileArt } from "./reconcile-art";
+import { ValueArt } from "./value-art";
 import { WaitlistForm } from "./waitlist-form";
 
 /*
@@ -132,7 +132,7 @@ export function Reconcile() {
           ))}
         </ul>
       }
-      visual={<TieOutVisual />}
+      visual={<ReconcileArt />}
     />
   );
 }
@@ -145,7 +145,7 @@ export function Explain() {
       today="Today: you know NOI is off. Working out why takes days."
       title="See where the gap comes from."
       body={<p>Budget to actual by driver and by property, expressed as NOI impact. The drivers always add up to the total.</p>}
-      visual={<VarianceVisual />}
+      visual={<BridgeArt />}
     />
   );
 }
@@ -165,7 +165,7 @@ export function Prioritize() {
           The Mesa Verde HVAC problem started in May. It never crossed a typical variance threshold until it was <span className="num text-fg">$57K</span>.
         </p>
       }
-      visual={<PrioritizeVisual />}
+      visual={<RankArt />}
     />
   );
 }
@@ -178,19 +178,10 @@ export function CompareManagers() {
       today="Today: each manager's software only sees its own properties."
       title="Compare managers on the same scale."
       body={<p>Once every package maps to one standard, you can put managers side by side on the same metrics. No property management system can, because each one only sees its own data.</p>}
-      visual={<ScorecardVisual />}
+      visual={<CompareArt />}
     />
   );
 }
-
-/* The sample portfolio's open opportunities, which sum to the +$177K on the demo's Overview. */
-const OPPORTUNITIES = [
-  { where: "Brookstone Park", what: "58 below-market leases expiring by Jan 16", value: 65_736 },
-  { where: "Across the portfolio", what: "85 more below-market renewals in 90 days", value: 58_104 },
-  { where: "4 Crestline properties", what: "Landscaping $45 a unit over benchmark", value: 53_099 },
-];
-const CAP_RATE = 0.05;
-const OPPORTUNITY_TOTAL = OPPORTUNITIES.reduce((s, o) => s + o.value, 0);
 
 export function Grow() {
   return (
@@ -206,31 +197,7 @@ export function Grow() {
           rent rolls, T-12s, and vendor spend you already have, and labels every estimate with its assumption.
         </p>
       }
-      extra={
-        <div className="rounded-lg border border-border bg-surface">
-          <ul>
-            {OPPORTUNITIES.map((o) => (
-              <li key={o.where} className="flex items-baseline justify-between gap-3 border-b border-border px-3 py-2.5">
-                <span className="min-w-0">
-                  <span className="block truncate text-[12px] font-medium text-fg">{o.where}</span>
-                  <span className="block truncate text-[11px] text-fg-3">{o.what}</span>
-                </span>
-                <span className="shrink-0 text-right">
-                  <span className="num block text-[12px] text-favorable">+{formatCurrencyShort(o.value)}/yr</span>
-                  <span className="num block text-[10.5px] text-fg-3">≈ {formatCurrencyShort(o.value / CAP_RATE)} value</span>
-                </span>
-              </li>
-            ))}
-          </ul>
-          <div className="flex items-baseline justify-between gap-3 px-3 py-2.5 text-[12px]">
-            <span className="text-fg-2">Estimated, annual (sample)</span>
-            <span className="num text-fg">
-              +{formatCurrencyShort(OPPORTUNITY_TOTAL)} ≈ {formatCurrencyShort(OPPORTUNITY_TOTAL / CAP_RATE)}
-            </span>
-          </div>
-        </div>
-      }
-      visual={<RenewalsVisual />}
+      visual={<ValueArt />}
     />
   );
 }
