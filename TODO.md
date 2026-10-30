@@ -1,5 +1,11 @@
 # TODO
 
+## Business (see `STRATEGY.md`)
+- [ ] Decide the price book: unit price, platform minimum, tiers, and which modules are add-ons.
+- [ ] Model plans as entitlements (`lib/billing/plans.ts`) before the first paid customer.
+- [ ] Standard design-partner contract: annual, auto-renewing, time-boxed discount, PIIA for contributors.
+- [ ] Track time to first insight for new workspaces (start with the usability sessions).
+
 ## Product
 - [ ] Refined microinteractions (Rive-style, subtle), once the core flow is validated.
 - [ ] "Ask" interface for natural-language questions about the portfolio.
