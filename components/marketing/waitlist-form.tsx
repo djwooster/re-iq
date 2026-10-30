@@ -10,8 +10,8 @@ import { cn } from "@/lib/cn";
 
 const INITIAL: WaitlistState = { status: "idle" };
 
-/** Email capture for early access. `source` records which form on the page was used. */
-export function WaitlistForm({ source, className }: { source: string; className?: string }) {
+/** Email capture for early access. `source` records which form on the page was used; `hint` shows the privacy note. */
+export function WaitlistForm({ source, hint = true, className }: { source: string; hint?: boolean; className?: string }) {
   const [state, action, pending] = useActionState(joinWaitlist, INITIAL);
   const id = useId();
   const errorId = `${id}-error`;
@@ -59,7 +59,7 @@ export function WaitlistForm({ source, className }: { source: string; className?
                 {state.message}
               </p>
             ) : (
-              <p className="mt-2 text-[11px] text-fg-3">Work email preferred. We only use it to contact you about access.</p>
+              hint && <p className="mt-2 text-[11px] text-fg-3">Work email preferred. We only use it to contact you about access.</p>
             )}
           </motion.form>
         )}
