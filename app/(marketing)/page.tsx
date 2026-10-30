@@ -1,21 +1,40 @@
 import type { Metadata } from "next";
-// import { MonthEndChecklist } from "@/components/marketing/month-end-checklist";
-import { Features, FinalCta, Hero, Trust } from "@/components/marketing/sections";
+import {
+  CompareManagers,
+  Explain,
+  FinalCta,
+  Grow,
+  Hero,
+  HowItWorks,
+  Ingest,
+  Prioritize,
+  Reconcile,
+  WhoItsFor,
+  WhyNotManagerAi,
+  YourMonth,
+} from "@/components/marketing/sections";
 
 export const metadata: Metadata = {
   title: { absolute: "RE-IQ · Portfolio intelligence for multifamily" },
   description:
-    "RE-IQ turns the T12s, rent rolls, and work orders your property managers send into variance, ranked issues, and next steps.",
+    "RE-IQ reads every property manager's monthly package, checks the math, and tells you what's wrong, why, and what to do about it.",
 };
 
+/* The buyer's month first, then each pain with the product's answer. */
 export default function HomePage() {
   return (
     <>
       <Hero />
-      {/* Checklist band: hidden while its presentation is reworked. */}
-      {/* <MonthEndChecklist /> */}
-      <Features />
-      <Trust />
+      <YourMonth />
+      <HowItWorks />
+      <Ingest />
+      <Reconcile />
+      <Explain />
+      <Prioritize />
+      <CompareManagers />
+      <Grow />
+      <WhyNotManagerAi />
+      <WhoItsFor />
       <FinalCta />
     </>
   );

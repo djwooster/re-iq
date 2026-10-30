@@ -10,8 +10,13 @@ Signups go through the `joinWaitlist` server action (`actions.ts`) to
 appends to `.data/waitlist.jsonl` (gitignored) and production returns an error
 instead of dropping the signup.
 
-Each feature section pairs short copy with an animated product vignette
-(`*-visual.tsx`, including the hero). Vignettes use
+The page follows the buyer's month: hero (packages in, ranked list out, `hero-flow.tsx`),
+"Your month, today" (`month-timeline.tsx`), how it works, then one section per pain:
+ingest, reconcile, explain, prioritize, compare managers, grow. Each product section opens
+with a muted "Today:" line. Then why-not-manager-AI, who it's for, and the final CTA.
+
+Product sections pair short copy with an animated vignette (`*-visual.tsx`) or a
+static one (`proof-visuals.tsx`: label merge, T-12 tie-out, manager scorecard). Vignettes use
 `Scene` (`scene.tsx`): it plays a step timeline when scrolled into view, has a
 replay button, and jumps to the final state under reduced motion.
 
