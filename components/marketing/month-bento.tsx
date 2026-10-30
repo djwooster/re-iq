@@ -5,7 +5,8 @@ import { cn } from "@/lib/cn";
  * The buyer's month, made scannable: four cards, each a step of month-end
  * RE-IQ takes off the asset manager's plate. Each card has an illustration
  * slot. Until a file exists, a simple vector stand-in renders in its place;
- * to swap one in, put the image in public/marketing/ and set `image`.
+ * to swap one in, put the image in public/marketing/ and set `image`. The
+ * vector version also stands in under dark mode.
  */
 
 type Art = "excel" | "tieout" | "creep" | "source";
@@ -15,6 +16,7 @@ const CARDS: { title: string; body: string; art: Art; image?: string; wide: bool
     title: "No more rebuilding in Excel",
     body: "Yardi, Entrata, AppFolio, ResMan, or Rent Manager: every layout lands in one chart of accounts, without retyping.",
     art: "excel",
+    image: "/marketing/data-mapping.png",
     wide: true,
   },
   {
@@ -68,7 +70,17 @@ export function MonthBento() {
                 <p className="mt-2 max-w-[520px] text-[13px] leading-[1.6] text-fg-2">{card.body}</p>
               </div>
               <div className={cn("relative h-[240px]", !card.textBelow && "mt-auto")}>
-                {card.image ? <Image src={card.image} alt="" fill className="object-contain" sizes="(min-width: 1024px) 700px, 100vw" /> : <PlaceholderArt art={card.art} />}
+                {card.image ? (
+                  <>
+                    {/* The illustrations are drawn on light backgrounds, so dark mode keeps the vector version. */}
+                    <Image src={card.image} alt="" fill className="object-contain dark:hidden" sizes="(min-width: 1024px) 700px, 100vw" />
+                    <span className="hidden dark:block">
+                      <PlaceholderArt art={card.art} />
+                    </span>
+                  </>
+                ) : (
+                  <PlaceholderArt art={card.art} />
+                )}
               </div>
             </li>
           ))}
