@@ -11,8 +11,9 @@ appends to `.data/waitlist.jsonl` (gitignored) and production returns an error
 instead of dropping the signup.
 
 The page follows the buyer's month: hero (packages in, ranked list out, `hero-flow.tsx`),
-"What RE-IQ does" (`what-we-do.tsx`: read, check, rank), "Your month, today"
-(`month-timeline.tsx`), then one section per pain:
+"What RE-IQ does" (`what-we-do.tsx`: read, check, rank), the month-end
+bento (`month-bento.tsx`: four cards with illustration slots; vector stand-ins
+render until an image is set), then one section per pain:
 ingest, reconcile, explain, prioritize, compare managers, grow. Each product section opens
 with a muted "Today:" line. Then why-not-manager-AI, who it's for, and the final CTA.
 
