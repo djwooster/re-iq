@@ -15,7 +15,7 @@ copied from source; if they ever disagree, the code wins and this file should be
   opacity and size, not hue.
 - **Color means something.** Green / red / amber only for state (good / bad / needs attention).
   The one accent (`--data`: steel teal in dark, deep cyan in light) only for data visualization,
-  data highlights, and RE-IQ's AI moments. Nothing is colored for decoration. Dark is the default theme.
+  data highlights, and RE-IQ's AI moments. Nothing is colored for decoration. Light is the default theme.
 - **Color is never the only cue.** Signed numbers always print their sign; badges carry a
   word; variance can append "fav" / "unfav".
 - **Flat.** Cards have a 1px border and no shadow. Only floating layers (drawers, modals,
@@ -478,32 +478,35 @@ Files: `components/theme/theme-provider.tsx`, `components/theme/inline-script.ts
 (it is still listed in `package.json` but unused; React 19 warns about its script tag).
 
 1. **Before first paint.** `themeScript` is a tiny dependency-free IIFE rendered in
-   `<head>`. It reads the stored preference (`light` / `system`; missing = `dark`, the
+   `<head>`. It reads the stored preference (`dark` / `system`; missing = `light`, the
    default), resolves `system` with `matchMedia("(prefers-color-scheme: dark)")`, toggles `.dark` on
    `<html>`, and sets `style.colorScheme`. Wrapped in `try/catch` so blocked storage falls
-   back to dark silently.
+   back to light silently.
 2. **InlineScript.** Renders the script with `type="text/javascript"` on the server and
    `type="text/plain"` on the client, with `suppressHydrationWarning`. The browser runs it
    once during HTML parsing; on the client React sees an inert script and doesn't warn.
 3. **`<html suppressHydrationWarning>`** because the class is changed before hydration.
 4. **ThemeProvider** (client) exposes `{ preference, resolved, setPreference }` via
    `useTheme()`. State is read with `useSyncExternalStore` from `localStorage` and from
-   the `<html>` class (server snapshot: `dark` / `dark`), so there's no effect-driven
+   the `<html>` class (server snapshot: `light` / `light`), so there's no effect-driven
    re-render and no mismatch.
 5. **Applying a change** adds `.theme-switching` to `<html>`, toggles `.dark`, sets
    `colorScheme`, then removes the class on the next tick. `.theme-switching *` sets
    `transition: none !important` so hover/color transitions don't animate the swap.
-6. **Dark is the default.** Choosing `dark` removes the storage key; `light` and `system`
-   are stored. A first-time visitor gets dark regardless of OS setting.
+6. **Light is the default.** Choosing `light` removes the storage key; `dark` and `system`
+   are stored. A first-time visitor gets light regardless of OS setting.
 7. **Live updates.** Listens to the OS `prefers-color-scheme` change (applies only when the
    preference is `system`) and to `storage` events (syncs other tabs).
-8. **Browser chrome.** `viewport.themeColor` in the root layout is `#090909`, matching the
-   default dark `--bg`. `<html>` ships with the `dark` class so the first paint is dark.
+8. **Browser chrome.** `viewport.themeColor` in the root layout is `#ffffff`, matching the
+   default light `--bg`.
 9. **Tailwind dark variant** is bound to the class:
    `@custom-variant dark (&:where(.dark, .dark *));`. Because colors are tokens, `dark:`
    is almost never needed in components.
 
-Dark is the default; nothing is stored until the user picks Light or System.
+**Dark-mode prompt** (`components/theme/dark-mode-prompt.tsx`, mounted in the app shell):
+if the OS prefers dark and the user has never been asked or picked a theme, a `Modal`
+offers Keep light / Match my computer / Use dark. Any choice, or closing it, sets
+`THEME_PROMPT_KEY` so it never shows again; picking a theme in Settings sets it too.
 
 The UI control is a `Segmented` with Light / Dark / System. Change `STORAGE_KEY` when
 reusing.
@@ -577,6 +580,7 @@ needs to be replaced; everything else is generic.
 
 - `components/theme/theme-provider.tsx` *(adapt: `STORAGE_KEY`)*
 - `components/theme/inline-script.tsx`
+- `components/theme/dark-mode-prompt.tsx` *(optional; only if the default is light)*
 
 **UI primitives** (`components/ui`)
 

@@ -52,6 +52,7 @@ function ProductSection({
   extra,
   visual,
   reverse,
+  tinted,
 }: {
   id: string;
   eyebrow: string;
@@ -60,9 +61,11 @@ function ProductSection({
   extra?: React.ReactNode;
   visual: React.ReactNode;
   reverse?: boolean;
+  /** A slightly different background, so long runs of sections read as separate bands. */
+  tinted?: boolean;
 }) {
   return (
-    <section id={id} className="scroll-mt-12 border-t border-border">
+    <section id={id} className={cn("scroll-mt-12 border-t border-border", tinted && "bg-surface")}>
       <div className="mx-auto grid max-w-[1280px] items-center gap-10 px-4 py-16 sm:px-6 sm:py-24 lg:grid-cols-2 lg:gap-16">
         <div className={cn("max-w-[560px]", reverse && "lg:order-2")}>
           <div className="eyebrow">{eyebrow}</div>
@@ -105,6 +108,7 @@ export function Reconcile() {
     <ProductSection
       id="reconcile"
       reverse
+      tinted
       eyebrow="Reconcile"
       title="Numbers you can trust."
       body={<p>RE-IQ is designed to tie every total to the manager&apos;s own statements and flag any break, and every number traces back to a source line.</p>}
@@ -141,6 +145,7 @@ export function Prioritize() {
     <ProductSection
       id="prioritize"
       reverse
+      tinted
       eyebrow="Prioritize"
       title="Start with what costs the most."
       body={<p>Diagnosis, not dashboards. Issues ranked by dollars, each with the numbers and source behind it and a next step you can assign.</p>}
@@ -171,6 +176,7 @@ export function Grow() {
     <ProductSection
       id="grow"
       reverse
+      tinted
       eyebrow="Grow"
       title="Find the NOI you're leaving on the table."
       body={
