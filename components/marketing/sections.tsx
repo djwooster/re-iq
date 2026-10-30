@@ -4,7 +4,6 @@ import { cn } from "@/lib/cn";
 import { formatCurrencyShort } from "@/lib/format";
 import { HeroFlow } from "./hero-flow";
 import { IngestVisual } from "./ingest-visual";
-import { MonthTimeline } from "./month-timeline";
 import { PrioritizeVisual } from "./prioritize-visual";
 import { LabelMerge, ScorecardVisual, TieOutVisual } from "./proof-visuals";
 import { RenewalsVisual } from "./renewals-visual";
@@ -40,22 +39,6 @@ export function Hero() {
       <FadeIn delay={0.1} className="mt-12 sm:mt-14">
         <HeroFlow />
       </FadeIn>
-    </section>
-  );
-}
-
-export function YourMonth() {
-  return (
-    <section id="your-month" className="scroll-mt-12 border-t border-border">
-      <div className="mx-auto max-w-[1280px] px-4 py-16 sm:px-6 sm:py-24">
-        <div className="max-w-[560px]">
-          <div className="eyebrow">Your month, today</div>
-          <h2 className={cn(H2, "mt-2")}>Every month, the same three weeks.</h2>
-        </div>
-        <div className="mt-10 lg:mt-14">
-          <MonthTimeline />
-        </div>
-      </div>
     </section>
   );
 }

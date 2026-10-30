@@ -10,8 +10,8 @@ import {
   Reconcile,
   WhoItsFor,
   WhyNotManagerAi,
-  YourMonth,
 } from "@/components/marketing/sections";
+import { MonthBento } from "@/components/marketing/month-bento";
 import { WhatWeDo } from "@/components/marketing/what-we-do";
 
 export const metadata: Metadata = {
@@ -26,7 +26,7 @@ export default function HomePage() {
     <>
       <Hero />
       <WhatWeDo />
-      <YourMonth />
+      <MonthBento />
       <Ingest />
       <Reconcile />
       <Explain />
