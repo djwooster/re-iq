@@ -23,7 +23,10 @@
   - [x] Push and test a live signup.
   - [ ] Notion leftovers: `.env.local` lines and the database (in Notion's Trash) are gone; DJ still
         removes `NOTION_TOKEN` from Vercel and deletes the "RE-IQ site" integration.
-- [ ] Rework and restore the month-end checklist band under the hero (`month-end-checklist.tsx`, hidden in `page.tsx`).
+- [x] Marketing page restructured around the buyer's month (replaces the hidden checklist band).
+- [ ] Marketing: blog at `/blog` with the eight drafted post ideas (deferred).
+- [ ] Marketing: confirm before launch that we can deliver the "forward last quarter's packages,
+      get a free portfolio review" offer and the RE-IQ inbox the copy describes.
 
 ## Data ingestion
 - [ ] Real report parsing pipeline: Excel/CSV/PDF → AI extraction → account mapping with
