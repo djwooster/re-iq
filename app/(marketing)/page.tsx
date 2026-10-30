@@ -5,7 +5,6 @@ import {
   FinalCta,
   Grow,
   Hero,
-  HowItWorks,
   Ingest,
   Prioritize,
   Reconcile,
@@ -13,6 +12,7 @@ import {
   WhyNotManagerAi,
   YourMonth,
 } from "@/components/marketing/sections";
+import { WhatWeDo } from "@/components/marketing/what-we-do";
 
 export const metadata: Metadata = {
   title: { absolute: "RE-IQ · Portfolio intelligence for multifamily" },
@@ -25,8 +25,8 @@ export default function HomePage() {
   return (
     <>
       <Hero />
+      <WhatWeDo />
       <YourMonth />
-      <HowItWorks />
       <Ingest />
       <Reconcile />
       <Explain />

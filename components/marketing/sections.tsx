@@ -1,4 +1,4 @@
-import { CalendarClock, Check, FileSearch, Flag, Forward, Gauge, GitCompareArrows, Tag, X } from "lucide-react";
+import { CalendarClock, Check, FileSearch, Gauge, Tag, X } from "lucide-react";
 import { FadeIn } from "@/components/ui/motion";
 import { cn } from "@/lib/cn";
 import { formatCurrencyShort } from "@/lib/format";
@@ -55,52 +55,6 @@ export function YourMonth() {
         <div className="mt-10 lg:mt-14">
           <MonthTimeline />
         </div>
-      </div>
-    </section>
-  );
-}
-
-const STEPS = [
-  {
-    icon: Forward,
-    title: "Forward",
-    body: "Send the packages your managers already email you to your RE-IQ inbox, or upload them. Connect a manager's system where it's supported.",
-  },
-  {
-    icon: GitCompareArrows,
-    title: "We translate and reconcile",
-    body: "Every manager's accounts map to one standard chart, and totals are checked against the manager's own statements.",
-  },
-  {
-    icon: Flag,
-    title: "You get a ranked list",
-    body: "Issues ordered by dollar impact, each with the cause and a next step you can assign.",
-  },
-];
-
-export function HowItWorks() {
-  return (
-    <section id="how-it-works" className="scroll-mt-12 border-t border-border">
-      <div className="mx-auto max-w-[1280px] px-4 py-16 sm:px-6 sm:py-24">
-        <div className="max-w-[560px]">
-          <div className="eyebrow">How it works</div>
-          <h2 className={cn(H2, "mt-2")}>Forward the reports you already get.</h2>
-          <p className={cn(BODY, "mt-3")}>No integration project and nothing for IT to install.</p>
-        </div>
-        <ol className="mt-10 grid gap-3 md:grid-cols-3">
-          {STEPS.map(({ icon: Icon, title, body }, i) => (
-            <li key={title} className="rounded-lg border border-border bg-surface p-5">
-              <div className="flex items-center justify-between">
-                <span className="grid size-8 place-items-center rounded-md border border-border bg-bg text-fg-2">
-                  <Icon className="size-4" strokeWidth={1.75} aria-hidden />
-                </span>
-                <span className="num text-[10px] text-fg-3">0{i + 1}</span>
-              </div>
-              <h3 className="mt-4 text-[14px] font-semibold text-fg">{title}</h3>
-              <p className="mt-1.5 text-[13px] leading-[1.55] text-fg-2">{body}</p>
-            </li>
-          ))}
-        </ol>
       </div>
     </section>
   );
