@@ -1,6 +1,7 @@
 import { cn } from "@/lib/cn";
 import { CreepArt } from "./creep-art";
 import { MappingArt } from "./mapping-art";
+import { SectionCta } from "./section-cta";
 import { SourceArt } from "./source-art";
 import { TieOutArt } from "./tieout-art";
 
@@ -73,6 +74,7 @@ export function MonthBento() {
             </li>
           ))}
         </ul>
+        <SectionCta className="mt-10" />
       </div>
     </section>
   );

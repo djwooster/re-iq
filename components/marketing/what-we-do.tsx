@@ -1,5 +1,6 @@
 import { Check, Flag, Mail, TriangleAlert, FileSpreadsheet, CircleCheck } from "lucide-react";
 import { cn } from "@/lib/cn";
+import { SectionCta } from "./section-cta";
 
 /*
  * "What RE-IQ does": three cards, each a small diagram of one job (read,
@@ -29,6 +30,7 @@ export function WhatWeDo() {
             <RankDiagram />
           </Card>
         </ul>
+        <SectionCta className="mt-10 justify-center" />
       </div>
     </section>
   );
