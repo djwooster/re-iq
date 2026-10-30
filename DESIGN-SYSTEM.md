@@ -14,7 +14,8 @@ copied from source; if they ever disagree, the code wins and this file should be
 - **Neutral by default.** Backgrounds, borders, and text are grayscale. Hierarchy comes from
   opacity and size, not hue.
 - **Color means something.** Green / red / amber only for state (good / bad / needs attention).
-  Cyan only for data visualization and data highlights. Nothing is colored for decoration.
+  The one accent (`--data`: steel teal in dark, deep cyan in light) only for data visualization,
+  data highlights, and RE-IQ's AI moments. Nothing is colored for decoration. Dark is the default theme.
 - **Color is never the only cue.** Signed numbers always print their sign; badges carry a
   word; variance can append "fav" / "unfav".
 - **Flat.** Cards have a 1px border and no shadow. Only floating layers (drawers, modals,
@@ -36,18 +37,18 @@ Tailwind name is what components use.
 
 | CSS variable        | Tailwind name                 | Light                                  | Dark                                   | Use |
 |---------------------|-------------------------------|----------------------------------------|----------------------------------------|-----|
-| `--bg`              | `bg`                          | `#ffffff`                              | `#0a0a0b`                              | Page background, sidebar, inputs, drawers, modals |
-| `--surface`         | `surface`                     | `#fafafa`                              | `#111113`                              | Cards, secondary buttons |
-| `--surface-2`       | `surface-2`                   | `#f4f4f5`                              | `#18181b`                              | Hover fill on buttons / icon buttons |
-| `--border`          | `border`                      | `#e5e5e5`                              | `rgb(255 255 255 / 0.08)`              | Every default border (applied globally to `*`) |
-| `--border-strong`   | `border-strong`               | `#c9c9cc`                              | `rgb(255 255 255 / 0.2)`               | Hover borders, chart cursor, zero lines, dashed drop zones |
-| `--text-primary`    | `fg`                          | `#0a0a0a`                              | `#ffffff`                              | Headings, values, active items |
-| `--text-secondary`  | `fg-2`                        | `rgb(10 10 10 / 0.72)`                 | `rgb(255 255 255 / 0.7)`               | Body copy, inactive nav, labels |
-| `--text-muted`      | `fg-3`                        | `rgb(10 10 10 / 0.6)`                  | `rgb(255 255 255 / 0.5)`               | Captions, hints, eyebrows, axis ticks |
-| `--favorable`       | `favorable`                   | `#15803d`                              | `#4ade80`                              | Good state, positive impact |
-| `--unfavorable`     | `unfavorable`                 | `#b91c1c`                              | `#f87171`                              | Bad state, negative impact, destructive actions |
-| `--warning`         | `warning`                     | `#b45309`                              | `#fbbf24`                              | Needs attention, late, low confidence |
-| `--data`            | `data`                        | `#0e7490`                              | `#22d3ee`                              | Chart series, data highlights |
+| `--bg`              | `bg`                          | `#ffffff`                              | `#090909`                              | Page background, sidebar, inputs, drawers, modals |
+| `--surface`         | `surface`                     | `#fafafa`                              | `#111111`                              | Cards, secondary buttons |
+| `--surface-2`       | `surface-2`                   | `#f4f4f5`                              | `#1c1c1c`                              | Hover fill on buttons / icon buttons |
+| `--border`          | `border`                      | `#e5e5e5`                              | `#232323`                              | Every default border (applied globally to `*`) |
+| `--border-strong`   | `border-strong`               | `#c9c9cc`                              | `#353535`                              | Hover borders, chart cursor, zero lines, dashed drop zones |
+| `--text-primary`    | `fg`                          | `#0a0a0a`                              | `#f2edea`                              | Headings, values, active items |
+| `--text-secondary`  | `fg-2`                        | `rgb(10 10 10 / 0.72)`                 | `#aaaaaa`                              | Body copy, inactive nav, labels |
+| `--text-muted`      | `fg-3`                        | `rgb(10 10 10 / 0.6)`                  | `#808080`                              | Captions, hints, eyebrows, axis ticks |
+| `--favorable`       | `favorable`                   | `#15803d`                              | `#8fbf9f`                              | Good state, positive impact |
+| `--unfavorable`     | `unfavorable`                 | `#b91c1c`                              | `#e08a80`                              | Bad state, negative impact, destructive actions |
+| `--warning`         | `warning`                     | `#b45309`                              | `#d9a95b`                              | Needs attention, late, low confidence |
+| `--data`            | `data`                        | `#0e7490`                              | `#6c9bad`                              | Chart series, data highlights |
 | `--data-soft`       | `data-soft`                   | `rgb(14 116 144 / 0.14)`               | `rgb(34 211 238 / 0.16)`               | Text selection, highlighted inline text |
 | `--inverted`        | `inverted`                    | `#0a0a0a`                              | `#ffffff`                              | Primary button, toasts, chart tooltips |
 | `--inverted-text`   | `inverted-fg`                 | `#ffffff`                              | `#0a0a0a`                              | Text on `inverted` |
@@ -477,35 +478,32 @@ Files: `components/theme/theme-provider.tsx`, `components/theme/inline-script.ts
 (it is still listed in `package.json` but unused; React 19 warns about its script tag).
 
 1. **Before first paint.** `themeScript` is a tiny dependency-free IIFE rendered in
-   `<head>`. It reads the stored preference (`dark` / `system`; missing = `light`, the
+   `<head>`. It reads the stored preference (`light` / `system`; missing = `dark`, the
    default), resolves `system` with `matchMedia("(prefers-color-scheme: dark)")`, toggles `.dark` on
    `<html>`, and sets `style.colorScheme`. Wrapped in `try/catch` so blocked storage falls
-   back to light silently.
+   back to dark silently.
 2. **InlineScript.** Renders the script with `type="text/javascript"` on the server and
    `type="text/plain"` on the client, with `suppressHydrationWarning`. The browser runs it
    once during HTML parsing; on the client React sees an inert script and doesn't warn.
 3. **`<html suppressHydrationWarning>`** because the class is changed before hydration.
 4. **ThemeProvider** (client) exposes `{ preference, resolved, setPreference }` via
    `useTheme()`. State is read with `useSyncExternalStore` from `localStorage` and from
-   the `<html>` class (server snapshot: `light` / `light`), so there's no effect-driven
+   the `<html>` class (server snapshot: `dark` / `dark`), so there's no effect-driven
    re-render and no mismatch.
 5. **Applying a change** adds `.theme-switching` to `<html>`, toggles `.dark`, sets
    `colorScheme`, then removes the class on the next tick. `.theme-switching *` sets
    `transition: none !important` so hover/color transitions don't animate the swap.
-6. **Light is the default.** Choosing `light` removes the storage key; `dark` and `system`
-   are stored. A first-time visitor gets light regardless of OS setting.
+6. **Dark is the default.** Choosing `dark` removes the storage key; `light` and `system`
+   are stored. A first-time visitor gets dark regardless of OS setting.
 7. **Live updates.** Listens to the OS `prefers-color-scheme` change (applies only when the
    preference is `system`) and to `storage` events (syncs other tabs).
-8. **Browser chrome.** `viewport.themeColor` in the root layout is `#ffffff`, matching the
-   default light `--bg`.
+8. **Browser chrome.** `viewport.themeColor` in the root layout is `#090909`, matching the
+   default dark `--bg`. `<html>` ships with the `dark` class so the first paint is dark.
 9. **Tailwind dark variant** is bound to the class:
    `@custom-variant dark (&:where(.dark, .dark *));`. Because colors are tokens, `dark:`
    is almost never needed in components.
 
-**Dark-mode prompt** (`components/theme/dark-mode-prompt.tsx`, mounted in the app shell):
-if the OS prefers dark and the user has never been asked or picked a theme, a `Modal`
-offers Keep light / Match my computer / Use dark. Any choice, or closing it, sets
-`THEME_PROMPT_KEY` so it never shows again; picking a theme in Settings sets it too.
+Dark is the default; nothing is stored until the user picks Light or System.
 
 The UI control is a `Segmented` with Light / Dark / System. Change `STORAGE_KEY` when
 reusing.
@@ -579,7 +577,6 @@ needs to be replaced; everything else is generic.
 
 - `components/theme/theme-provider.tsx` *(adapt: `STORAGE_KEY`)*
 - `components/theme/inline-script.tsx`
-- `components/theme/dark-mode-prompt.tsx` *(optional; only if the default is light)*
 
 **UI primitives** (`components/ui`)
 
