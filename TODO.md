@@ -7,6 +7,8 @@
 - [ ] Track time to first insight for new workspaces (start with the usability sessions).
 
 ## Product
+- [ ] Design system pass: bring the marketing illustrations' micro-animations (fade + 8px rise,
+      check-ins, cycling highlights; `components/marketing/*-art.tsx`, `use-cycle.ts`) into the app.
 - [ ] Refined microinteractions (Rive-style, subtle), once the core flow is validated.
 - [ ] "Ask" interface for natural-language questions about the portfolio.
 - [ ] New-organization onboarding: signup currently enters the demo org; a fresh org should

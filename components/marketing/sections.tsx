@@ -3,9 +3,9 @@ import { FadeIn } from "@/components/ui/motion";
 import { cn } from "@/lib/cn";
 import { formatCurrencyShort } from "@/lib/format";
 import { HeroFlow } from "./hero-flow";
-import { IngestVisual } from "./ingest-visual";
+import { IngestArt } from "./ingest-art";
 import { PrioritizeVisual } from "./prioritize-visual";
-import { LabelMerge, ScorecardVisual, TieOutVisual } from "./proof-visuals";
+import { ScorecardVisual, TieOutVisual } from "./proof-visuals";
 import { RenewalsVisual } from "./renewals-visual";
 import { VarianceVisual } from "./variance-visual";
 import { WaitlistForm } from "./waitlist-form";
@@ -100,8 +100,7 @@ export function Ingest() {
           you, so nothing is guessed silently.
         </p>
       }
-      extra={<LabelMerge />}
-      visual={<IngestVisual />}
+      visual={<IngestArt />}
     />
   );
 }
