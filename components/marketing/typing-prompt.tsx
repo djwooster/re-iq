@@ -37,7 +37,7 @@ export function TypingPrompt() {
       <span className="truncate" aria-hidden>
         {reduce ? QUESTIONS[0] : text.slice(0, length)}
       </span>
-      <span className="ml-px h-3.5 w-px shrink-0 animate-pulse bg-fg" aria-hidden />
+      <span className="ml-px h-3.5 w-px shrink-0 animate-pulse bg-brand" aria-hidden />
     </span>
   );
 }

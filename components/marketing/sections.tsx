@@ -25,7 +25,7 @@ export function Hero() {
     <section className="mx-auto max-w-[1280px] px-4 pt-16 pb-16 sm:px-6 sm:pt-24 sm:pb-24">
       <FadeIn className="mx-auto flex max-w-[720px] flex-col items-center text-center">
         <span className="eyebrow inline-flex items-center gap-2 rounded-full border border-border bg-surface px-3 py-1 text-[11px]! text-fg-2">
-          <span className="size-1.5 rounded-full bg-fg-2" aria-hidden />
+          <span className="size-1.5 rounded-full bg-brand" aria-hidden />
           Early access · Multifamily asset management
         </span>
         <h1 className="mt-5 text-[36px] font-semibold leading-[1.08] tracking-[-0.03em] text-balance text-fg sm:text-[56px]">
@@ -240,8 +240,10 @@ export function WhoItsFor() {
 
 export function FinalCta() {
   return (
-    <section id="early-access" className="scroll-mt-16 border-t border-border bg-surface">
-      <div className="mx-auto flex max-w-[1280px] flex-col gap-8 px-4 py-16 sm:px-6 sm:py-20 lg:flex-row lg:items-end lg:justify-between">
+    <section id="early-access" className="on-navy relative scroll-mt-16 overflow-hidden bg-navy">
+      {/* A soft glow so the band reads as light on deep blue, not a flat block */}
+      <span className="pointer-events-none absolute -top-40 right-[-10%] size-[520px] rounded-full bg-brand/40 blur-[120px]" aria-hidden />
+      <div className="relative mx-auto flex max-w-[1280px] flex-col gap-8 px-4 py-16 sm:px-6 sm:py-24 lg:flex-row lg:items-end lg:justify-between">
         <div className="max-w-[480px]">
           <h2 className={H2}>See your portfolio this week.</h2>
           <p className={cn(BODY, "mt-3")}>
