@@ -43,40 +43,29 @@ export function Hero() {
   );
 }
 
-/** A product section: the pain today, the headline, then the product's answer beside a visual. */
+/** A product section: the headline and the product's answer beside a visual, splitting the content width evenly. */
 function ProductSection({
   id,
   eyebrow,
-  today,
   title,
   body,
   extra,
   visual,
   reverse,
-  wide,
 }: {
   id: string;
   eyebrow: string;
-  today: string;
   title: string;
   body: React.ReactNode;
   extra?: React.ReactNode;
   visual: React.ReactNode;
   reverse?: boolean;
-  /** Gives the visual more room, for the section that carries the most weight. */
-  wide?: boolean;
 }) {
   return (
     <section id={id} className="scroll-mt-12 border-t border-border">
-      <div
-        className={cn(
-          "mx-auto grid max-w-[1280px] items-center gap-8 px-4 py-16 sm:px-6 sm:py-24 lg:gap-14",
-          wide ? "lg:grid-cols-[minmax(0,3fr)_minmax(0,7fr)]" : "lg:grid-cols-[minmax(0,4fr)_minmax(0,7fr)]",
-        )}
-      >
-        <div className={cn("max-w-[440px]", reverse && "lg:order-2")}>
-          <p className="text-[12px] leading-[1.5] text-fg-3">{today}</p>
-          <div className="eyebrow mt-5">{eyebrow}</div>
+      <div className="mx-auto grid max-w-[1280px] items-center gap-10 px-4 py-16 sm:px-6 sm:py-24 lg:grid-cols-2 lg:gap-16">
+        <div className={cn("max-w-[560px]", reverse && "lg:order-2")}>
+          <div className="eyebrow">{eyebrow}</div>
           <h2 className={cn(H2, "mt-2")}>{title}</h2>
           <div className={cn(BODY, "mt-3")}>{body}</div>
           {extra && <div className="mt-6">{extra}</div>}
@@ -92,7 +81,6 @@ export function Ingest() {
     <ProductSection
       id="ingest"
       eyebrow="Ingest"
-      today="Today: hours per property rebuilding packages in Excel."
       title="Every manager, one format."
       body={
         <p>
@@ -118,7 +106,6 @@ export function Reconcile() {
       id="reconcile"
       reverse
       eyebrow="Reconcile"
-      today="Today: checking the math is the first thing that gets skipped."
       title="Numbers you can trust."
       body={<p>RE-IQ is designed to tie every total to the manager&apos;s own statements and flag any break, and every number traces back to a source line.</p>}
       extra={
@@ -142,7 +129,6 @@ export function Explain() {
     <ProductSection
       id="explain"
       eyebrow="Explain"
-      today="Today: you know NOI is off. Working out why takes days."
       title="See where the gap comes from."
       body={<p>Budget to actual by driver and by property, expressed as NOI impact. The drivers always add up to the total.</p>}
       visual={<BridgeArt />}
@@ -155,9 +141,7 @@ export function Prioritize() {
     <ProductSection
       id="prioritize"
       reverse
-      wide
       eyebrow="Prioritize"
-      today="Today: with 16 properties, only the big misses get attention. Slow problems hide for months."
       title="Start with what costs the most."
       body={<p>Diagnosis, not dashboards. Issues ranked by dollars, each with the numbers and source behind it and a next step you can assign.</p>}
       extra={
@@ -175,7 +159,6 @@ export function CompareManagers() {
     <ProductSection
       id="managers"
       eyebrow="Compare managers"
-      today="Today: each manager's software only sees its own properties."
       title="Compare managers on the same scale."
       body={<p>Once every package maps to one standard, you can put managers side by side on the same metrics. No property management system can, because each one only sees its own data.</p>}
       visual={<CompareArt />}
@@ -189,7 +172,6 @@ export function Grow() {
       id="grow"
       reverse
       eyebrow="Grow"
-      today="Today: below-market renewals and creeping vendor costs go unnoticed."
       title="Find the NOI you're leaving on the table."
       body={
         <p>

@@ -29,7 +29,7 @@ export function ValueArt() {
   const valued = step > OPPORTUNITIES.length + 1;
 
   return (
-    <div ref={ref} className="mx-auto flex w-full max-w-[460px] flex-col items-center gap-3" aria-hidden>
+    <div ref={ref} className="flex w-full flex-col items-center gap-3" aria-hidden>
       <div className="w-full rounded-xl border border-border bg-surface shadow-overlay">
         <div className="flex items-center justify-between border-b border-border px-4 py-2.5">
           <span className="text-[11.5px] font-medium text-fg">Where NOI can grow</span>

@@ -31,7 +31,7 @@ export function RankArt() {
   const list = ranked ? SORTED : ISSUES;
 
   return (
-    <div ref={ref} className="mx-auto h-[380px] w-full max-w-[520px]" aria-hidden>
+    <div ref={ref} className="h-[380px] w-full" aria-hidden>
       <div className="rounded-xl border border-border bg-surface shadow-overlay">
         <div className="flex items-center justify-between border-b border-border px-4 py-2.5">
           <span className="text-[11.5px] font-medium text-fg">Needs attention</span>
