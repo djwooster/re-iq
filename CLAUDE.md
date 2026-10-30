@@ -17,6 +17,17 @@ write-back, or AI calls. See `README.md`, `HANDOFF.md`, `TODO.md`.
 - No lorem ipsum or placeholder copy. Plain, specific language; no hype.
 - Commit at logical milestones on `main` (remote: github.com/djwooster/re-iq). Push only when asked.
 
+## Building to be acquirable (see `STRATEGY.md`)
+- One codebase for every customer: no customer-specific branches, forks, or hard-coded org IDs.
+  Differences between customers go through plan entitlements or org settings.
+- Pricing, plans, and limits live in one config (future `lib/billing/plans.ts`), never in UI copy
+  or scattered conditionals. Gate paid features through entitlements, not ad-hoc checks.
+- When adding a feature, say whether it's core or an expansion path (units, seats by role, module).
+- Onboarding must be self-serve. Anything that needs our staff to set up a customer is a services
+  cost; prefer fixing it in the product (parsing templates, mapping review) for everyone.
+- Keep it auditable: every record has `org_id`; changes to customer data get an audit trail once
+  there's a real backend.
+
 ## Architecture
 - Next.js 16 App Router (Cache Components on), React 19, Tailwind v4, Motion, Recharts.
 - Routes: `app/(app)/app/*` product, `app/(auth)` login/signup, `app/(marketing)` reserved.
