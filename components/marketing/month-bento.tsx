@@ -1,5 +1,6 @@
 import Image from "next/image";
 import { cn } from "@/lib/cn";
+import { MappingArt } from "./mapping-art";
 
 /*
  * The buyer's month, made scannable: four cards, each a step of month-end
@@ -16,7 +17,6 @@ const CARDS: { title: string; body: string; art: Art; image?: string; wide: bool
     title: "No more rebuilding in Excel",
     body: "Yardi, Entrata, AppFolio, ResMan, or Rent Manager: every layout lands in one chart of accounts, without retyping.",
     art: "excel",
-    image: "/marketing/data-mapping.png",
     wide: true,
   },
   {
@@ -70,7 +70,9 @@ export function MonthBento() {
                 <p className="mt-2 max-w-[520px] text-[13px] leading-[1.6] text-fg-2">{card.body}</p>
               </div>
               <div className={cn("relative h-[240px]", !card.textBelow && "mt-auto")}>
-                {card.image ? (
+                {card.art === "excel" ? (
+                  <MappingArt />
+                ) : card.image ? (
                   <>
                     {/* The illustrations are drawn on light backgrounds, so dark mode keeps the vector version. */}
                     <Image src={card.image} alt="" fill className="object-contain dark:hidden" sizes="(min-width: 1024px) 700px, 100vw" />
@@ -90,23 +92,11 @@ export function MonthBento() {
   );
 }
 
-/** Wireframe stand-ins until the illustrations are ready. */
-function PlaceholderArt({ art }: { art: Art }) {
+/** Wireframe stand-ins until the illustrations are ready. The Excel card's is built out in code (`mapping-art.tsx`). */
+function PlaceholderArt({ art }: { art: Exclude<Art, "excel"> }) {
   return (
     <svg viewBox="0 0 400 240" className="absolute inset-0 size-full" preserveAspectRatio="xMidYMid meet" aria-hidden>
       <g className="fill-none stroke-border-strong" strokeWidth={1}>
-        {art === "excel" && (
-          <>
-            {[60, 96, 132, 168].map((y, i) => (
-              <rect key={y} x={60} y={y} width={88} height={22} rx={6} strokeDasharray="3 3" opacity={i === 1 ? 1 : 0.5} />
-            ))}
-            <path d="M148 107 C 180 107, 180 120, 212 120" strokeDasharray="3 3" />
-            <rect x={212} y={96} width={140} height={48} rx={8} className="fill-bg stroke-border-strong" />
-            <rect x={226} y={110} width={40} height={6} rx={3} className="fill-fg/15 stroke-none" />
-            <rect x={274} y={110} width={64} height={6} rx={3} className="fill-fg stroke-none" />
-            <rect x={226} y={124} width={112} height={6} rx={3} className="fill-fg/10 stroke-none" />
-          </>
-        )}
         {art === "tieout" && (
           <>
             <path d="M110 170 A 90 90 0 0 1 290 170" strokeDasharray="2 4" />
