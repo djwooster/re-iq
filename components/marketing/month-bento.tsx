@@ -40,7 +40,7 @@ const CARDS: { title: string; body: string; art: React.ReactNode; wide: boolean;
 
 export function MonthBento() {
   return (
-    <section id="your-month" className="scroll-mt-12 border-t border-border">
+    <section id="your-month" className="scroll-mt-12 border-t border-border bg-surface">
       <div className="mx-auto max-w-[1280px] px-4 py-16 sm:px-6 sm:py-24">
         <div className="grid gap-6 lg:grid-cols-2 lg:items-end lg:gap-14">
           <h2 className="text-[28px] font-semibold leading-[1.2] tracking-[-0.02em] text-fg sm:text-[40px]">
@@ -58,7 +58,7 @@ export function MonthBento() {
             <li
               key={card.title}
               className={cn(
-                "flex overflow-hidden rounded-lg border border-border bg-surface",
+                "flex overflow-hidden rounded-lg border border-border bg-bg",
                 card.wide ? "lg:col-span-7" : "lg:col-span-5",
                 card.textBelow ? "flex-col-reverse" : "flex-col",
               )}
