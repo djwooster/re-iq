@@ -53,9 +53,10 @@ write-back, or AI calls. See `README.md`, `HANDOFF.md`, `TODO.md`.
 
 ## Design system
 - Tokens are CSS variables in `app/globals.css` (`--bg`, `--surface`, `--border`,
-  `--text-*`, `--favorable`, `--unfavorable`, `--warning`, `--data`) mapped to Tailwind
+  `--text-*`, `--favorable`, `--unfavorable`, `--warning`, `--brand`, `--data`) mapped to Tailwind
   (`bg-surface`, `text-fg-2`, `text-favorable`, ...). Never hard-code colors.
-- Neutral UI; green/red/amber only for state; cyan only for data viz. Hierarchy via opacity and scale.
+- Neutral UI; green/red/amber only for state; brand blue (`--brand`, also `--data`) for data viz and
+  RE-IQ's own moments (AI, links, the hero glow), never for good/bad. Hierarchy via opacity and scale.
 - Geist Sans for UI; Geist Mono with tabular numbers (`num`, `eyebrow` utilities) for metrics,
   table numbers, file names, eyebrow labels. 11–12px body, 13–14px headings.
 - Cards: surface, 1px border, rounded-lg, no shadow. Only modals/drawers get shadows.

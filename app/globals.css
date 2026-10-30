@@ -19,8 +19,13 @@
   --favorable: #15803d;
   --unfavorable: #b91c1c;
   --warning: #b45309;
-  --data: #0e7490;
-  --data-soft: rgb(14 116 144 / 0.14);
+  --brand: #2b3fa0;
+  --brand-soft: rgb(43 63 160 / 0.1);
+  --brand-glow: rgb(155 172 216 / 0.45);
+  --brand-text: #ffffff;
+  --navy: #0f1440;
+  --data: var(--brand);
+  --data-soft: var(--brand-soft);
   --inverted: #0a0a0a;
   --inverted-text: #ffffff;
   --inverted-muted: rgb(255 255 255 / 0.62);
@@ -41,13 +46,38 @@
   --favorable: #4ade80;
   --unfavorable: #f87171;
   --warning: #fbbf24;
-  --data: #22d3ee;
-  --data-soft: rgb(34 211 238 / 0.16);
+  --brand: #8fa2ff;
+  --brand-soft: rgb(143 162 255 / 0.14);
+  --brand-glow: rgb(59 74 158 / 0.4);
+  --brand-text: #0a0a0a;
+  --navy: #11163f;
+  --data: var(--brand);
+  --data-soft: var(--brand-soft);
   --inverted: #ffffff;
   --inverted-text: #0a0a0a;
   --inverted-muted: rgb(10 10 10 / 0.6);
   --backdrop: rgb(0 0 0 / 0.5);
   --overlay-shadow: 0 16px 48px -12px rgb(0 0 0 / 0.7), 0 0 0 1px rgb(255 255 255 / 0.06);
+  color-scheme: dark;
+}
+
+/*
+ * Content on the navy band (the marketing page's closing CTA) in either theme:
+ * the same components, re-pointed at light-on-navy values.
+ */
+.on-navy {
+  --bg: rgb(255 255 255 / 0.06);
+  --surface: rgb(255 255 255 / 0.04);
+  --surface-2: rgb(255 255 255 / 0.08);
+  --border: rgb(255 255 255 / 0.14);
+  --border-strong: rgb(255 255 255 / 0.28);
+  --text-primary: #ffffff;
+  --text-secondary: rgb(255 255 255 / 0.74);
+  --text-muted: rgb(255 255 255 / 0.56);
+  --favorable: #4ade80;
+  --unfavorable: #fca5a5;
+  --inverted: #ffffff;
+  --inverted-text: #0f1440;
   color-scheme: dark;
 }
 
@@ -63,6 +93,11 @@
   --color-favorable: var(--favorable);
   --color-unfavorable: var(--unfavorable);
   --color-warning: var(--warning);
+  --color-brand: var(--brand);
+  --color-brand-soft: var(--brand-soft);
+  --color-brand-glow: var(--brand-glow);
+  --color-brand-fg: var(--brand-text);
+  --color-navy: var(--navy);
   --color-data: var(--data);
   --color-data-soft: var(--data-soft);
   --color-inverted: var(--inverted);

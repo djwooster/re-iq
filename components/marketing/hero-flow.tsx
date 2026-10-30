@@ -59,6 +59,12 @@ export function HeroFlow() {
   return (
     <figure aria-label={`Every manager's reports in, ranked issues and +${formatCurrencyShort(NOI_FOUND)} of NOI found out (sample)`} className="mx-auto w-full max-w-[1120px]">
       <div className="relative hidden aspect-[1200/360] lg:block">
+        {/* Soft brand glow behind the card */}
+        <span
+          className="pointer-events-none absolute top-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full bg-brand-glow blur-[70px]"
+          style={{ left: pct((CARD.left + CARD.right) / 2, W), width: pct((CARD.right - CARD.left) * 1.5, W), height: "85%" }}
+          aria-hidden
+        />
         <svg className="absolute inset-0 size-full overflow-visible" viewBox={`0 0 ${W} ${H}`} aria-hidden>
           <g fill="none" stroke="currentColor" strokeWidth={1} className="text-border-strong">
             {FLOWS.map((f) => (
@@ -98,8 +104,11 @@ export function HeroFlow() {
           ))}
         </div>
         <ArrowDown className="size-4 text-unfavorable" strokeWidth={1.75} aria-hidden />
-        <div className="w-full max-w-[380px]">
-          <RankedCard />
+        <div className="relative w-full max-w-[380px]">
+          <span className="pointer-events-none absolute inset-x-[-10%] inset-y-[-15%] rounded-full bg-brand-glow blur-[50px]" aria-hidden />
+          <div className="relative">
+            <RankedCard />
+          </div>
         </div>
         <ArrowDown className="size-4 text-favorable" strokeWidth={1.75} aria-hidden />
         <ResultTile />
