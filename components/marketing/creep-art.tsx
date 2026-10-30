@@ -88,7 +88,7 @@ export function CreepArt() {
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0 }}
               transition={{ duration: 0.3, ease: "easeOut" }}
-              className="absolute -translate-x-1/2 -translate-y-[calc(100%+12px)] rounded-full bg-inverted px-2.5 py-1 text-[10.5px] font-medium whitespace-nowrap text-inverted-fg"
+              className="absolute -translate-x-1/2 -translate-y-[calc(100%+12px)] rounded-full bg-data px-2.5 py-1 text-[10.5px] font-medium whitespace-nowrap text-inverted-fg"
               style={{ left: pct(x(FLAG), W), top: pct(y(POINTS[FLAG].value), H) }}
             >
               RE-IQ flags it · Jun

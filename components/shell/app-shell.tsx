@@ -4,7 +4,6 @@ import { AnimatePresence, motion } from "motion/react";
 import { usePathname } from "next/navigation";
 import { createContext, Suspense, useContext, useEffect, useState } from "react";
 import { UploadProvider } from "@/components/data-sources/upload-button";
-import { DarkModePrompt } from "@/components/theme/dark-mode-prompt";
 import { ToastProvider } from "@/components/ui/toast";
 import { AppProvider } from "./app-context";
 import { Sidebar } from "./sidebar";
@@ -58,7 +57,6 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               )}
             </AnimatePresence>
             <main className="min-w-0 md:pl-[220px]">{children}</main>
-            <DarkModePrompt />
           </div>
         </MobileNavContext.Provider>
         </UploadProvider>

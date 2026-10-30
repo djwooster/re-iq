@@ -29,23 +29,28 @@
   color-scheme: light;
 }
 
+/*
+ * Dark is the default theme. Charcoal neutrals, warm off-white ink (Star Dust),
+ * one muted accent (Steel Teal, with Japanese Indigo for fills), and state
+ * colors softened to sit with them.
+ */
 .dark {
-  --bg: #0a0a0b;
-  --surface: #111113;
-  --surface-2: #18181b;
-  --border: rgb(255 255 255 / 0.08);
-  --border-strong: rgb(255 255 255 / 0.2);
-  --text-primary: #ffffff;
-  --text-secondary: rgb(255 255 255 / 0.7);
-  --text-muted: rgb(255 255 255 / 0.5);
-  --favorable: #4ade80;
-  --unfavorable: #f87171;
-  --warning: #fbbf24;
-  --data: #22d3ee;
-  --data-soft: rgb(34 211 238 / 0.16);
-  --inverted: #ffffff;
-  --inverted-text: #0a0a0a;
-  --inverted-muted: rgb(10 10 10 / 0.6);
+  --bg: #090909;
+  --surface: #111111;
+  --surface-2: #1c1c1c;
+  --border: #232323;
+  --border-strong: #353535;
+  --text-primary: #f2edea;
+  --text-secondary: #aaaaaa;
+  --text-muted: #808080;
+  --favorable: #8fbf9f;
+  --unfavorable: #e08a80;
+  --warning: #d9a95b;
+  --data: #6c9bad;
+  --data-soft: rgb(34 77 95 / 0.6);
+  --inverted: #f2edea;
+  --inverted-text: #111111;
+  --inverted-muted: rgb(17 17 17 / 0.6);
   --backdrop: rgb(0 0 0 / 0.5);
   --overlay-shadow: 0 16px 48px -12px rgb(0 0 0 / 0.7), 0 0 0 1px rgb(255 255 255 / 0.06);
   color-scheme: dark;
