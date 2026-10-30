@@ -26,7 +26,7 @@ export function ReconcileArt() {
 
   return (
     <div ref={ref} className="flex flex-col items-center gap-4" aria-hidden>
-      <div className="grid w-full max-w-[620px] grid-cols-[minmax(0,1fr)_40px_minmax(0,1fr)] items-stretch">
+      <div className="grid w-full grid-cols-[minmax(0,1fr)_40px_minmax(0,1fr)] items-stretch">
         <Column title="Manager's statement" values={ROWS.map((r) => r.manager)} step={step} />
         <ul className="flex flex-col pt-[37px] pb-1">
           {ROWS.map((row, i) => (

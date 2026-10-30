@@ -38,7 +38,7 @@ export function BridgeArt() {
   const done = step > DRIVERS.length;
 
   return (
-    <div ref={ref} className="mx-auto w-full max-w-[620px] rounded-xl border border-border bg-surface p-4 shadow-overlay sm:p-5" aria-hidden>
+    <div ref={ref} className="w-full rounded-xl border border-border bg-surface p-4 shadow-overlay sm:p-5" aria-hidden>
       <div className="flex items-baseline justify-between gap-3">
         <span className="text-[11px] text-fg-3">
           Budget NOI <span className="num text-fg">{formatCurrencyShort(BUDGET)}</span>

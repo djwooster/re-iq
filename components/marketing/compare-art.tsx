@@ -33,7 +33,7 @@ export function CompareArt() {
   const metric = METRICS[step];
 
   return (
-    <div ref={ref} className="mx-auto w-full max-w-[560px] rounded-xl border border-border bg-surface shadow-overlay" aria-hidden>
+    <div ref={ref} className="w-full rounded-xl border border-border bg-surface shadow-overlay" aria-hidden>
       <div className="flex gap-1 border-b border-border p-1.5">
         {METRICS.map((m, i) => (
           <span key={m.label} className="relative flex-1 rounded-md px-2 py-1.5 text-center text-[11px]">
