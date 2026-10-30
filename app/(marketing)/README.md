@@ -12,8 +12,8 @@ instead of dropping the signup.
 
 The page follows the buyer's month: hero (packages in, ranked list out, `hero-flow.tsx`),
 "What RE-IQ does" (`what-we-do.tsx`: read, check, rank), the month-end
-bento (`month-bento.tsx`: four cards with illustration slots; vector stand-ins
-render until an image is set), then one section per pain:
+bento (`month-bento.tsx`: four cards, each with a looping illustration built in
+code, `*-art.tsx`, paced by `use-cycle.ts`), then one section per pain:
 ingest, reconcile, explain, prioritize, compare managers, grow. Each product section opens
 with a muted "Today:" line. Then why-not-manager-AI, who it's for, and the final CTA.
 

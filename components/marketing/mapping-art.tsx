@@ -1,9 +1,9 @@
 "use client";
 
 import { Check } from "lucide-react";
-import { AnimatePresence, motion, useInView, useReducedMotion } from "motion/react";
-import { useEffect, useRef, useState } from "react";
+import { AnimatePresence, motion } from "motion/react";
 import { cn } from "@/lib/cn";
+import { useCycle } from "./use-cycle";
 
 /*
  * Five managers' names for the same expense. Each in turn connects to the one
@@ -28,17 +28,7 @@ const pct = (v: number, of: number) => `${(v / of) * 100}%`;
 const connector = (y: number) => `M${LABEL_RIGHT + 8} ${y} C ${LABEL_RIGHT + 60} ${y}, ${ROW.left - 60} ${ROW.y}, ${ROW.left} ${ROW.y}`;
 
 export function MappingArt() {
-  const ref = useRef<HTMLDivElement>(null);
-  const inView = useInView(ref, { amount: 0.4 });
-  const reduce = useReducedMotion();
-  const [active, setActive] = useState(1);
-
-  useEffect(() => {
-    if (!inView || reduce) return;
-    const timer = window.setInterval(() => setActive((a) => (a + 1) % LABELS.length), 1800);
-    return () => window.clearInterval(timer);
-  }, [inView, reduce]);
-
+  const { ref, step: active } = useCycle(LABELS.length, 1800, 1);
   const current = LABELS[active];
 
   return (
