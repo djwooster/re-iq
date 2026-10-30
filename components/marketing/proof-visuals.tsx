@@ -1,32 +1,9 @@
-import { ArrowRight, Check } from "lucide-react";
+import { Check } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/cn";
 import { formatCurrency } from "@/lib/format";
 
 /* Static visuals for the marketing page. Numbers come from the sample portfolio (Q3 2026). */
-
-/** Three managers' labels for the same expense, mapped to one standard line. */
-export function LabelMerge() {
-  const labels = [
-    { label: "Repairs", system: "Yardi" },
-    { label: "R&M", system: "Entrata" },
-    { label: "Maintenance", system: "AppFolio" },
-  ];
-  return (
-    <div className="flex items-center gap-3" aria-label="Repairs, R&M, and Maintenance all map to Repairs and maintenance">
-      <ul className="flex flex-col gap-1.5">
-        {labels.map((l) => (
-          <li key={l.label} className="flex items-center gap-2 rounded-md border border-border bg-surface px-2 py-1 text-[11px]">
-            <span className="text-fg">{l.label}</span>
-            <span className="text-[10px] text-fg-3">{l.system}</span>
-          </li>
-        ))}
-      </ul>
-      <ArrowRight className="size-4 shrink-0 text-fg-3" strokeWidth={1.75} aria-hidden />
-      <span className="rounded-md border border-border-strong bg-surface-2 px-2.5 py-1.5 text-[11px] font-medium text-fg">Repairs &amp; maintenance</span>
-    </div>
-  );
-}
 
 const TIE_OUT = [
   { line: "Total revenue", value: 5_001_598 },
