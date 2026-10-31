@@ -1,11 +1,9 @@
-import { CalendarClock, Check, FileSearch, Gauge, Tag, X } from "lucide-react";
+import { CalendarClock, FileSearch, Gauge, Tag } from "lucide-react";
 import { FadeIn } from "@/components/ui/motion";
 import { cn } from "@/lib/cn";
 import { HeroFlow } from "./hero-flow";
 import { BridgeArt } from "./bridge-art";
-import { CompareArt } from "./compare-art";
 import { IngestArt } from "./ingest-art";
-import { RankArt } from "./rank-art";
 import { SectionCta } from "./section-cta";
 import { ReconcileArt } from "./reconcile-art";
 import { ValueArt } from "./value-art";
@@ -35,7 +33,7 @@ export function Hero() {
         <p className="mt-5 max-w-[560px] text-[16px] leading-[1.55] text-fg-2">
           RE-IQ reads every manager&apos;s monthly package, checks the math, and tells you what&apos;s wrong, why, and what to do about it.
         </p>
-        <WaitlistForm source="hero" hint={false} className="mt-8 text-left" />
+        <WaitlistForm source="hero" className="mt-8 text-left" />
       </FadeIn>
       <FadeIn delay={0.1} className="mt-12 sm:mt-14">
         <HeroFlow />
@@ -89,6 +87,7 @@ export function Ingest() {
     <ProductSection
       id="ingest"
       demo="/app/data-sources"
+      tinted
       eyebrow="Ingest"
       title="Every manager, one format."
       body={
@@ -114,7 +113,6 @@ export function Reconcile() {
     <ProductSection
       id="reconcile"
       reverse
-      tinted
       demo="/app/data-sources"
       eyebrow="Reconcile"
       title="Numbers you can trust."
@@ -140,43 +138,11 @@ export function Explain() {
     <ProductSection
       id="explain"
       demo="/app/performance"
+      tinted
       eyebrow="Explain"
       title="See where the gap comes from."
       body={<p>Budget to actual by driver and by property, expressed as NOI impact. The drivers always add up to the total.</p>}
       visual={<BridgeArt />}
-    />
-  );
-}
-
-export function Prioritize() {
-  return (
-    <ProductSection
-      id="prioritize"
-      reverse
-      tinted
-      demo="/app"
-      eyebrow="Prioritize"
-      title="Start with what costs the most."
-      body={<p>Diagnosis, not dashboards. Issues ranked by dollars, each with the numbers and source behind it and a next step you can assign.</p>}
-      extra={
-        <p className="border-l-2 border-warning pl-3 text-[13px] leading-[1.55] text-fg-2">
-          The Mesa Verde HVAC problem started in May. It never crossed a typical variance threshold until it was <span className="num text-fg">$57K</span>.
-        </p>
-      }
-      visual={<RankArt />}
-    />
-  );
-}
-
-export function CompareManagers() {
-  return (
-    <ProductSection
-      id="managers"
-      demo="/app/performance"
-      eyebrow="Compare managers"
-      title="Compare managers on the same scale."
-      body={<p>Once every package maps to one standard, you can put managers side by side on the same metrics. No property management system can, because each one only sees its own data.</p>}
-      visual={<CompareArt />}
     />
   );
 }
@@ -198,50 +164,6 @@ export function Grow() {
       }
       visual={<ValueArt />}
     />
-  );
-}
-
-const COMPARISON = [
-  { them: "Built for the operator running the buildings", us: "Built for the owner who hired the operator" },
-  { them: "Sees only the properties on its own system", us: "Reads every manager's reports, whatever the system" },
-  { them: "Answers questions about one system", us: "Compares managers on the same metrics" },
-  { them: "Trusts its own numbers", us: "Checks totals against each manager's statements" },
-  { them: "Adopted across the manager's whole company", us: "Live in days, starting from reports you already get" },
-];
-
-export function WhyNotManagerAi() {
-  return (
-    <section id="why" className="scroll-mt-12 border-t border-border">
-      <div className="mx-auto max-w-[1280px] px-4 py-16 sm:px-6 sm:py-24">
-        <div className="max-w-[560px]">
-          <div className="eyebrow">Why RE-IQ</div>
-          <h2 className={cn(H2, "mt-2")}>Why not the AI in your managers&apos; software?</h2>
-          <p className={cn(BODY, "mt-3")}>Our edge isn&apos;t AI. It&apos;s working for the owner, across every manager.</p>
-        </div>
-        <div className="mt-10 grid gap-3 md:grid-cols-2">
-          <ComparisonColumn title="Manager software" rows={COMPARISON.map((r) => r.them)} />
-          <ComparisonColumn title="RE-IQ" rows={COMPARISON.map((r) => r.us)} ours />
-        </div>
-        <SectionCta demo="/app/performance" className="mt-10" />
-      </div>
-    </section>
-  );
-}
-
-function ComparisonColumn({ title, rows, ours }: { title: string; rows: string[]; ours?: boolean }) {
-  const Icon = ours ? Check : X;
-  return (
-    <div className={cn("rounded-lg border p-5", ours ? "border-border-strong bg-surface" : "border-border")}>
-      <h3 className={cn("text-[14px] font-semibold", ours ? "text-fg" : "text-fg-2")}>{title}</h3>
-      <ul className="mt-4 flex flex-col gap-3">
-        {rows.map((row) => (
-          <li key={row} className="flex gap-2.5 text-[13px] leading-[1.5]">
-            <Icon className={cn("mt-0.5 size-3.5 shrink-0", ours ? "text-favorable" : "text-fg-3")} strokeWidth={2} aria-hidden />
-            <span className={ours ? "text-fg" : "text-fg-3"}>{row}</span>
-          </li>
-        ))}
-      </ul>
-    </div>
   );
 }
 
