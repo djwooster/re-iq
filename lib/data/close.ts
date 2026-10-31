@@ -3,7 +3,8 @@ import { joinList } from "@/lib/format";
 import { REPORT_TYPE_LABELS } from "@/lib/labels";
 import type { Import, MonthKey, PropertyManager, PropertyRecord, ReportType } from "@/lib/types";
 import { delay, effectiveImports, propertyRecords } from "./core";
-import { CURRENT_MEMBER_ID, members, organization, propertyManagers } from "./mock/catalog";
+import { propertyManagers } from "./mock/catalog";
+import { getCurrentMember, getOrganization } from "./org";
 import { readOverlay, writeOverlay } from "./store";
 
 /**
@@ -43,6 +44,9 @@ export interface ManagerClose {
 
 export interface CloseStatus {
   month: MonthKey;
+  organization_name: string;
+  /** Signs reminder emails. */
+  sender_name: string;
   due_date: string;
   properties: PropertyClose[];
   managers: ManagerClose[];
@@ -71,6 +75,7 @@ export async function getCloseStatus(orgId: string, month: MonthKey = LATEST_MON
   const records = propertyRecords(imports).filter((r) => r.org_id === orgId);
   const due = closeDueDate(month);
   const reminders = readOverlay().reminders;
+  const [org, me] = await Promise.all([getOrganization(orgId), getCurrentMember()]);
 
   const properties = records.map((property) => {
     const reports = REQUIRED_REPORTS.map((t) => slotFor(property, t, month, imports, due));
@@ -78,7 +83,7 @@ export async function getCloseStatus(orgId: string, month: MonthKey = LATEST_MON
   });
 
   const managers = propertyManagers
-    .filter((m) => m.org_id === orgId)
+    .filter((m) => m.org_id === orgId && properties.some((p) => p.property.property_manager_id === m.id))
     .map((manager) => {
       const mine = properties.filter((p) => p.property.property_manager_id === manager.id);
       return {
@@ -94,6 +99,8 @@ export async function getCloseStatus(orgId: string, month: MonthKey = LATEST_MON
   const slots = properties.flatMap((p) => p.reports);
   return {
     month,
+    organization_name: org.name,
+    sender_name: me.name,
     due_date: due,
     properties,
     managers,
@@ -107,7 +114,6 @@ export async function getCloseStatus(orgId: string, month: MonthKey = LATEST_MON
 export function reminderEmail(close: CloseStatus, managerId: string): { to: string; subject: string; body: string } | null {
   const m = close.managers.find((x) => x.manager.id === managerId);
   if (!m || m.outstanding.length === 0) return null;
-  const me = members.find((x) => x.id === CURRENT_MEMBER_ID)!;
   const first = m.manager.contact_name.split(" ")[0];
   const lines = m.outstanding.map(
     (o) => `- ${o.property.name}: ${REPORT_TYPE_LABELS[o.report_type]}${o.state === "failed" ? " (the file we received could not be read; an Excel export works best)" : ""}`,
@@ -119,14 +125,14 @@ export function reminderEmail(close: CloseStatus, managerId: string): { to: stri
     body: [
       `Hi ${first},`,
       "",
-      `We're closing ${monthName} for ${organization.name} and still need:`,
+      `We're closing ${monthName} for ${close.organization_name} and still need:`,
       "",
       ...lines,
       "",
       `These were due ${formatDate(close.due_date)}. Reply with the files and we'll take it from there.`,
       "",
       "Thanks,",
-      me.name,
+      close.sender_name,
     ].join("\n"),
   };
 }

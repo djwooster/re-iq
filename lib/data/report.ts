@@ -5,7 +5,6 @@ import { type ActionOutcome, listActions, listOutcomes } from "./actions";
 import { type CloseStatus, getCloseStatus } from "./close";
 import { delay } from "./core";
 import { listInsights } from "./insights";
-import { members, organization, CURRENT_MEMBER_ID } from "./mock/catalog";
 import { getPortfolioSummary } from "./portfolio";
 import { listQuestions } from "./questions";
 import { readOverlay, writeOverlay } from "./store";
@@ -62,8 +61,8 @@ export async function getOwnerReport(orgId: string, month: MonthKey = LATEST_MON
   });
   return {
     month,
-    organization_name: organization.name,
-    prepared_by: members.find((m) => m.id === CURRENT_MEMBER_ID)!.name,
+    organization_name: close.organization_name,
+    prepared_by: close.sender_name,
     month_summary: monthSummary,
     quarter_summary: quarterSummary,
     properties,
