@@ -1,9 +1,9 @@
-import type { AccountMapping, Action, Import, Member, Organization, Role } from "@/lib/types";
+import type { AccountMapping, Action, Import, Member, MonthKey, Organization, Role, VarianceQuestion } from "@/lib/types";
 
 /**
  * Demo persistence. The seeded portfolio is regenerated in memory on every
  * load; this overlay records only what users changed (uploads, confirmed
- * mappings, action status, team invites) and lives in localStorage. When the
+ * mappings, action status, team invites, close progress) and lives in localStorage. When the
  * data layer moves to Supabase this module goes away.
  */
 
@@ -15,6 +15,11 @@ export interface Overlay {
   importPatches: Record<string, Partial<Import>>;
   mappingPatches: Record<string, Partial<AccountMapping>>;
   actionPatches: Record<string, Partial<Action>>;
+  questionPatches: Record<string, Partial<VarianceQuestion>>;
+  /** Report reminders copied for a property manager, keyed `${managerId}|${month}`. */
+  reminders: Record<string, string>;
+  /** When each month's owner report was marked shared. */
+  reportsShared: Record<MonthKey, string>;
   members: Member[];
   organization: Partial<Organization> & { logo?: string | null };
   role: Role;
@@ -37,6 +42,9 @@ const empty = (): Overlay => ({
   importPatches: {},
   mappingPatches: {},
   actionPatches: {},
+  questionPatches: {},
+  reminders: {},
+  reportsShared: {},
   members: [],
   organization: {},
   role: "asset_manager",

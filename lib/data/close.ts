@@ -1,0 +1,139 @@
+import { LATEST_MONTH, TODAY, addDays, daysBetween, formatDate, formatMonth, monthEnd } from "@/lib/dates";
+import { joinList } from "@/lib/format";
+import { REPORT_TYPE_LABELS } from "@/lib/labels";
+import type { Import, MonthKey, PropertyManager, PropertyRecord, ReportType } from "@/lib/types";
+import { delay, effectiveImports, propertyRecords } from "./core";
+import { CURRENT_MEMBER_ID, members, organization, propertyManagers } from "./mock/catalog";
+import { readOverlay, writeOverlay } from "./store";
+
+/**
+ * The month-end close: which reports each property manager owes for a month,
+ * which arrived, and which still block the numbers. Every property is fed by
+ * uploads, so this checklist is where each month starts.
+ */
+
+/** Reports every property sends each month. A future org setting. */
+export const REQUIRED_REPORTS: ReportType[] = ["t12", "rent_roll", "ar_aging"];
+
+/** Days after month end that reports are due under the management agreements. A future org setting. */
+export const REPORT_DUE_DAYS = 10;
+
+export type ReportState = "received" | "needs_review" | "failed" | "missing";
+
+export interface ReportSlot {
+  report_type: ReportType;
+  state: ReportState;
+  import: Import | null;
+  /** Days after the due date it arrived, or is overdue by when missing. Zero or less is on time. */
+  days_late: number;
+}
+
+export interface PropertyClose {
+  property: PropertyRecord;
+  reports: ReportSlot[];
+  ready: boolean;
+}
+
+export interface ManagerClose {
+  manager: PropertyManager;
+  property_ids: string[];
+  outstanding: { property: PropertyRecord; report_type: ReportType; state: ReportState }[];
+  reminder_sent_at: string | null;
+}
+
+export interface CloseStatus {
+  month: MonthKey;
+  due_date: string;
+  properties: PropertyClose[];
+  managers: ManagerClose[];
+  ready_count: number;
+  /** Uploads waiting on someone at the owner to confirm mappings. */
+  review_count: number;
+  /** Reports missing or unreadable, which the property manager has to send. */
+  outstanding_count: number;
+}
+
+export function closeDueDate(month: MonthKey) {
+  return addDays(monthEnd(month), REPORT_DUE_DAYS);
+}
+
+function slotFor(property: PropertyRecord, type: ReportType, month: MonthKey, imports: Import[], due: string): ReportSlot {
+  const candidates = imports.filter((i) => i.property_id === property.id && i.report_type === type && i.period === month);
+  const imp = candidates.find((i) => i.status === "processed") ?? candidates.find((i) => i.status === "needs_review") ?? candidates[0] ?? null;
+  const state: ReportState = !imp ? "missing" : imp.status === "processed" ? "received" : imp.status;
+  const arrived = imp && imp.status !== "failed" ? imp.uploaded_at.slice(0, 10) : TODAY;
+  return { report_type: type, state, import: imp, days_late: daysBetween(due, arrived) };
+}
+
+export async function getCloseStatus(orgId: string, month: MonthKey = LATEST_MONTH): Promise<CloseStatus> {
+  await delay();
+  const imports = effectiveImports().filter((i) => i.org_id === orgId);
+  const records = propertyRecords(imports).filter((r) => r.org_id === orgId);
+  const due = closeDueDate(month);
+  const reminders = readOverlay().reminders;
+
+  const properties = records.map((property) => {
+    const reports = REQUIRED_REPORTS.map((t) => slotFor(property, t, month, imports, due));
+    return { property, reports, ready: reports.every((r) => r.state === "received") };
+  });
+
+  const managers = propertyManagers
+    .filter((m) => m.org_id === orgId)
+    .map((manager) => {
+      const mine = properties.filter((p) => p.property.property_manager_id === manager.id);
+      return {
+        manager,
+        property_ids: mine.map((p) => p.property.id),
+        outstanding: mine.flatMap((p) =>
+          p.reports.filter((r) => r.state === "missing" || r.state === "failed").map((r) => ({ property: p.property, report_type: r.report_type, state: r.state })),
+        ),
+        reminder_sent_at: reminders[`${manager.id}|${month}`] ?? null,
+      };
+    });
+
+  const slots = properties.flatMap((p) => p.reports);
+  return {
+    month,
+    due_date: due,
+    properties,
+    managers,
+    ready_count: properties.filter((p) => p.ready).length,
+    review_count: slots.filter((s) => s.state === "needs_review").length,
+    outstanding_count: slots.filter((s) => s.state === "missing" || s.state === "failed").length,
+  };
+}
+
+/** The reminder email for a manager's outstanding reports, ready to paste. */
+export function reminderEmail(close: CloseStatus, managerId: string): { to: string; subject: string; body: string } | null {
+  const m = close.managers.find((x) => x.manager.id === managerId);
+  if (!m || m.outstanding.length === 0) return null;
+  const me = members.find((x) => x.id === CURRENT_MEMBER_ID)!;
+  const first = m.manager.contact_name.split(" ")[0];
+  const lines = m.outstanding.map(
+    (o) => `- ${o.property.name}: ${REPORT_TYPE_LABELS[o.report_type]}${o.state === "failed" ? " (the file we received could not be read; an Excel export works best)" : ""}`,
+  );
+  const monthName = formatMonth(close.month, "long");
+  return {
+    to: m.manager.contact_email,
+    subject: `${monthName} reports still needed for ${joinList([...new Set(m.outstanding.map((o) => o.property.short_name))])}`,
+    body: [
+      `Hi ${first},`,
+      "",
+      `We're closing ${monthName} for ${organization.name} and still need:`,
+      "",
+      ...lines,
+      "",
+      `These were due ${formatDate(close.due_date)}. Reply with the files and we'll take it from there.`,
+      "",
+      "Thanks,",
+      me.name,
+    ].join("\n"),
+  };
+}
+
+export async function markReminderSent(managerId: string, month: MonthKey = LATEST_MONTH): Promise<void> {
+  await delay(150);
+  writeOverlay((d) => {
+    d.reminders[`${managerId}|${month}`] = `${TODAY}T${new Date().toISOString().slice(11, 19)}Z`;
+  });
+}

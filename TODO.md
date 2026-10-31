@@ -20,6 +20,9 @@
 - [ ] Marketing: share image and meta (Open Graph) for links posted to LinkedIn, Slack, and email.
 
 ## Product
+- [ ] Month-end flow (`FLOW.md`): DJ walks it end to end, then refine screens and sections.
+- [ ] Close flow follow-ups: send reminders and questions as email, a reply link for PMs,
+      questions → actions, a month picker with past closes and reports.
 - [ ] Design system pass: bring the marketing illustrations' micro-animations (fade + 8px rise,
       check-ins, cycling highlights; `components/marketing/*-art.tsx`, `use-cycle.ts`) into the app.
 - [ ] Refined microinteractions (Rive-style, subtle), once the core flow is validated.
@@ -53,9 +56,10 @@
       confidence → user review. Learn mappings per property manager over time so repeat
       uploads need less review.
 - [ ] Email-in ingestion: forward monthly report emails to an org address.
-- [ ] Direct connectors: ResMan and Rent Manager first (directly or via a unified PMS API
-      vendor); Yardi through its interface partner program once we have qualifying
-      customers.
+- [ ] Scheduled reports: each PM points their system's scheduled report emails at the org's
+      RE-IQ address, so monthly uploads arrive on their own (no API fees).
+- [ ] On hold: direct PMS connectors (ResMan, Rent Manager, Yardi). API costs are too high for now;
+      the connector cards are commented out, not deleted.
 
 ## Platform
 - [ ] Supabase: schema and migrations from `lib/types`, file storage for uploads, and

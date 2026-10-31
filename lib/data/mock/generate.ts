@@ -105,6 +105,7 @@ const MAR_26 = 17;
 const APR_26 = 18;
 const MAY_26 = 19;
 const JUN_26 = 20;
+const JUL_26 = 21;
 
 /** Physical occupancy actual for a property-month. */
 function occupancyActual(seed: PropertySeed, i: number, noise: number): number {
@@ -320,6 +321,8 @@ function generate(): GeneratedPortfolio {
 
       let concessionsRate = profile.concessions * (1 + rng.normal(0.18));
       if (seed.story === "vacancy_concessions") concessionsRate = ramp(i, JAN_26, MAR_26 + 1, 0.011, 0.059) + rng.normal(0.002);
+      // A six-week move-in special ran January to May; it ended in June.
+      if (seed.story === "concession_reset" && i >= JAN_26 && i < JUN_26) concessionsRate = 0.034 + rng.normal(0.002);
 
       let badDebtRate = profile.badDebt * (1 + rng.normal(0.2));
       if (seed.story === "bad_debt") badDebtRate = ramp(i, MAR_26 - 1, 23, 0.014, 0.062) + rng.normal(0.0015);
@@ -355,6 +358,8 @@ function generate(): GeneratedPortfolio {
           a *= [1, 1.48, 1.84, 2.12, 2.26, 1.96][Math.max(0, Math.min(5, i - (MAY_26 - 1)))];
         }
         if (seed.story === "utilities_leak" && category === "utilities" && i >= JUN_26) a *= 1.24;
+        // An irrigation leak from March to June, repaired at the start of July.
+        if (seed.story === "irrigation_fixed" && category === "utilities" && i >= MAR_26 && i < JUL_26) a *= 1.27;
         if (seed.story === "payroll_contract_labor" && category === "payroll" && i >= APR_26) a *= 1.22;
         if (property.property_manager_id === "pm_crestline" && category === "contract_services") {
           // GreenScape's 2026 contract renewal came in above what the budget assumed.

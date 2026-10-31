@@ -285,6 +285,8 @@ export function buildFileName(seed: PropertySeed, type: ReportType, period: Mont
 
 const UPLOADERS = ["mem_elena", "mem_elena", "mem_jordan", "mem_sam"];
 
+const MISSING_SEPTEMBER = new Set(["prop_lakeline:rent_roll", "prop_magnolia:ar_aging"]);
+
 function uploadedAt(period: MonthKey, rng: ReturnType<typeof createRng>, dayRange: [number, number]) {
   const { year, month } = parseMonth(period);
   const next = new Date(Date.UTC(year, month, rng.int(dayRange[0], dayRange[1]), rng.int(13, 22), rng.int(0, 59)));
@@ -329,6 +331,8 @@ function seedImports(): Import[] {
       if (system === "yardi") types.push("work_orders");
       for (const type of types) {
         const at = uploadedAt(period, rng, [5, 13]);
+        // Still outstanding for the September close.
+        if (period === "2026-09" && MISSING_SEPTEMBER.has(`${seed.property.id}:${type}`)) continue;
         const fileName = buildFileName(seed, type, period);
         const format = fileName.split(".").pop() as FileFormat;
         const record: Import = {

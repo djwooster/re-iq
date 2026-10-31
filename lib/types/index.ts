@@ -44,6 +44,9 @@ export interface PropertyManager {
   org_id: string;
   name: string;
   system: PmsSystem;
+  /** The person at the management company who sends monthly reports and answers questions. */
+  contact_name: string;
+  contact_email: string;
 }
 
 export interface Property {
@@ -311,6 +314,27 @@ export interface Action {
   due_date: ISODate | null;
   created_at: ISODateTime;
   updated_at: ISODateTime;
+}
+
+/** A question to the property manager about one GL category's variance in one month. */
+export type QuestionStatus = "draft" | "sent" | "answered" | "accepted";
+
+export interface VarianceQuestion {
+  id: string;
+  org_id: string;
+  property_id: string;
+  month: MonthKey;
+  category: GlCategory;
+  actual: number;
+  budget: number;
+  /** NOI impact in dollars: negative is unfavorable. */
+  variance: number;
+  question: string;
+  status: QuestionStatus;
+  sent_at: ISODateTime | null;
+  answer: string | null;
+  answered_by: string | null;
+  answered_at: ISODateTime | null;
 }
 
 export type Period = "mtd" | "qtd" | "ytd" | "t12";

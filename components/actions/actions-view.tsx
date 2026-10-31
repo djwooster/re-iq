@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useState } from "react";
 import { InsightDrawer } from "@/components/insights/insight-drawer";
 import { EstimateTag } from "@/components/insights/evidence";
+import { OutcomeLine } from "./outcome-line";
 import { useApp } from "@/components/shell/app-context";
 import { PageBody, PageHeader } from "@/components/shell/page-header";
 import { Badge } from "@/components/ui/badge";
@@ -16,7 +17,7 @@ import { FadeIn, Stagger, StaggerItem } from "@/components/ui/motion";
 import { useToast } from "@/components/ui/toast";
 import { cn } from "@/lib/cn";
 import { daysBetween, formatDate, TODAY } from "@/lib/dates";
-import { listActions, listInsights, listMembers, listProperties, updateAction } from "@/lib/data";
+import { listActions, listInsights, listMembers, listOutcomes, listProperties, updateAction } from "@/lib/data";
 import { useData } from "@/lib/hooks/use-data";
 import { formatCurrencyShort } from "@/lib/format";
 import { ACTION_STATUS_LABELS } from "@/lib/labels";
@@ -39,8 +40,8 @@ export function ActionsView() {
   const [insightId, setInsightId] = useState<string | null>(null);
 
   const { data } = useData(async () => {
-    const [actions, insights, members, properties] = await Promise.all([listActions(orgId), listInsights(orgId), listMembers(orgId), listProperties(orgId)]);
-    return { actions, insights, members, properties: properties.map((p) => p.property) };
+    const [actions, insights, members, properties, outcomes] = await Promise.all([listActions(orgId), listInsights(orgId), listMembers(orgId), listProperties(orgId), listOutcomes(orgId)]);
+    return { actions, insights, members, properties: properties.map((p) => p.property), outcomes };
   }, [orgId]);
 
   const actions = data?.actions ?? [];
@@ -102,6 +103,7 @@ export function ActionsView() {
                     const property = data.properties.find((p) => p.id === a.property_id);
                     const isIssue = a.insight_id.startsWith("ins_");
                     const ins = data.insights.find((x) => x.id === a.insight_id);
+                    const outcome = data.outcomes.find((o) => o.action_id === a.id);
                     const overdue = a.due_date && (a.status === "new" || a.status === "accepted") && daysBetween(TODAY, a.due_date) < 0;
                     return (
                       <StaggerItem as="li" key={a.id} className={cn("grid gap-3 px-4 py-3 md:grid-cols-[minmax(0,1fr)_auto]", i > 0 && "border-t border-border/70")}>
@@ -113,6 +115,7 @@ export function ActionsView() {
                             <Badge tone={STATUS_TONE[a.status]}>{ACTION_STATUS_LABELS[a.status]}</Badge>
                           </div>
                           <p className="mt-1 text-xs text-fg-2">{a.detail}</p>
+                          {outcome && <OutcomeLine outcome={outcome} className="mt-1.5" />}
                           <div className="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] text-fg-3">
                             {property ? (
                               <Link href={`/app/properties/${property.id}`} className="hover:text-fg">

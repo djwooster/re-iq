@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useApp } from "@/components/shell/app-context";
 import { PageBody, PageHeader } from "@/components/shell/page-header";
@@ -7,10 +8,11 @@ import { Card } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/empty-state";
 import { FadeIn } from "@/components/ui/motion";
 import { LATEST_MONTH, formatDate, monthEnd } from "@/lib/dates";
-import { listConnectors, listImports, listMembers, listProperties } from "@/lib/data";
+import { listImports, listMembers, listProperties } from "@/lib/data";
 import { useData } from "@/lib/hooks/use-data";
-import { SOURCE_LABELS } from "@/lib/labels";
-import { Connectors } from "./connectors";
+// Connectors are on hold while RE-IQ is upload-only. Restore these with the section below.
+// import { listConnectors } from "@/lib/data";
+// import { Connectors } from "./connectors";
 import { ImportDrawer } from "./import-drawer";
 import { ImportHistory } from "./import-history";
 import { UploadFlow } from "./upload-flow";
@@ -23,18 +25,16 @@ export function DataSourcesView() {
   const selectedId = params.get("import");
 
   const { data } = useData(async () => {
-    const [imports, properties, members, connectors] = await Promise.all([listImports(orgId), listProperties(orgId), listMembers(orgId), listConnectors(orgId)]);
-    return { imports, properties: properties.map((p) => p.property), members, connectors };
+    const [imports, properties, members] = await Promise.all([listImports(orgId), listProperties(orgId), listMembers(orgId)]);
+    return { imports, properties: properties.map((p) => p.property), members };
   }, [orgId]);
 
   const select = (id: string | null) => router.replace(id ? `${pathname}?import=${id}` : pathname, { scroll: false });
-  const uploadFed = data?.properties.filter((p) => p.primary_source.type === "upload") ?? [];
-  const connected = data?.properties.filter((p) => p.primary_source.type !== "upload") ?? [];
   const current = data?.properties.filter((p) => p.data_through === monthEnd(LATEST_MONTH)).length ?? 0;
 
   return (
     <>
-      <PageHeader title="Data Sources" subtitle="Upload the reports your property managers already send, or connect a system directly" />
+      <PageHeader title="Data Sources" subtitle="Upload the reports your property managers already send. Any system's exports work." />
       <PageBody>
         <div className="flex flex-col gap-6">
           <FadeIn>
@@ -52,20 +52,12 @@ export function DataSourcesView() {
                     <Skeleton className="h-4 w-40" />
                   )}
                 </div>
-                <ul className="flex flex-col gap-1.5 border-t border-border pt-3">
-                  <li className="flex justify-between text-fg-2">
-                    <span>Fed by uploads</span>
-                    <span className="num text-fg">{uploadFed.length}</span>
-                  </li>
-                  {[...new Set(connected.map((p) => p.primary_source.type))].map((t) => (
-                    <li key={t} className="flex justify-between text-fg-2">
-                      <span>{SOURCE_LABELS[t]} connector</span>
-                      <span className="num text-fg">{connected.filter((p) => p.primary_source.type === t).length}</span>
-                    </li>
-                  ))}
-                </ul>
                 <p className="border-t border-border pt-3 text-[11px] leading-relaxed text-fg-3">
-                  Uploads work for any system today, including Yardi. Each report lands in the same normalized model as connector data, so numbers compare across managers.
+                  Yardi, ResMan, Rent Manager, Entrata, and AppFolio exports all land in one chart of accounts, so numbers compare across managers. See what September still needs on{" "}
+                  <Link href="/app/close" className="text-fg-2 underline-offset-2 hover:text-fg hover:underline">
+                    Close
+                  </Link>
+                  .
                 </p>
               </Card>
             </section>
@@ -79,6 +71,7 @@ export function DataSourcesView() {
             )}
           </FadeIn>
 
+          {/* Connectors are on hold while RE-IQ is upload-only.
           <FadeIn delay={0.1}>
             <section id="connectors">
               <div className="mb-3">
@@ -88,6 +81,7 @@ export function DataSourcesView() {
               {data ? <Connectors connectors={data.connectors} /> : <Skeleton className="h-40 w-full rounded-lg" />}
             </section>
           </FadeIn>
+          */}
         </div>
       </PageBody>
       <ImportDrawer importId={selectedId} onClose={() => select(null)} />

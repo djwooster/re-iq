@@ -13,6 +13,7 @@ import { FadeIn } from "@/components/ui/motion";
 import { addMonths, formatDate, formatMonth, periodMonths } from "@/lib/dates";
 import {
   estimatedCashFlow,
+  getCloseProgress,
   getDataHealth,
   getExecutiveSummary,
   getManagerScorecard,
@@ -25,6 +26,7 @@ import {
 import { useData } from "@/lib/hooks/use-data";
 import { formatCurrencyShort, joinList } from "@/lib/format";
 import type { Insight } from "@/lib/types";
+import { CloseProgress } from "./close-progress";
 import { DataHealthNote } from "./data-health-note";
 import { HeadlineMetrics } from "./headline-metrics";
 import { ManagerScorecardCard, MarketExposureCard, NoiTrendCard, VarianceBreakdownCard } from "./role-panels";
@@ -41,7 +43,7 @@ export function OverviewView() {
   const [selected, setSelected] = useState<Insight | null>(null);
 
   const { data } = useData(async () => {
-    const [qtd, t12, insights, health, imports, summary, trend] = await Promise.all([
+    const [qtd, t12, insights, health, imports, summary, trend, close] = await Promise.all([
       getPortfolioSummary(orgId, "qtd"),
       getPortfolioSummary(orgId, "t12"),
       listInsights(orgId),
@@ -49,12 +51,13 @@ export function OverviewView() {
       listImports(orgId),
       getExecutiveSummary(orgId, role),
       getPortfolioTrend(orgId, 12),
+      role === "asset_manager" ? getCloseProgress(orgId) : Promise.resolve(null),
     ]);
     const [scores, markets] = await Promise.all([
       role === "owner" ? getManagerScorecard(orgId, "qtd") : Promise.resolve(null),
       role === "executive" ? getMarketExposure(orgId, "qtd") : Promise.resolve(null),
     ]);
-    return { qtd, t12, insights, health, imports, summary, trend, scores, markets };
+    return { qtd, t12, insights, health, imports, summary, trend, close, scores, markets };
   }, [orgId, role]);
 
   const properties = data?.qtd.properties.map((p) => p.property);
@@ -72,6 +75,9 @@ export function OverviewView() {
       <PageHeader title="Overview" subtitle={SUBTITLE[role]} actions={<UploadReportButton />} />
       <PageBody>
         <div className="flex flex-col gap-3">
+          {role === "asset_manager" && (
+            <FadeIn>{data?.close ? <CloseProgress {...data.close} /> : <Skeleton className="h-[92px] w-full rounded-lg" />}</FadeIn>
+          )}
           <FadeIn>
             <AiSummary
               sentences={data?.summary.sentences}
