@@ -1,15 +1,12 @@
 import type { Metadata } from "next";
 import {
-  CompareManagers,
   Explain,
   FinalCta,
   Grow,
   Hero,
   Ingest,
-  Prioritize,
   Reconcile,
   WhoItsFor,
-  WhyNotManagerAi,
 } from "@/components/marketing/sections";
 import { MonthBento } from "@/components/marketing/month-bento";
 import { WhatWeDo } from "@/components/marketing/what-we-do";
@@ -26,14 +23,11 @@ export default function HomePage() {
     <>
       <Hero />
       <WhatWeDo />
+      <Grow />
       <MonthBento />
       <Ingest />
       <Reconcile />
       <Explain />
-      <Prioritize />
-      <CompareManagers />
-      <Grow />
-      <WhyNotManagerAi />
       <WhoItsFor />
       <FinalCta />
     </>
