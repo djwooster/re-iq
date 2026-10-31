@@ -1,7 +1,23 @@
 # Handoff
 
-State as of the last session (2026-10-18). Everything runs on mock data;
+State as of 2026-10-30. Everything in the product runs on mock data;
 `npm run dev`, `npm run build`, `npm run lint`, and `tsc --noEmit` all pass.
+
+## Since 2026-10-18
+- **Marketing site** (`/`, `app/(marketing)`, `components/marketing`): hero with a coded
+  "files read → ranked → NOI found" diagram, then what RE-IQ does, grow, a month-end bento,
+  ingest, reconcile, explain, who it's for, and a final early-access form. Each section's
+  illustration is a small looping component (`*-art.tsx`, paced by `use-cycle.ts`, still under
+  reduced motion) and each section ends with a CTA that deep-links into the demo via
+  `/demo?to=/app/...`. See `app/(marketing)/README.md`.
+- **Waitlist** writes to the Supabase `waitlist` table (live since 2026-10-27).
+- **Usability testing** runs on the `testing` branch's Vercel preview: `/demo?fresh=1` opens
+  signup into an empty workspace with example reports one click away (README, "Usability testing").
+- **Design system**: dark mode moved to a charcoal / warm off-white / steel teal palette with
+  softened state colors; light stays the default. File-format tag colors added. The visual bar
+  is restraint (Notion, Linear, Teenage Engineering): no glows, gradients, or decorative color.
+- **Strategy**: `STRATEGY.md` (building to be acquirable) and the matching rules in `CLAUDE.md`.
+- **Gotcha**: a long-running `npm run dev` doesn't pick up `app/globals.css` changes; restart it.
 
 ## Built
 - **Overview** (`/app`): AI summary with click-through evidence and sources, data-health note,
@@ -20,7 +36,7 @@ State as of the last session (2026-10-18). Everything runs on mock data;
 - **Dev tools**: role switcher + reset demo data, behind `NEXT_PUBLIC_SHOW_DEV_TOOLS=true`.
 
 ## Stubbed / not built
-- Signup enters the demo org; no empty new-org experience (empty states exist but never show).
+- On `main`, signup still enters the demo org; the empty new-org experience lives on `testing`.
 - Logo upload, connector "Connect/Manage", invite email: placeholder modals/text only.
 - Upload "parsing" reads only the file name (`lib/data/mock/detect.ts`); file contents are ignored.
 - Sidebar user menu doesn't close on outside click.
