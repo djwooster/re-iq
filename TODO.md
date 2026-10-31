@@ -6,13 +6,26 @@
 - [ ] Standard design-partner contract: annual, auto-renewing, time-boxed discount, PIIA for contributors.
 - [ ] Track time to first insight for new workspaces (start with the usability sessions).
 
+## Next up (as of 2026-10-30)
+- [ ] Restart the dev server and check the hero's file-tag colors (XLS green, PDF red, CSV blue);
+      the running server doesn't pick up `app/globals.css` edits.
+- [ ] Usability sessions: turn off Vercel preview protection for `testing`, run the first
+      participants through `/demo?fresh=1`, then decide whether the empty-workspace flow merges to `main`.
+- [ ] App design pass, starting now: bring the marketing page's motion language and polish into the
+      product (see Product below). Decide where to start (Overview is the likely first screen).
+- [ ] Marketing copy before launch: "What RE-IQ does" says the math is checked, Reconcile says
+      "designed to"; make them consistent with what the product actually does.
+- [ ] Marketing: phone-width and reduced-motion check of every illustration (DJ, in the browser).
+- [ ] Marketing: give the Ingest illustration's file tags the same format colors as the hero.
+- [ ] Marketing: share image and meta (Open Graph) for links posted to LinkedIn, Slack, and email.
+
 ## Product
 - [ ] Design system pass: bring the marketing illustrations' micro-animations (fade + 8px rise,
       check-ins, cycling highlights; `components/marketing/*-art.tsx`, `use-cycle.ts`) into the app.
 - [ ] Refined microinteractions (Rive-style, subtle), once the core flow is validated.
 - [ ] "Ask" interface for natural-language questions about the portfolio.
 - [x] New-organization onboarding: signup starts an empty workspace; empty states point at
-      uploading a first T12 (on `testing`, for usability sessions).
+      uploading a first T12 (on `testing`, for usability sessions; merge to `main` once confirmed).
 - [ ] Empty workspace: require an uploaded budget before showing budget variance, and let a
       file with an unrecognized name create a new property instead of picking a sample one.
 - [ ] Phase 2 write-back to property management systems, with approvals.
@@ -27,8 +40,13 @@
   - [x] Push and test a live signup.
   - [ ] Notion leftovers: `.env.local` lines and the database (in Notion's Trash) are gone; DJ still
         removes `NOTION_TOKEN` from Vercel and deletes the "RE-IQ site" integration.
-- [x] Marketing page restructured around the buyer's month (replaces the hidden checklist band).
-- [ ] Marketing: blog at `/blog` with the eight drafted post ideas (deferred).
+- [x] Marketing page restructured: hero diagram, what RE-IQ does, grow, month-end bento,
+      ingest, reconcile, explain, who it's for, final CTA. Every illustration is coded (`*-art.tsx`)
+      and every section ends with a CTA that deep-links into the demo (`/demo?to=`).
+- [ ] Light-mode palette: dark mode moved to charcoal / star dust / steel teal on 2026-10-30;
+      decide whether light mode gets matching warmth or stays as is.
+- [ ] Marketing: blog at `/blog` with the eight drafted post ideas. Open: full posts vs. titles and
+      summaries, and MDX in the repo vs. a CMS Brian can post to.
 - [ ] Marketing: confirm before launch that we can deliver the "forward last quarter's packages,
       get a free portfolio review" offer and the RE-IQ inbox the copy describes.
 
