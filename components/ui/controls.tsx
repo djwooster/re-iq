@@ -12,6 +12,10 @@ export const Input = forwardRef<HTMLInputElement, React.InputHTMLAttributes<HTML
   return <input ref={ref} className={cn(FIELD, "h-8 px-2.5", className)} {...rest} />;
 });
 
+export const Textarea = forwardRef<HTMLTextAreaElement, React.TextareaHTMLAttributes<HTMLTextAreaElement>>(function Textarea({ className, ...rest }, ref) {
+  return <textarea ref={ref} className={cn(FIELD, "min-h-24 resize-y px-2.5 py-2 leading-relaxed", className)} {...rest} />;
+});
+
 export function Select({
   className,
   children,

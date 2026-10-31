@@ -35,10 +35,10 @@ export const members: Member[] = [
 export const CURRENT_MEMBER_ID = "mem_jordan";
 
 export const propertyManagers: PropertyManager[] = [
-  { id: "pm_crestline", org_id: ORG_ID, name: "Crestline Residential", system: "yardi" },
-  { id: "pm_harbor", org_id: ORG_ID, name: "Harbor Property Group", system: "resman" },
-  { id: "pm_summit", org_id: ORG_ID, name: "Summit Living Management", system: "rent_manager" },
-  { id: "pm_meridian", org_id: ORG_ID, name: "Meridian Residential", system: "entrata" },
+  { id: "pm_crestline", org_id: ORG_ID, name: "Crestline Residential", system: "yardi", contact_name: "Dana Whitfield", contact_email: "dwhitfield@crestlineres.com" },
+  { id: "pm_harbor", org_id: ORG_ID, name: "Harbor Property Group", system: "resman", contact_name: "Luis Ortega", contact_email: "lortega@harborpg.com" },
+  { id: "pm_summit", org_id: ORG_ID, name: "Summit Living Management", system: "rent_manager", contact_name: "Kara Lindqvist", contact_email: "klindqvist@summitliving.com" },
+  { id: "pm_meridian", org_id: ORG_ID, name: "Meridian Residential", system: "entrata", contact_name: "Andre Coleman", contact_email: "acoleman@meridianresidential.com" },
 ];
 
 /** Generation parameters per property; the story knobs live here. */
@@ -48,12 +48,21 @@ export interface PropertySeed {
   rent: number;
   /** Budgeted physical occupancy. */
   budgetOccupancy: number;
-  /** Systems the files come from, when the property is fed by uploads. */
+  /** System the uploaded files come from. Every property is fed by uploads for now. */
   uploadSystem: "yardi" | "entrata" | "appfolio" | "rent_manager" | "resman" | null;
   /** Hot markets get summer utility spikes. */
   summerUtilityLift: number;
   /** Story knobs, applied by the generator. */
-  story?: "vacancy_concessions" | "hvac" | "below_market" | "bad_debt" | "utilities_leak" | "payroll_contract_labor";
+  story?:
+    | "vacancy_concessions"
+    | "hvac"
+    | "below_market"
+    | "bad_debt"
+    | "utilities_leak"
+    | "payroll_contract_labor"
+    // Problems fixed earlier in the year, so completed actions have results to measure.
+    | "irrigation_fixed"
+    | "concession_reset";
 }
 
 function p(
@@ -97,20 +106,20 @@ export const propertySeeds: PropertySeed[] = [
     rent: 1_980, budgetOccupancy: 0.945, uploadSystem: "yardi", summerUtilityLift: 0.25,
   },
   {
-    property: p("prop_cedar", "Cedar Hollow", "Cedar Hollow", "Dallas–Fort Worth", "Irving", "TX", "B", 248, 1998, "pm_harbor", ["src_resman"], 1_980_000),
-    rent: 1_385, budgetOccupancy: 0.95, uploadSystem: null, summerUtilityLift: 0.26,
+    property: p("prop_cedar", "Cedar Hollow", "Cedar Hollow", "Dallas–Fort Worth", "Irving", "TX", "B", 248, 1998, "pm_harbor", ["src_upload"], 1_980_000),
+    rent: 1_385, budgetOccupancy: 0.95, uploadSystem: "resman", summerUtilityLift: 0.26,
   },
   {
-    property: p("prop_lakeline", "Lakeline Flats", "Lakeline", "Dallas–Fort Worth", "Frisco", "TX", "A", 372, 2021, "pm_harbor", ["src_resman"], 4_420_000),
-    rent: 1_865, budgetOccupancy: 0.95, uploadSystem: null, summerUtilityLift: 0.24, story: "vacancy_concessions",
+    property: p("prop_lakeline", "Lakeline Flats", "Lakeline", "Dallas–Fort Worth", "Frisco", "TX", "A", 372, 2021, "pm_harbor", ["src_upload"], 4_420_000),
+    rent: 1_865, budgetOccupancy: 0.95, uploadSystem: "resman", summerUtilityLift: 0.24, story: "vacancy_concessions",
   },
   {
-    property: p("prop_mesa", "Mesa Verde Apartments", "Mesa Verde", "Phoenix", "Mesa", "AZ", "C", 196, 1986, "pm_summit", ["src_rentmanager"], 1_120_000),
-    rent: 1_140, budgetOccupancy: 0.94, uploadSystem: null, summerUtilityLift: 0.34, story: "hvac",
+    property: p("prop_mesa", "Mesa Verde Apartments", "Mesa Verde", "Phoenix", "Mesa", "AZ", "C", 196, 1986, "pm_summit", ["src_upload"], 1_120_000),
+    rent: 1_140, budgetOccupancy: 0.94, uploadSystem: "rent_manager", summerUtilityLift: 0.34, story: "hvac",
   },
   {
-    property: p("prop_saguaro", "Saguaro Ridge", "Saguaro Ridge", "Phoenix", "Chandler", "AZ", "B", 276, 2006, "pm_summit", ["src_rentmanager"], 2_240_000),
-    rent: 1_520, budgetOccupancy: 0.95, uploadSystem: null, summerUtilityLift: 0.32,
+    property: p("prop_saguaro", "Saguaro Ridge", "Saguaro Ridge", "Phoenix", "Chandler", "AZ", "B", 276, 2006, "pm_summit", ["src_upload"], 2_240_000),
+    rent: 1_520, budgetOccupancy: 0.95, uploadSystem: "rent_manager", summerUtilityLift: 0.32,
   },
   {
     property: p("prop_peachtree", "Peachtree Landing", "Peachtree", "Atlanta", "Atlanta", "GA", "A", 348, 2018, "pm_meridian", ["src_upload"], 3_890_000),
@@ -134,7 +143,7 @@ export const propertySeeds: PropertySeed[] = [
   },
   {
     property: p("prop_gulch", "Gulch Terrace", "Gulch Terrace", "Nashville", "Nashville", "TN", "A", 256, 2020, "pm_crestline", ["src_upload"], 3_340_000),
-    rent: 2_045, budgetOccupancy: 0.945, uploadSystem: "yardi", summerUtilityLift: 0.14,
+    rent: 2_045, budgetOccupancy: 0.945, uploadSystem: "yardi", summerUtilityLift: 0.14, story: "concession_reset",
   },
   {
     property: p("prop_willow", "Willow Bend", "Willow Bend", "Dallas–Fort Worth", "Garland", "TX", "C", 260, 1984, "pm_harbor", ["src_upload"], 1_390_000),
@@ -142,7 +151,7 @@ export const propertySeeds: PropertySeed[] = [
   },
   {
     property: p("prop_camelback", "Camelback Vista", "Camelback", "Phoenix", "Phoenix", "AZ", "B", 216, 2002, "pm_summit", ["src_upload"], 1_710_000),
-    rent: 1_430, budgetOccupancy: 0.95, uploadSystem: "rent_manager", summerUtilityLift: 0.33,
+    rent: 1_430, budgetOccupancy: 0.95, uploadSystem: "rent_manager", summerUtilityLift: 0.33, story: "irrigation_fixed",
   },
 ];
 
@@ -152,8 +161,10 @@ const uploadIds = properties.filter((x) => x.data_source_ids.includes("src_uploa
 
 export const dataSources: DataSource[] = [
   { id: "src_upload", org_id: ORG_ID, type: "upload", name: "Report uploads", status: "active", last_sync_at: null, records_synced: null, property_ids: uploadIds },
-  { id: "src_resman", org_id: ORG_ID, type: "resman", name: "ResMan · Harbor Property Group", status: "connected", last_sync_at: "2026-10-18T06:02:00Z", records_synced: 48_214, property_ids: ["prop_cedar", "prop_lakeline"] },
-  { id: "src_rentmanager", org_id: ORG_ID, type: "rent_manager", name: "Rent Manager · Summit Living", status: "connected", last_sync_at: "2026-10-18T05:41:00Z", records_synced: 31_877, property_ids: ["prop_mesa", "prop_saguaro"] },
+  // Connectors are on hold: RE-IQ is upload-only until PMS API costs make sense.
+  // Restore these (and set the four properties' sources back) to demo connector-fed properties.
+  // { id: "src_resman", org_id: ORG_ID, type: "resman", name: "ResMan · Harbor Property Group", status: "connected", last_sync_at: "2026-10-18T06:02:00Z", records_synced: 48_214, property_ids: ["prop_cedar", "prop_lakeline"] },
+  // { id: "src_rentmanager", org_id: ORG_ID, type: "rent_manager", name: "Rent Manager · Summit Living", status: "connected", last_sync_at: "2026-10-18T05:41:00Z", records_synced: 31_877, property_ids: ["prop_mesa", "prop_saguaro"] },
 ];
 
 const crestline = properties.filter((x) => x.property_manager_id === "pm_crestline").map((x) => x.id);

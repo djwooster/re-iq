@@ -3,6 +3,16 @@
 State as of 2026-10-30. Everything in the product runs on mock data;
 `npm run dev`, `npm run build`, `npm run lint`, and `tsc --noEmit` all pass.
 
+## Month-end flow (2026-10-30)
+- The product now follows the asset manager's monthly close; see `FLOW.md`. New screens: Close
+  (`/app/close`), Questions (`/app/questions`), Owner report (`/app/report`), a close strip at the
+  top of Overview, and measured outcomes on completed actions.
+- Upload-only: the four connector-fed demo properties (Cedar Hollow, Lakeline, Mesa Verde, Saguaro
+  Ridge) now come from uploads; connector sources and the Data Sources connector section are
+  commented out, not deleted.
+- New mock stories: Camelback Vista irrigation leak (Mar–Jun, fixed) and Gulch Terrace concession
+  special (Jan–May, ended), so completed actions have results to show.
+
 ## Since 2026-10-18
 - **Marketing site** (`/`, `app/(marketing)`, `components/marketing`): hero with a coded
   "files read → ranked → NOI found" diagram, then what RE-IQ does, grow, a month-end bento,

@@ -1,12 +1,12 @@
 "use client";
 
-import { Building2, ChartNoAxesColumn, Database, LayoutGrid, ListChecks, LogOut, Settings } from "lucide-react";
+import { Building2, ChartNoAxesColumn, ClipboardCheck, Database, FileText, LayoutGrid, ListChecks, LogOut, MessageSquareText, Settings } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useState } from "react";
 import { Dot } from "@/components/ui/badge";
 import { cn } from "@/lib/cn";
-import { getCurrentMember, getDataHealth, getOrganization, listActions, SESSION_COOKIE } from "@/lib/data";
+import { getCloseStatus, getCurrentMember, getOrganization, listActions, listQuestions, SESSION_COOKIE } from "@/lib/data";
 import { useData } from "@/lib/hooks/use-data";
 import { PRODUCT_NAME } from "@/lib/labels";
 import { SHOW_DEV_TOOLS, useApp } from "./app-context";
@@ -17,7 +17,7 @@ interface NavItem {
   label: string;
   icon: typeof LayoutGrid;
   exact?: boolean;
-  badge?: "actions" | "health";
+  badge?: "actions" | "close" | "questions";
 }
 
 const NAV: { label: string; items: NavItem[] }[] = [
@@ -30,15 +30,21 @@ const NAV: { label: string; items: NavItem[] }[] = [
     ],
   },
   {
-    label: "Workflow",
+    // The monthly close, in the order an asset manager works it.
+    label: "Month-end",
     items: [
+      { href: "/app/close", label: "Close", icon: ClipboardCheck, badge: "close" },
+      { href: "/app/questions", label: "Questions", icon: MessageSquareText, badge: "questions" },
       { href: "/app/actions", label: "Actions", icon: ListChecks, badge: "actions" },
-      { href: "/app/data-sources", label: "Data Sources", icon: Database, badge: "health" },
+      { href: "/app/report", label: "Owner report", icon: FileText },
     ],
   },
   {
     label: "Organization",
-    items: [{ href: "/app/settings", label: "Settings", icon: Settings }],
+    items: [
+      { href: "/app/data-sources", label: "Data Sources", icon: Database },
+      { href: "/app/settings", label: "Settings", icon: Settings },
+    ],
   },
 ];
 
@@ -49,9 +55,12 @@ export function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
   const { data: org } = useData(() => getOrganization(orgId), [orgId]);
   const { data: me } = useData(() => getCurrentMember(), []);
   const { data: actions } = useData(() => listActions(orgId), [orgId]);
-  const { data: health } = useData(() => getDataHealth(orgId), [orgId]);
+  const { data: close } = useData(() => getCloseStatus(orgId), [orgId]);
+  const { data: questions } = useData(() => listQuestions(orgId), [orgId]);
   const [menuOpen, setMenuOpen] = useState(false);
   const newActions = actions?.filter((a) => a.status === "new").length ?? 0;
+  const closeBlocked = (close?.review_count ?? 0) + (close?.outstanding_count ?? 0) > 0;
+  const questionsForYou = questions?.filter((q) => q.status === "draft" || q.status === "answered").length ?? 0;
 
   const signOut = () => {
     document.cookie = `${SESSION_COOKIE}=; path=/; max-age=0; samesite=lax`;
@@ -88,7 +97,8 @@ export function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
                       <Icon className={cn("size-3.5", active ? "text-fg" : "text-fg-3")} strokeWidth={1.75} />
                       <span className="flex-1">{item.label}</span>
                       {item.badge === "actions" && newActions > 0 && <span className="num text-[10px] text-fg-3">{newActions}</span>}
-                      {item.badge === "health" && (health?.length ?? 0) > 0 && <Dot tone="warning" />}
+                      {item.badge === "questions" && questionsForYou > 0 && <span className="num text-[10px] text-fg-3">{questionsForYou}</span>}
+                      {item.badge === "close" && closeBlocked && <Dot tone="warning" />}
                     </Link>
                   </li>
                 );

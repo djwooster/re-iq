@@ -9,5 +9,8 @@ export * from "./insights";
 export * from "./actions";
 export * from "./imports";
 export * from "./sources";
+export * from "./close";
+export * from "./questions";
+export * from "./report";
 export * from "./org";
 export { subscribe, getRevision } from "./store";
