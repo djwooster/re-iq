@@ -1,18 +1,20 @@
 "use client";
 
-import { createContext, useCallback, useContext, useEffect, useMemo, useSyncExternalStore } from "react";
+import { createContext, useCallback, useContext, useEffect, useLayoutEffect, useMemo, useSyncExternalStore } from "react";
 
 export type ThemePreference = "light" | "dark" | "system";
 
 const STORAGE_KEY = "reiq.theme";
 /** Set once the user has seen the dark-mode prompt or picked a theme themselves. */
 export const THEME_PROMPT_KEY = "reiq.theme-prompted";
+/** Pages that always render light, whatever theme the user picked in the app. */
+const LIGHT_ONLY_PATHS = ["/"];
 
 /**
  * Runs before first paint (see InlineScript) so the right theme class is on
  * <html> before anything renders. Kept tiny and dependency-free.
  */
-export const themeScript = `(function(){try{var p=localStorage.getItem("${STORAGE_KEY}")||"light";var d=p==="dark"||(p==="system"&&matchMedia("(prefers-color-scheme: dark)").matches);document.documentElement.classList.toggle("dark",d);document.documentElement.style.colorScheme=d?"dark":"light"}catch(e){}})()`;
+export const themeScript = `(function(){try{var p=localStorage.getItem("${STORAGE_KEY}")||"light";var d=${JSON.stringify(LIGHT_ONLY_PATHS)}.indexOf(location.pathname)<0&&(p==="dark"||(p==="system"&&matchMedia("(prefers-color-scheme: dark)").matches));document.documentElement.classList.toggle("dark",d);document.documentElement.style.colorScheme=d?"dark":"light"}catch(e){}})()`;
 
 interface ThemeContextValue {
   preference: ThemePreference;
@@ -44,10 +46,13 @@ function resolve(p: ThemePreference): "light" | "dark" {
   return window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
 }
 
+/** How many mounted ForceLight components are holding the page in light. */
+let forcedLight = 0;
+
 /** Apply the theme to <html>, pausing transitions so nothing animates mid-swap. */
 function apply(p: ThemePreference) {
   const root = document.documentElement;
-  const next = resolve(p);
+  const next = forcedLight > 0 ? "light" : resolve(p);
   root.classList.add("theme-switching");
   root.classList.toggle("dark", next === "dark");
   root.style.colorScheme = next;
@@ -103,4 +108,23 @@ export function useTheme() {
   const ctx = useContext(ThemeContext);
   if (!ctx) throw new Error("useTheme must be used inside ThemeProvider");
   return ctx;
+}
+
+/**
+ * Keeps the page light while mounted (the marketing site), and restores the
+ * user's theme on the way into the app. The inline script covers first paint;
+ * this covers client-side navigation and theme changes from other tabs.
+ */
+export function ForceLight() {
+  useLayoutEffect(() => {
+    forcedLight++;
+    apply(readPreference());
+    notify();
+    return () => {
+      forcedLight--;
+      apply(readPreference());
+      notify();
+    };
+  }, []);
+  return null;
 }
