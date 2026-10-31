@@ -50,6 +50,7 @@ Tailwind name is what components use.
 | `--warning`         | `warning`                     | `#b45309`                              | `#d9a95b`                              | Needs attention, late, low confidence |
 | `--data`            | `data`                        | `#0e7490`                              | `#6c9bad`                              | Chart series, data highlights |
 | `--data-soft`       | `data-soft`                   | `rgb(14 116 144 / 0.14)`               | `rgb(34 211 238 / 0.16)`               | Text selection, highlighted inline text |
+| `--file-xls` / `--file-pdf` / `--file-csv` | `file-xls` / `file-pdf` / `file-csv` | `#1d6f42` / `#c2352b` / `#2f5f9e` | `#3f8f62` / `#c9554b` / `#4f7fbf` | File-format tags only (spreadsheet green, PDF red, CSV blue), with `--file-ink` text |
 | `--inverted`        | `inverted`                    | `#0a0a0a`                              | `#ffffff`                              | Primary button, toasts, chart tooltips |
 | `--inverted-text`   | `inverted-fg`                 | `#ffffff`                              | `#0a0a0a`                              | Text on `inverted` |
 | `--inverted-muted`  | `inverted-muted`              | `rgb(255 255 255 / 0.62)`              | `rgb(10 10 10 / 0.6)`                  | Secondary text on `inverted` |

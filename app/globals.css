@@ -21,6 +21,10 @@
   --warning: #b45309;
   --data: #0e7490;
   --data-soft: rgb(14 116 144 / 0.14);
+  --file-xls: #1d6f42;
+  --file-pdf: #c2352b;
+  --file-csv: #2f5f9e;
+  --file-ink: #ffffff;
   --inverted: #0a0a0a;
   --inverted-text: #ffffff;
   --inverted-muted: rgb(255 255 255 / 0.62);
@@ -48,6 +52,10 @@
   --warning: #d9a95b;
   --data: #6c9bad;
   --data-soft: rgb(34 77 95 / 0.6);
+  --file-xls: #3f8f62;
+  --file-pdf: #c9554b;
+  --file-csv: #4f7fbf;
+  --file-ink: #ffffff;
   --inverted: #f2edea;
   --inverted-text: #111111;
   --inverted-muted: rgb(17 17 17 / 0.6);
@@ -70,6 +78,10 @@
   --color-warning: var(--warning);
   --color-data: var(--data);
   --color-data-soft: var(--data-soft);
+  --color-file-xls: var(--file-xls);
+  --color-file-pdf: var(--file-pdf);
+  --color-file-csv: var(--file-csv);
+  --color-file-ink: var(--file-ink);
   --color-inverted: var(--inverted);
   --color-inverted-fg: var(--inverted-text);
   --color-inverted-muted: var(--inverted-muted);
