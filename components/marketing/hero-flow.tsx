@@ -41,6 +41,9 @@ const RESULT = { left: 752 };
 const FILE_EDGE = 30;
 
 const EASE = [0.22, 1, 0.36, 1] as const;
+
+/** Each format in the color people already associate with it (spreadsheet green, PDF red, CSV blue). */
+const FILE_COLOR: Record<string, string> = { XLS: "bg-file-xls", PDF: "bg-file-pdf", CSV: "bg-file-csv" };
 const pct = (v: number, of: number) => `${(v / of) * 100}%`;
 const inbound = (f: (typeof FILES)[number]) => `M${f.x + FILE_EDGE} ${f.y} C ${f.x + 110} ${f.y}, ${CARD.left - 90} ${CARD.y}, ${CARD.left} ${CARD.y}`;
 const OUTBOUND = `M${CARD.right} ${CARD.y} L${RESULT.left} ${CARD.y}`;
@@ -142,8 +145,9 @@ function FileGlyph({ kind, tilt, active }: { kind: string; tilt: number; active:
       </svg>
       <span
         className={cn(
-          "num absolute bottom-[7px] left-[7px] rounded-[4px] px-1 py-px text-[8.5px] font-semibold tracking-[0.04em] transition-colors duration-300",
-          active ? "bg-inverted text-inverted-fg" : "bg-fg/15 text-fg-2",
+          "num absolute bottom-[7px] left-[7px] rounded-[4px] px-1 py-px text-[8.5px] font-semibold tracking-[0.04em] text-file-ink transition-opacity duration-300",
+          FILE_COLOR[kind],
+          !active && "opacity-60",
         )}
       >
         {kind}
