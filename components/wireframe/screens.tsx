@@ -33,7 +33,9 @@ export function UploadScreen() {
   const [files, setFiles] = useState(0);
   return (
     <WfPage title="Upload">
-      <Box label="Drop reports here" onClick={() => setFiles((n) => n + 3)} className="flex min-h-48 items-center justify-center" />
+      <Box label="Drop reports here" className="flex min-h-48 flex-col items-center justify-center gap-3">
+        <WfButton onClick={() => setFiles((n) => n + 3)}>+ Upload</WfButton>
+      </Box>
       <Box label="Uploaded files" className="min-h-28">
         {files > 0 && (
           <ul className="mt-2.5 flex flex-col gap-1.5">

@@ -21,7 +21,7 @@ function Frame({ href, onClick, className, children }: Clickable & { className?:
 }
 
 function Arrow() {
-  return <span className="absolute top-2 right-2.5 text-xs text-fg-3 transition-colors group-hover:text-fg">→</span>;
+  return <span className="absolute top-2 right-2.5 text-xs text-fg-3 transition-colors group-hover:text-[var(--wf-accent)]">→</span>;
 }
 
 export function Box({ label, href, onClick, className, children }: Clickable & { label: string; className?: string; children?: React.ReactNode }) {
@@ -73,7 +73,7 @@ export function TableBox({ label, rowLabel, columns = 4, rows = 5, rowHref }: { 
                   <span key={i} className="my-auto h-2 rounded-sm bg-fg/[0.08]" />
                 ),
               )}
-              <span className="text-xs text-fg-3 transition-colors group-hover:text-fg">{rowHref ? "→" : ""}</span>
+              <span className="text-xs text-fg-3 transition-colors group-hover:text-[var(--wf-accent)]">{rowHref ? "→" : ""}</span>
             </>
           );
           const cls = "grid gap-3 border-b border-fg/10 px-3 py-2.5 last:border-b-0";
@@ -103,7 +103,7 @@ export function ExpectBox() {
 }
 
 export function WfButton({ href, onClick, children }: Clickable & { children: React.ReactNode }) {
-  const cls = "inline-flex cursor-pointer items-center justify-center rounded-md bg-fg px-4 py-2 text-xs font-medium text-bg transition-opacity hover:opacity-85";
+  const cls = "inline-flex cursor-pointer items-center justify-center rounded-md bg-[var(--wf-accent)] px-4 py-2 text-xs font-medium text-white transition-opacity hover:opacity-85";
   if (href) return <Link href={href} className={cls}>{children}</Link>;
   return (
     <button type="button" onClick={onClick} className={cls}>
@@ -141,7 +141,7 @@ export function WfTabs<T extends string>({ value, onChange, tabs }: { value: T; 
           role="tab"
           aria-selected={value === t.id}
           onClick={() => onChange(t.id)}
-          className={cn("-mb-px cursor-pointer border-b-2 px-3 py-2 text-xs transition-colors", value === t.id ? "border-fg font-medium text-fg" : "border-transparent text-fg-3 hover:text-fg-2")}
+          className={cn("-mb-px cursor-pointer border-b-2 px-3 py-2 text-xs transition-colors", value === t.id ? "border-[var(--wf-accent)] font-medium text-fg" : "border-transparent text-fg-3 hover:text-fg-2")}
         >
           {t.label}
         </button>
