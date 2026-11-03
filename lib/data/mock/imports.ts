@@ -102,11 +102,17 @@ const GL_TEMPLATES: Record<PmsSystem, GlTemplateRow[]> = {
     { code: "40150", label: "Concessions", target: "concessions", share: 1, confidence: 0.98 },
     { code: "40200", label: "Bad Debt Write Off", target: "bad_debt", share: 1, confidence: 0.96 },
     { code: "41000", label: "Other Tenant Charges", target: "other_income", share: 1, confidence: 0.89 },
-    { code: "60000", label: "Salaries & Wages", target: "payroll", share: 1, confidence: 0.97 },
-    { code: "62000", label: "Maintenance & Repairs", target: "repairs_maintenance", share: 1, confidence: 0.95 },
+    { code: "60000", label: "Salaries & Wages", target: "payroll", share: 0.85, confidence: 0.97 },
+    { code: "60100", label: "Payroll Taxes & Benefits", target: "payroll", share: 0.15, confidence: 0.95 },
+    // Only carries a balance where a property books temp staff here (Willow Bend since April).
+    { code: "60500", label: "Contract Labor", target: "payroll", share: 0, confidence: 0.72 },
+    { code: "62000", label: "Maintenance & Repairs", target: "repairs_maintenance", share: 0.45, confidence: 0.95 },
+    { code: "62100", label: "HVAC Repairs", target: "repairs_maintenance", share: 0.35, confidence: 0.97 },
+    { code: "62200", label: "Plumbing Repairs", target: "repairs_maintenance", share: 0.2, confidence: 0.97 },
     { code: "62500", label: "Unit Turnover", target: "turnover", share: 1, confidence: 0.95 },
     { code: "63000", label: "Utilities", target: "utilities", share: 1, confidence: 0.98 },
-    { code: "64000", label: "Contracted Services", target: "contract_services", share: 1, confidence: 0.94 },
+    { code: "64000", label: "Contracted Services", target: "contract_services", share: 0.6, confidence: 0.94 },
+    { code: "64100", label: "Landscaping", target: "contract_services", share: 0.4, confidence: 0.96 },
     { code: "65000", label: "Marketing & Leasing", target: "marketing", share: 1, confidence: 0.95 },
     { code: "66000", label: "Administrative", target: "administrative", share: 1, confidence: 0.93 },
     { code: "67000", label: "Management Fees", target: "management_fees", share: 1, confidence: 0.99 },
@@ -120,13 +126,15 @@ const GL_TEMPLATES: Record<PmsSystem, GlTemplateRow[]> = {
     { code: "4030", label: "Concessions", target: "concessions", share: 1, confidence: 0.98 },
     { code: "4040", label: "Bad Debt", target: "bad_debt", share: 1, confidence: 0.97 },
     { code: "4500", label: "Ancillary Income", target: "other_income", share: 1, confidence: 0.92 },
-    { code: "5000", label: "Payroll - Office", target: "payroll", share: 0.36, confidence: 0.97 },
-    { code: "5010", label: "Payroll - Maintenance", target: "payroll", share: 0.44, confidence: 0.97 },
-    { code: "5015", label: "Contract Labor", target: "payroll", share: 0.2, confidence: 0.74 },
-    { code: "5100", label: "Repairs & Maintenance", target: "repairs_maintenance", share: 1, confidence: 0.96 },
+    { code: "5000", label: "Payroll - Office", target: "payroll", share: 0.45, confidence: 0.97 },
+    { code: "5010", label: "Payroll - Maintenance", target: "payroll", share: 0.55, confidence: 0.97 },
+    { code: "5100", label: "R&M", target: "repairs_maintenance", share: 1, confidence: 0.96 },
     { code: "5200", label: "Make Ready", target: "turnover", share: 1, confidence: 0.95 },
-    { code: "5300", label: "Utilities", target: "utilities", share: 1, confidence: 0.98 },
-    { code: "5400", label: "Contract Services", target: "contract_services", share: 1, confidence: 0.95 },
+    { code: "5310", label: "Electric", target: "utilities", share: 0.36, confidence: 0.98 },
+    { code: "5320", label: "Water & Sewer", target: "utilities", share: 0.52, confidence: 0.98 },
+    { code: "5330", label: "Gas", target: "utilities", share: 0.12, confidence: 0.97 },
+    { code: "5400", label: "Contract Services", target: "contract_services", share: 0.6, confidence: 0.95 },
+    { code: "5410", label: "Grounds & Landscaping", target: "contract_services", share: 0.4, confidence: 0.93 },
     { code: "5500", label: "Marketing", target: "marketing", share: 1, confidence: 0.96 },
     { code: "5600", label: "General & Admin", target: "administrative", share: 1, confidence: 0.94 },
     { code: "5700", label: "Management Fee", target: "management_fees", share: 1, confidence: 0.99 },
@@ -283,25 +291,39 @@ export function buildFileName(seed: PropertySeed, type: ReportType, period: Mont
 
 // ---- Seeded history -----------------------------------------------------
 
-const UPLOADERS = ["mem_elena", "mem_elena", "mem_jordan", "mem_sam"];
+/** Monthly reports every property sends. */
+export const MONTHLY_REPORTS: ReportType[] = ["t12", "rent_roll", "ar_aging", "work_orders"];
 
-const MISSING_SEPTEMBER = new Set(["prop_lakeline:rent_roll", "prop_magnolia:ar_aging"]);
+/**
+ * Day of the following month each manager's package arrived, per period.
+ * November is the close in progress: Crestline hasn't sent anything yet.
+ */
+const ARRIVAL_DAY: Record<string, Record<MonthKey, number | null>> = {
+  pm_summit: { "2026-09": 8, "2026-10": 9, "2026-11": 9 },
+  pm_harbor: { "2026-09": 12, "2026-10": 11, "2026-11": 11 },
+  pm_northgate: { "2026-09": 10, "2026-10": 12, "2026-11": 12 },
+  pm_crestline: { "2026-09": 13, "2026-10": 14, "2026-11": null },
+};
 
-function uploadedAt(period: MonthKey, rng: ReturnType<typeof createRng>, dayRange: [number, number]) {
+/** Reports a manager sent its package without. */
+const MISSING = new Set(["prop_vale:ar_aging:2026-11"]);
+
+function arrivedAt(period: MonthKey, day: number, rng: ReturnType<typeof createRng>) {
   const { year, month } = parseMonth(period);
-  const next = new Date(Date.UTC(year, month, rng.int(dayRange[0], dayRange[1]), rng.int(13, 22), rng.int(0, 59)));
-  return next.toISOString().replace(/\.\d{3}Z$/, "Z");
+  const d = new Date(Date.UTC(year, month, day, rng.int(14, 22), rng.int(0, 59)));
+  return d.toISOString().replace(/\.\d{3}Z$/, "Z");
 }
 
 function seedImports(): Import[] {
   const out: Import[] = [];
   const uploadSeeds = propertySeeds.filter((s) => s.uploadSystem);
-  const months: MonthKey[] = ["2026-07", "2026-08", "2026-09"];
+  const months: MonthKey[] = ["2026-09", "2026-10", "2026-11"];
 
   for (const seed of uploadSeeds) {
     const rng = createRng(`imports:${seed.property.id}`);
     const id = (suffix: string) => `imp_${seed.property.id.slice(5)}_${suffix}`;
     const system = seed.uploadSystem as PmsSystem;
+    const managerId = seed.property.property_manager_id;
     const base = {
       org_id: ORG_ID,
       data_source_id: "src_upload",
@@ -310,7 +332,7 @@ function seedImports(): Import[] {
       status_detail: null,
     };
 
-    const budgetAt = uploadedAt("2025-12", rng, [8, 20]);
+    const budgetAt = arrivedAt("2025-12", 9, rng);
     out.push({
       ...base,
       id: id("budget_2026"),
@@ -320,52 +342,35 @@ function seedImports(): Import[] {
       report_type: "budget",
       period: "2026-12",
       status: "processed",
-      uploaded_by: "mem_priya",
+      uploaded_by: "mem_jordan",
       uploaded_at: budgetAt,
       processed_at: budgetAt,
       row_count: GL_TEMPLATES[system].length * 12,
     });
 
     for (const period of months) {
-      const types: ReportType[] = ["t12", "rent_roll", "ar_aging"];
-      if (system === "yardi") types.push("work_orders");
-      for (const type of types) {
-        const at = uploadedAt(period, rng, [5, 13]);
-        // Still outstanding for the September close.
-        if (period === "2026-09" && MISSING_SEPTEMBER.has(`${seed.property.id}:${type}`)) continue;
+      const day = ARRIVAL_DAY[managerId]?.[period];
+      if (!day) continue;
+      for (const type of MONTHLY_REPORTS) {
+        if (MISSING.has(`${seed.property.id}:${type}:${period}`)) continue;
+        const at = arrivedAt(period, day, rng);
         const fileName = buildFileName(seed, type, period);
-        const format = fileName.split(".").pop() as FileFormat;
-        const record: Import = {
+        out.push({
           ...base,
           id: id(`${type}_${period.replace("-", "")}`),
           file_name: fileName,
-          file_format: format,
+          file_format: fileName.split(".").pop() as FileFormat,
           file_size: (type === "rent_roll" ? rng.int(140, 320) : rng.int(40, 120)) * 1_000,
           report_type: type,
           period,
           status: "processed",
-          uploaded_by: rng.pick(UPLOADERS),
+          // Sent through the manager's upload link.
+          uploaded_by: managerId,
           uploaded_at: at,
           processed_at: at,
           row_count:
             type === "rent_roll" ? seed.property.units : type === "t12" ? GL_TEMPLATES[system].length : type === "ar_aging" ? rng.int(18, 60) : rng.int(120, 340),
-        };
-
-        if (period === "2026-09" && type === "t12" && seed.property.id === "prop_magnolia") {
-          record.status = "needs_review";
-          record.status_detail = "2 line items need confirmation before September posts";
-          record.processed_at = null;
-        }
-        if (period === "2026-09" && type === "t12" && seed.property.id === "prop_hickory") {
-          record.file_name = `${seed.property.name} - Financial Package - Sep 2026.pdf`;
-          record.file_format = "pdf";
-          record.file_size = 4_812_000;
-          record.status = "failed";
-          record.status_detail = "Scanned PDF with no text layer. Export the 12 Month Income Statement from Rent Manager as Excel and re-upload.";
-          record.processed_at = null;
-          record.row_count = 0;
-        }
-        out.push(record);
+        });
       }
     }
   }

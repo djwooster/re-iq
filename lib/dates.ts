@@ -4,8 +4,8 @@ import type { ISODate, MonthKey, Period } from "@/lib/types";
  * The demo runs on a fixed clock so the seeded story stays coherent and
  * server and client renders agree. Swap for `new Date()` with real data.
  */
-export const TODAY: ISODate = "2026-10-18";
-export const LATEST_MONTH: MonthKey = "2026-09";
+export const TODAY: ISODate = "2026-12-15";
+export const LATEST_MONTH: MonthKey = "2026-11";
 export const HISTORY_MONTHS = 24;
 
 const MONTH_SHORT = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
@@ -93,11 +93,11 @@ export function formatRelative(iso: string): string {
   return formatDate(iso.slice(0, 10), !iso.startsWith(TODAY.slice(0, 4)));
 }
 
+/** Periods offered in the UI. YTD stays in the type for internal sums but isn't shown. */
 export const PERIODS: { id: Period; label: string; long: string }[] = [
-  { id: "mtd", label: "MTD", long: "Month to date" },
+  { id: "mtd", label: "Month", long: "Latest closed month" },
   { id: "qtd", label: "QTD", long: "Quarter to date" },
-  { id: "ytd", label: "YTD", long: "Year to date" },
-  { id: "t12", label: "T12", long: "Trailing 12 months" },
+  { id: "t12", label: "T-12", long: "Trailing 12 months" },
 ];
 
 /** Months covered by a period ending at `asOf`. */

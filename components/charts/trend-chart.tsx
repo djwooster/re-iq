@@ -1,6 +1,6 @@
 "use client";
 
-import { CartesianGrid, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
+import { CartesianGrid, Line, LineChart, ReferenceArea, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { formatMonth } from "@/lib/dates";
 
 export interface SeriesDef {
@@ -81,6 +81,7 @@ export function TrendChart<T extends { month: string }>({
   height = 200,
   domain,
   footnote,
+  highlight,
 }: {
   data: T[];
   series: SeriesDef[];
@@ -89,6 +90,8 @@ export function TrendChart<T extends { month: string }>({
   height?: number;
   domain?: [number | "auto" | "dataMin" | "dataMax", number | "auto" | "dataMin" | "dataMax"];
   footnote?: (month: string) => string | null;
+  /** Shades a run of months, e.g. how long an issue has been building. */
+  highlight?: { from: string; to: string };
 }) {
   return (
     <div style={{ height }} className="w-full" role="img" aria-label={`${series.map((s) => s.label).join(" and ")} by month`}>
@@ -114,6 +117,7 @@ export function TrendChart<T extends { month: string }>({
             tick={{ fill: "var(--text-muted)", fontSize: 10, fontFamily: "var(--font-geist-mono)" }}
             tickCount={4}
           />
+          {highlight && <ReferenceArea x1={highlight.from} x2={highlight.to} fill="var(--text-muted)" fillOpacity={0.08} stroke="none" ifOverflow="hidden" />}
           <Tooltip
             cursor={{ stroke: "var(--border-strong)", strokeWidth: 1 }}
             content={<TrendTooltip series={series} format={format} footnote={footnote} />}

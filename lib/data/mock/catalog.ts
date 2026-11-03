@@ -1,4 +1,5 @@
 import type {
+  CapexProject,
   DataSource,
   Member,
   Organization,
@@ -25,20 +26,18 @@ export const organization: Organization = {
 
 export const members: Member[] = [
   { id: "mem_jordan", org_id: ORG_ID, name: "Jordan Reyes", email: "jordan@alderpeak.com", title: "Asset Manager", role: "admin", status: "active", initials: "JR" },
-  { id: "mem_priya", org_id: ORG_ID, name: "Priya Natarajan", email: "priya@alderpeak.com", title: "VP, Asset Management", role: "admin", status: "active", initials: "PN" },
-  { id: "mem_marcus", org_id: ORG_ID, name: "Marcus Bell", email: "marcus@alderpeak.com", title: "Chief Financial Officer", role: "member", status: "active", initials: "MB" },
-  { id: "mem_elena", org_id: ORG_ID, name: "Elena Ortiz", email: "elena@alderpeak.com", title: "Asset Analyst", role: "member", status: "active", initials: "EO" },
-  { id: "mem_sam", org_id: ORG_ID, name: "Sam Kowalski", email: "sam@alderpeak.com", title: "Asset Manager", role: "member", status: "active", initials: "SK" },
-  { id: "mem_tess", org_id: ORG_ID, name: "Tess Hadley", email: "tess@hadleyfamilyoffice.com", title: "Investor, Hadley Family Office", role: "viewer", status: "active", initials: "TH" },
+  { id: "mem_dana", org_id: ORG_ID, name: "Dana Whitfield", email: "dana@alderpeak.com", title: "Owner / GP", role: "viewer", status: "active", initials: "DW" },
 ];
 
 export const CURRENT_MEMBER_ID = "mem_jordan";
+/** The owner Jordan reports to. The owner view previews what this member sees. */
+export const OWNER_MEMBER_ID = "mem_dana";
 
 export const propertyManagers: PropertyManager[] = [
-  { id: "pm_crestline", org_id: ORG_ID, name: "Crestline Residential", system: "yardi", contact_name: "Dana Whitfield", contact_email: "dwhitfield@crestlineres.com" },
+  { id: "pm_summit", org_id: ORG_ID, name: "Summit Living", system: "rent_manager", contact_name: "Kara Lindqvist", contact_email: "klindqvist@summitliving.com" },
   { id: "pm_harbor", org_id: ORG_ID, name: "Harbor Property Group", system: "resman", contact_name: "Luis Ortega", contact_email: "lortega@harborpg.com" },
-  { id: "pm_summit", org_id: ORG_ID, name: "Summit Living Management", system: "rent_manager", contact_name: "Kara Lindqvist", contact_email: "klindqvist@summitliving.com" },
-  { id: "pm_meridian", org_id: ORG_ID, name: "Meridian Residential", system: "entrata", contact_name: "Andre Coleman", contact_email: "acoleman@meridianresidential.com" },
+  { id: "pm_northgate", org_id: ORG_ID, name: "Northgate Residential", system: "yardi", contact_name: "Andre Coleman", contact_email: "acoleman@northgateres.com" },
+  { id: "pm_crestline", org_id: ORG_ID, name: "Crestline Management", system: "appfolio", contact_name: "Marisol Vega", contact_email: "mvega@crestlinemgmt.com" },
 ];
 
 /** Generation parameters per property; the story knobs live here. */
@@ -60,9 +59,8 @@ export interface PropertySeed {
     | "bad_debt"
     | "utilities_leak"
     | "payroll_contract_labor"
-    // Problems fixed earlier in the year, so completed actions have results to measure.
-    | "irrigation_fixed"
-    | "concession_reset";
+    | "landscaping"
+    | "economic_gap";
 }
 
 function p(
@@ -97,61 +95,57 @@ function p(
 }
 
 export const propertySeeds: PropertySeed[] = [
-  {
-    property: p("prop_oakridge", "Oakridge Commons", "Oakridge", "Austin", "Austin", "TX", "B", 336, 2004, "pm_crestline", ["src_upload"], 2_960_000),
-    rent: 1_495, budgetOccupancy: 0.95, uploadSystem: "yardi", summerUtilityLift: 0.28,
-  },
-  {
-    property: p("prop_vale", "The Vale at Riverside", "The Vale", "Austin", "Austin", "TX", "A", 296, 2019, "pm_crestline", ["src_upload"], 3_610_000),
-    rent: 1_980, budgetOccupancy: 0.945, uploadSystem: "yardi", summerUtilityLift: 0.25,
-  },
-  {
-    property: p("prop_cedar", "Cedar Hollow", "Cedar Hollow", "Dallas–Fort Worth", "Irving", "TX", "B", 248, 1998, "pm_harbor", ["src_upload"], 1_980_000),
-    rent: 1_385, budgetOccupancy: 0.95, uploadSystem: "resman", summerUtilityLift: 0.26,
-  },
-  {
-    property: p("prop_lakeline", "Lakeline Flats", "Lakeline", "Dallas–Fort Worth", "Frisco", "TX", "A", 372, 2021, "pm_harbor", ["src_upload"], 4_420_000),
-    rent: 1_865, budgetOccupancy: 0.95, uploadSystem: "resman", summerUtilityLift: 0.24, story: "vacancy_concessions",
-  },
+  // Summit Living · Rent Manager
   {
     property: p("prop_mesa", "Mesa Verde Apartments", "Mesa Verde", "Phoenix", "Mesa", "AZ", "C", 196, 1986, "pm_summit", ["src_upload"], 1_120_000),
     rent: 1_140, budgetOccupancy: 0.94, uploadSystem: "rent_manager", summerUtilityLift: 0.34, story: "hvac",
   },
   {
-    property: p("prop_saguaro", "Saguaro Ridge", "Saguaro Ridge", "Phoenix", "Chandler", "AZ", "B", 276, 2006, "pm_summit", ["src_upload"], 2_240_000),
-    rent: 1_520, budgetOccupancy: 0.95, uploadSystem: "rent_manager", summerUtilityLift: 0.32,
+    property: p("prop_willow", "Willow Bend", "Willow Bend", "Phoenix", "Tempe", "AZ", "C", 260, 1984, "pm_summit", ["src_upload"], 1_390_000),
+    rent: 1_160, budgetOccupancy: 0.94, uploadSystem: "rent_manager", summerUtilityLift: 0.32, story: "payroll_contract_labor",
   },
   {
-    property: p("prop_peachtree", "Peachtree Landing", "Peachtree", "Atlanta", "Atlanta", "GA", "A", 348, 2018, "pm_meridian", ["src_upload"], 3_890_000),
-    rent: 1_790, budgetOccupancy: 0.945, uploadSystem: "entrata", summerUtilityLift: 0.18, story: "utilities_leak",
+    property: p("prop_gulch", "Gulch Terrace", "Gulch Terrace", "Atlanta", "Atlanta", "GA", "A", 256, 2020, "pm_summit", ["src_upload"], 3_340_000),
+    rent: 2_045, budgetOccupancy: 0.945, uploadSystem: "rent_manager", summerUtilityLift: 0.14,
+  },
+  // Harbor Property Group · ResMan
+  {
+    property: p("prop_lakeline", "Lakeline Flats", "Lakeline", "Austin", "Cedar Park", "TX", "A", 336, 2021, "pm_harbor", ["src_upload"], 4_020_000),
+    rent: 1_865, budgetOccupancy: 0.95, uploadSystem: "resman", summerUtilityLift: 0.24, story: "vacancy_concessions",
   },
   {
-    property: p("prop_magnolia", "Magnolia Court", "Magnolia", "Atlanta", "Decatur", "GA", "C", 168, 1979, "pm_meridian", ["src_upload"], 860_000),
-    rent: 1_095, budgetOccupancy: 0.935, uploadSystem: "appfolio", summerUtilityLift: 0.16, story: "bad_debt",
+    property: p("prop_magnolia", "Magnolia Court", "Magnolia", "Atlanta", "Decatur", "GA", "C", 168, 1979, "pm_harbor", ["src_upload"], 860_000),
+    rent: 1_095, budgetOccupancy: 0.935, uploadSystem: "resman", summerUtilityLift: 0.16, story: "bad_debt",
   },
   {
-    property: p("prop_brookstone", "Brookstone Park", "Brookstone", "Charlotte", "Charlotte", "NC", "B", 304, 2008, "pm_crestline", ["src_upload"], 2_520_000),
+    property: p("prop_peachtree", "Peachtree Landing", "Peachtree", "Atlanta", "Atlanta", "GA", "A", 324, 2018, "pm_harbor", ["src_upload"], 3_640_000),
+    rent: 1_790, budgetOccupancy: 0.945, uploadSystem: "resman", summerUtilityLift: 0.18, story: "utilities_leak",
+  },
+  // Northgate Residential · Yardi
+  {
+    property: p("prop_brookstone", "Brookstone Park", "Brookstone", "Charlotte", "Charlotte", "NC", "B", 304, 2008, "pm_northgate", ["src_upload"], 2_520_000),
     rent: 1_545, budgetOccupancy: 0.95, uploadSystem: "yardi", summerUtilityLift: 0.15, story: "below_market",
   },
   {
-    property: p("prop_foundry", "The Foundry Lofts", "Foundry Lofts", "Charlotte", "Charlotte", "NC", "A", 214, 2016, "pm_meridian", ["src_upload"], 2_480_000),
-    rent: 1_895, budgetOccupancy: 0.945, uploadSystem: "entrata", summerUtilityLift: 0.14,
+    property: p("prop_oakridge", "Oakridge", "Oakridge", "Austin", "Austin", "TX", "B", 288, 2004, "pm_northgate", ["src_upload"], 2_540_000),
+    rent: 1_495, budgetOccupancy: 0.95, uploadSystem: "yardi", summerUtilityLift: 0.28, story: "economic_gap",
   },
   {
-    property: p("prop_hickory", "Hickory Station", "Hickory", "Nashville", "Nashville", "TN", "B", 300, 2009, "pm_summit", ["src_upload"], 2_410_000),
-    rent: 1_560, budgetOccupancy: 0.95, uploadSystem: "rent_manager", summerUtilityLift: 0.15,
+    property: p("prop_vale", "The Vale", "The Vale", "Charlotte", "Charlotte", "NC", "A", 296, 2019, "pm_northgate", ["src_upload"], 3_610_000),
+    rent: 1_980, budgetOccupancy: 0.945, uploadSystem: "yardi", summerUtilityLift: 0.15,
+  },
+  // Crestline Management · AppFolio
+  {
+    property: p("prop_crestline_north", "Crestline North", "Crestline N.", "Tampa", "Tampa", "FL", "B", 240, 2001, "pm_crestline", ["src_upload"], 1_960_000),
+    rent: 1_610, budgetOccupancy: 0.95, uploadSystem: "appfolio", summerUtilityLift: 0.2, story: "landscaping",
   },
   {
-    property: p("prop_gulch", "Gulch Terrace", "Gulch Terrace", "Nashville", "Nashville", "TN", "A", 256, 2020, "pm_crestline", ["src_upload"], 3_340_000),
-    rent: 2_045, budgetOccupancy: 0.945, uploadSystem: "yardi", summerUtilityLift: 0.14, story: "concession_reset",
+    property: p("prop_crestline_south", "Crestline South", "Crestline S.", "Tampa", "Tampa", "FL", "B", 212, 1998, "pm_crestline", ["src_upload"], 1_640_000),
+    rent: 1_540, budgetOccupancy: 0.95, uploadSystem: "appfolio", summerUtilityLift: 0.2, story: "landscaping",
   },
   {
-    property: p("prop_willow", "Willow Bend", "Willow Bend", "Dallas–Fort Worth", "Garland", "TX", "C", 260, 1984, "pm_harbor", ["src_upload"], 1_390_000),
-    rent: 1_160, budgetOccupancy: 0.94, uploadSystem: "resman", summerUtilityLift: 0.27, story: "payroll_contract_labor",
-  },
-  {
-    property: p("prop_camelback", "Camelback Vista", "Camelback", "Phoenix", "Phoenix", "AZ", "B", 216, 2002, "pm_summit", ["src_upload"], 1_710_000),
-    rent: 1_430, budgetOccupancy: 0.95, uploadSystem: "rent_manager", summerUtilityLift: 0.33, story: "irrigation_fixed",
+    property: p("prop_crestline_commons", "Crestline Commons", "Crestline Commons", "Tampa", "Brandon", "FL", "C", 184, 1989, "pm_crestline", ["src_upload"], 1_020_000),
+    rent: 1_320, budgetOccupancy: 0.94, uploadSystem: "appfolio", summerUtilityLift: 0.21, story: "landscaping",
   },
 ];
 
@@ -163,8 +157,8 @@ export const dataSources: DataSource[] = [
   { id: "src_upload", org_id: ORG_ID, type: "upload", name: "Report uploads", status: "active", last_sync_at: null, records_synced: null, property_ids: uploadIds },
   // Connectors are on hold: RE-IQ is upload-only until PMS API costs make sense.
   // Restore these (and set the four properties' sources back) to demo connector-fed properties.
-  // { id: "src_resman", org_id: ORG_ID, type: "resman", name: "ResMan · Harbor Property Group", status: "connected", last_sync_at: "2026-10-18T06:02:00Z", records_synced: 48_214, property_ids: ["prop_cedar", "prop_lakeline"] },
-  // { id: "src_rentmanager", org_id: ORG_ID, type: "rent_manager", name: "Rent Manager · Summit Living", status: "connected", last_sync_at: "2026-10-18T05:41:00Z", records_synced: 31_877, property_ids: ["prop_mesa", "prop_saguaro"] },
+  // { id: "src_resman", org_id: ORG_ID, type: "resman", name: "ResMan · Harbor Property Group", status: "connected", last_sync_at: "2026-10-18T06:02:00Z", records_synced: 48_214, property_ids: ["prop_lakeline"] },
+  // { id: "src_rentmanager", org_id: ORG_ID, type: "rent_manager", name: "Rent Manager · Summit Living", status: "connected", last_sync_at: "2026-10-18T05:41:00Z", records_synced: 31_877, property_ids: ["prop_mesa"] },
 ];
 
 const crestline = properties.filter((x) => x.property_manager_id === "pm_crestline").map((x) => x.id);
@@ -187,6 +181,22 @@ export const vendors: Vendor[] = [
   { id: "ven_clearpath", org_id: ORG_ID, name: "ClearPath Plumbing", category: "Plumbing", gl_category: "repairs_maintenance", share: 0.16, property_ids: allIds, benchmark_per_unit: null },
   { id: "ven_brightturn", org_id: ORG_ID, name: "BrightTurn Make-Ready", category: "Turnover", gl_category: "turnover", share: 0.62, property_ids: allIds, benchmark_per_unit: null },
   { id: "ven_staffbridge", org_id: ORG_ID, name: "StaffBridge Maintenance", category: "Contract labor", gl_category: "payroll", share: 0.14, property_ids: ["prop_willow"], benchmark_per_unit: null },
+];
+
+/** Capital projects by property: planned budget against spend to date. */
+export const capexProjects: CapexProject[] = [
+  { id: "cap_mesa_condensers", org_id: ORG_ID, property_id: "prop_mesa", name: "Condenser replacement, units 1203, 1104, 3102, 2205", planned: 31_000, spent: 30_640, status: "complete", completed_at: "2026-10-24" },
+  { id: "cap_mesa_roofs", org_id: ORG_ID, property_id: "prop_mesa", name: "Roof replacement, buildings 4–6", planned: 186_000, spent: 0, status: "planned", completed_at: null },
+  { id: "cap_willow_paving", org_id: ORG_ID, property_id: "prop_willow", name: "Parking lot resurfacing", planned: 94_000, spent: 88_200, status: "complete", completed_at: "2026-04-18" },
+  { id: "cap_gulch_amenity", org_id: ORG_ID, property_id: "prop_gulch", name: "Package room expansion", planned: 42_000, spent: 18_500, status: "in_progress", completed_at: null },
+  { id: "cap_lakeline_signage", org_id: ORG_ID, property_id: "prop_lakeline", name: "Monument signage and leasing office refresh", planned: 68_000, spent: 71_300, status: "complete", completed_at: "2026-08-30" },
+  { id: "cap_magnolia_units", org_id: ORG_ID, property_id: "prop_magnolia", name: "Interior upgrades, 24 units", planned: 216_000, spent: 129_400, status: "in_progress", completed_at: null },
+  { id: "cap_peachtree_pool", org_id: ORG_ID, property_id: "prop_peachtree", name: "Pool deck resurfacing", planned: 58_000, spent: 0, status: "planned", completed_at: null },
+  { id: "cap_brookstone_units", org_id: ORG_ID, property_id: "prop_brookstone", name: "Interior upgrades, 40 units", planned: 320_000, spent: 236_000, status: "in_progress", completed_at: null },
+  { id: "cap_oakridge_hvac", org_id: ORG_ID, property_id: "prop_oakridge", name: "Rooftop HVAC units, clubhouse", planned: 46_000, spent: 44_900, status: "complete", completed_at: "2026-06-12" },
+  { id: "cap_vale_ev", org_id: ORG_ID, property_id: "prop_vale", name: "EV charging, 12 stalls", planned: 54_000, spent: 12_600, status: "in_progress", completed_at: null },
+  { id: "cap_crestline_n_roof", org_id: ORG_ID, property_id: "prop_crestline_north", name: "Roof repairs, buildings 2 and 3", planned: 72_000, spent: 69_800, status: "complete", completed_at: "2026-05-22" },
+  { id: "cap_crestline_c_siding", org_id: ORG_ID, property_id: "prop_crestline_commons", name: "Siding and paint", planned: 148_000, spent: 40_200, status: "in_progress", completed_at: null },
 ];
 
 export function seedFor(propertyId: string): PropertySeed {

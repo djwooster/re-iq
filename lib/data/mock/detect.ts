@@ -77,8 +77,6 @@ function detectSystem(name: string, propertyId: string | null): PmsSystem | null
   if (/_t12_|_rentroll_|_agedreceivables_/i.test(name)) return "yardi";
   const seed = propertySeeds.find((s) => s.property.id === propertyId);
   if (seed?.uploadSystem) return seed.uploadSystem;
-  if (propertyId === "prop_cedar" || propertyId === "prop_lakeline") return "resman";
-  if (propertyId === "prop_mesa" || propertyId === "prop_saguaro") return "rent_manager";
   return null;
 }
 

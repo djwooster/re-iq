@@ -183,6 +183,17 @@ export interface Vendor {
   benchmark_per_unit: number | null;
 }
 
+export interface CapexProject {
+  id: string;
+  org_id: string;
+  property_id: string;
+  name: string;
+  planned: number;
+  spent: number;
+  status: "planned" | "in_progress" | "complete";
+  completed_at: ISODate | null;
+}
+
 export interface VendorSpend {
   vendor: Vendor;
   property_id: string | null;
@@ -335,6 +346,18 @@ export interface VarianceQuestion {
   answer: string | null;
   answered_by: string | null;
   answered_at: ISODateTime | null;
+}
+
+export type IssueStatus = "open" | "acting" | "resolved";
+export type ResolveReason = "fixed" | "not_an_issue" | "other";
+
+/** One status change on an issue, with the asset manager's own note. */
+export interface IssueEvent {
+  status: IssueStatus;
+  at: ISODate;
+  by: string;
+  note: string | null;
+  reason: ResolveReason | null;
 }
 
 export type Period = "mtd" | "qtd" | "ytd" | "t12";

@@ -1,4 +1,4 @@
-import type { ActionStatus, GlCategory, ImportStatus, PmsSystem, ReportType, Role, SourceType, VarianceDriver } from "@/lib/types";
+import type { ActionStatus, GlCategory, ImportStatus, IssueStatus, PmsSystem, ReportType, ResolveReason, Role, SourceType, VarianceDriver } from "@/lib/types";
 
 export const PRODUCT_NAME = "RE-IQ";
 
@@ -79,4 +79,16 @@ export const ROLE_LABELS: Record<Role, string> = {
   asset_manager: "Asset Manager",
   owner: "Owner / Investor",
   executive: "Executive",
+};
+
+export const ISSUE_STATUS_LABELS: Record<IssueStatus, string> = {
+  open: "Open",
+  acting: "Acting",
+  resolved: "Resolved",
+};
+
+export const RESOLVE_REASON_LABELS: Record<ResolveReason, string> = {
+  fixed: "Fixed",
+  not_an_issue: "Not an issue",
+  other: "Other",
 };

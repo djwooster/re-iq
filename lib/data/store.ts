@@ -1,4 +1,4 @@
-import type { AccountMapping, Action, Import, Member, MonthKey, Organization, Role, VarianceQuestion } from "@/lib/types";
+import type { AccountMapping, Action, Import, IssueEvent, Member, MonthKey, Organization, Role, VarianceQuestion } from "@/lib/types";
 
 /**
  * Demo persistence. The seeded portfolio is regenerated in memory on every
@@ -15,6 +15,8 @@ export interface Overlay {
   importPatches: Record<string, Partial<Import>>;
   mappingPatches: Record<string, Partial<AccountMapping>>;
   actionPatches: Record<string, Partial<Action>>;
+  /** Status changes made in this browser, appended to each issue's seeded history. */
+  issueEvents: Record<string, IssueEvent[]>;
   questionPatches: Record<string, Partial<VarianceQuestion>>;
   /** Report reminders copied for a property manager, keyed `${managerId}|${month}`. */
   reminders: Record<string, string>;
@@ -46,6 +48,7 @@ const empty = (): Overlay => ({
   importPatches: {},
   mappingPatches: {},
   actionPatches: {},
+  issueEvents: {},
   questionPatches: {},
   reminders: {},
   reportsShared: {},

@@ -1,12 +1,12 @@
 "use client";
 
-import { Building2, ChartNoAxesColumn, ClipboardCheck, Database, FileText, LayoutGrid, ListChecks, LogOut, MessageSquareText, Settings } from "lucide-react";
+import { Building2, ChartNoAxesColumn, Database, FileText, LayoutGrid, ListChecks, LogOut, Settings } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useState } from "react";
 import { Dot } from "@/components/ui/badge";
 import { cn } from "@/lib/cn";
-import { getCloseStatus, getCurrentMember, getOrganization, listActions, listQuestions, SESSION_COOKIE } from "@/lib/data";
+import { getCloseSummary, getCurrentMember, getOrganization, listIssues, SESSION_COOKIE } from "@/lib/data";
 import { useData } from "@/lib/hooks/use-data";
 import { PRODUCT_NAME } from "@/lib/labels";
 import { SHOW_DEV_TOOLS, useApp } from "./app-context";
@@ -17,7 +17,7 @@ interface NavItem {
   label: string;
   icon: typeof LayoutGrid;
   exact?: boolean;
-  badge?: "actions" | "close" | "questions";
+  badge?: "acting" | "close";
 }
 
 const NAV: { label: string; items: NavItem[] }[] = [
@@ -30,21 +30,18 @@ const NAV: { label: string; items: NavItem[] }[] = [
     ],
   },
   {
-    // The monthly close, in the order an asset manager works it.
-    label: "Month-end",
+    label: "Workflow",
     items: [
-      { href: "/app/close", label: "Close", icon: ClipboardCheck, badge: "close" },
-      { href: "/app/questions", label: "Questions", icon: MessageSquareText, badge: "questions" },
-      { href: "/app/actions", label: "Actions", icon: ListChecks, badge: "actions" },
-      { href: "/app/report", label: "Owner report", icon: FileText },
+      { href: "/app/actions", label: "Actions", icon: ListChecks, badge: "acting" },
+      { href: "/app/report", label: "Reports", icon: FileText },
+      { href: "/app/data-sources", label: "Data Sources", icon: Database, badge: "close" },
+      // Questions to property managers are on hold for the MVP (see components/questions).
+      // { href: "/app/questions", label: "Questions", icon: MessageSquareText },
     ],
   },
   {
     label: "Organization",
-    items: [
-      { href: "/app/data-sources", label: "Data Sources", icon: Database },
-      { href: "/app/settings", label: "Settings", icon: Settings },
-    ],
+    items: [{ href: "/app/settings", label: "Settings", icon: Settings }],
   },
 ];
 
@@ -54,13 +51,11 @@ export function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
   const { orgId } = useApp();
   const { data: org } = useData(() => getOrganization(orgId), [orgId]);
   const { data: me } = useData(() => getCurrentMember(), []);
-  const { data: actions } = useData(() => listActions(orgId), [orgId]);
-  const { data: close } = useData(() => getCloseStatus(orgId), [orgId]);
-  const { data: questions } = useData(() => listQuestions(orgId), [orgId]);
+  const { data: issues } = useData(() => listIssues(orgId), [orgId]);
+  const { data: close } = useData(() => getCloseSummary(orgId), [orgId]);
   const [menuOpen, setMenuOpen] = useState(false);
-  const newActions = actions?.filter((a) => a.status === "new").length ?? 0;
-  const closeBlocked = (close?.review_count ?? 0) + (close?.outstanding_count ?? 0) > 0;
-  const questionsForYou = questions?.filter((q) => q.status === "draft" || q.status === "answered").length ?? 0;
+  const acting = issues?.filter((i) => i.status === "acting").length ?? 0;
+  const closeBlocked = Boolean(close && (close.managers_in < close.managers_total || close.missing.length > 0));
 
   const signOut = () => {
     document.cookie = `${SESSION_COOKIE}=; path=/; max-age=0; samesite=lax`;
@@ -69,10 +64,14 @@ export function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
 
   return (
     <nav className="flex h-full w-[220px] flex-col border-r border-border bg-bg" aria-label="Primary">
-      <div className="flex h-12 items-center px-4">
+      <div className="flex h-14 flex-col justify-center px-4">
         <Link href="/app" onClick={onNavigate} className="num text-[13px] font-semibold tracking-[0.06em] text-fg">
           {PRODUCT_NAME}
         </Link>
+        <span className="truncate text-[11px] text-fg-3">
+          {org?.name ?? " "}
+          {org?.is_sample && <span className="text-fg-3/70"> (sample)</span>}
+        </span>
       </div>
 
       <div className="flex-1 overflow-y-auto px-2 pt-2">
@@ -96,8 +95,7 @@ export function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
                     >
                       <Icon className={cn("size-3.5", active ? "text-fg" : "text-fg-3")} strokeWidth={1.75} />
                       <span className="flex-1">{item.label}</span>
-                      {item.badge === "actions" && newActions > 0 && <span className="num text-[10px] text-fg-3">{newActions}</span>}
-                      {item.badge === "questions" && questionsForYou > 0 && <span className="num text-[10px] text-fg-3">{questionsForYou}</span>}
+                      {item.badge === "acting" && acting > 0 && <span className="num text-[10px] text-fg-3">{acting}</span>}
                       {item.badge === "close" && closeBlocked && <Dot tone="warning" />}
                     </Link>
                   </li>

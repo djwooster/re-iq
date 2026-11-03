@@ -4,6 +4,7 @@ import { REPORT_TYPE_LABELS } from "@/lib/labels";
 import type { Import, MonthKey, PropertyManager, PropertyRecord, ReportType } from "@/lib/types";
 import { delay, effectiveImports, propertyRecords } from "./core";
 import { propertyManagers } from "./mock/catalog";
+import { MONTHLY_REPORTS } from "./mock/imports";
 import { getCurrentMember, getOrganization } from "./org";
 import { readOverlay, writeOverlay } from "./store";
 
@@ -14,10 +15,10 @@ import { readOverlay, writeOverlay } from "./store";
  */
 
 /** Reports every property sends each month. A future org setting. */
-export const REQUIRED_REPORTS: ReportType[] = ["t12", "rent_roll", "ar_aging"];
+export const REQUIRED_REPORTS: ReportType[] = MONTHLY_REPORTS;
 
 /** Days after month end that reports are due under the management agreements. A future org setting. */
-export const REPORT_DUE_DAYS = 10;
+export const REPORT_DUE_DAYS = 12;
 
 export type ReportState = "received" | "needs_review" | "failed" | "missing";
 
@@ -142,4 +143,32 @@ export async function markReminderSent(managerId: string, month: MonthKey = LATE
   writeOverlay((d) => {
     d.reminders[`${managerId}|${month}`] = `${TODAY}T${new Date().toISOString().slice(11, 19)}Z`;
   });
+}
+
+export interface CloseSummary {
+  month: MonthKey;
+  managers_total: number;
+  /** Managers who have sent their package, complete or not. */
+  managers_in: number;
+  /** Managers past the due date with nothing received. */
+  late: PropertyManager[];
+  /** Reports missing from packages that did arrive. */
+  missing: { property: PropertyRecord; report_type: ReportType }[];
+  due_date: string;
+}
+
+/** The one-line read on the month's close: who's in, who's late, what's missing. */
+export async function getCloseSummary(orgId: string, month: MonthKey = LATEST_MONTH): Promise<CloseSummary> {
+  const close = await getCloseStatus(orgId, month);
+  const received = (m: ManagerClose) =>
+    close.properties.some((p) => m.property_ids.includes(p.property.id) && p.reports.some((r) => r.state !== "missing"));
+  const inManagers = close.managers.filter(received);
+  return {
+    month,
+    managers_total: close.managers.length,
+    managers_in: inManagers.length,
+    late: close.managers.filter((m) => !received(m) && TODAY > close.due_date).map((m) => m.manager),
+    missing: inManagers.flatMap((m) => m.outstanding.map((o) => ({ property: o.property, report_type: o.report_type }))),
+    due_date: close.due_date,
+  };
 }

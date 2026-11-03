@@ -52,13 +52,15 @@ const EXPENSE_INFLATION = 0.035;
 
 /** Per-property bias on occupancy and expenses, so the portfolio is not uniform. */
 const BIAS: Record<string, { occ: number; opex: number; rent: number }> = {
-  prop_gulch: { occ: 0.009, opex: -0.02, rent: 0.006 },
-  prop_foundry: { occ: 0.006, opex: -0.015, rent: 0.004 },
-  prop_cedar: { occ: 0.004, opex: -0.01, rent: 0 },
-  prop_saguaro: { occ: -0.004, opex: 0.01, rent: 0 },
-  prop_oakridge: { occ: -0.006, opex: 0.012, rent: -0.002 },
-  prop_camelback: { occ: -0.003, opex: 0.006, rent: 0 },
-  prop_vale: { occ: 0.002, opex: 0.004, rent: 0 },
+  // Northgate runs the strongest operation; its properties beat budget.
+  prop_brookstone: { occ: 0.011, opex: -0.025, rent: 0.003 },
+  prop_vale: { occ: 0.012, opex: -0.03, rent: 0.005 },
+  prop_oakridge: { occ: 0.004, opex: -0.02, rent: 0 },
+  prop_gulch: { occ: 0.006, opex: -0.015, rent: 0.004 },
+  prop_crestline_north: { occ: 0.002, opex: 0, rent: 0 },
+  prop_crestline_south: { occ: -0.003, opex: 0.005, rent: 0 },
+  prop_crestline_commons: { occ: -0.002, opex: 0.006, rent: -0.002 },
+  prop_peachtree: { occ: -0.004, opex: 0.006, rent: -0.002 },
 };
 
 const FLOORPLANS = [
@@ -99,13 +101,17 @@ function ramp(i: number, start: number, end: number, from: number, to: number) {
   return from + ((to - from) * (i - start)) / (end - start);
 }
 
-// Month indexes for the story timeline. 0 = Oct 2024, 23 = Sep 2026.
-const JAN_26 = 15;
-const MAR_26 = 17;
-const APR_26 = 18;
-const MAY_26 = 19;
-const JUN_26 = 20;
-const JUL_26 = 21;
+// Month indexes for the story timeline.
+const at = (month: string) => ALL_MONTHS.indexOf(month);
+const JAN_26 = at("2026-01");
+const MAR_26 = at("2026-03");
+const APR_26 = at("2026-04");
+const MAY_26 = at("2026-05");
+const JUN_26 = at("2026-06");
+const JUL_26 = at("2026-07");
+const SEP_26 = at("2026-09");
+const OCT_26 = at("2026-10");
+const NOV_26 = at("2026-11");
 
 /** Physical occupancy actual for a property-month. */
 function occupancyActual(seed: PropertySeed, i: number, noise: number): number {
@@ -113,8 +119,8 @@ function occupancyActual(seed: PropertySeed, i: number, noise: number): number {
   const { month } = parseMonth(ALL_MONTHS[i]);
   const seasonal = isWinter(month) ? -0.004 : isSummer(month) ? 0.002 : 0;
   if (seed.story === "vacancy_concessions") {
-    // New deliveries in Frisco pulled occupancy down through 2026.
-    const decline = ramp(i, JAN_26 - 1, 21, 0, 0.083) + (i >= 23 ? 0.004 : 0);
+    // New lease-ups nearby pulled occupancy down through the first half of 2026.
+    const decline = ramp(i, JAN_26 - 1, JUL_26, 0, 0.083) + (i >= SEP_26 ? 0.004 : 0);
     return Math.min(0.985, base + seasonal - decline);
   }
   return Math.min(0.985, base + seasonal);
@@ -247,26 +253,44 @@ function generateWorkOrders(seed: PropertySeed, units: Unit[]): WorkOrder[] {
   }
 
   if (seed.story === "hvac") {
-    // Recurring HVAC failures concentrated in the 1986 buildings' original condensers.
-    const problemUnits = ["1104", "1203", "2101", "2205", "3102", "3207"];
-    let day = 170;
-    for (let n = 0; n < 44; n++) {
-      day -= rng.int(2, 5);
-      if (day < 0) break;
-      const repeatUnit = n % 3 !== 2;
-      const unit = repeatUnit ? problemUnits[n % problemUnits.length] : rng.pick(units).unit_number;
-      const open = day <= 18;
+    // May to September: 45 HVAC calls, 26 of them to four units whose 1986 condensers kept failing.
+    const problemUnits = ["1203", "1104", "3102", "2205"];
+    const others = units.map((u) => u.unit_number).filter((u) => !problemUnits.includes(u));
+    const slots = Array.from({ length: 45 }, (_, n) => n);
+    const toProblem = new Set(slots.filter((n) => n % 7 !== 3 && n % 7 !== 6).slice(0, 26));
+    const seen = new Set<string>();
+    slots.forEach((n) => {
+      const opened = addDays("2026-05-02", Math.round((n * 150) / 45) + rng.int(0, 2));
+      const unit = toProblem.has(n) ? problemUnits[n % problemUnits.length] : rng.pick(others);
       push({
         unit_number: unit,
         category: "hvac",
         description: rng.pick(WO_TEMPLATES.hvac),
         priority: rng.chance(0.4) ? "emergency" : "high",
-        status: open ? (rng.chance(0.5) ? "in_progress" : "open") : "completed",
-        opened_at: addDays(TODAY, -day),
-        completed_at: open ? null : addDays(TODAY, -day + rng.int(1, 3)),
+        status: "completed",
+        opened_at: opened,
+        completed_at: addDays(opened, rng.int(1, 3)),
         vendor_id: "ven_coolflow",
-        cost: open ? null : Math.round(rng.range(380, 2_400) / 10) * 10,
-        repeat: repeatUnit && n >= problemUnits.length,
+        cost: Math.round((toProblem.has(n) ? rng.range(1_050, 1_950) : rng.range(260, 880)) / 10) * 10,
+        repeat: seen.has(unit),
+      });
+      seen.add(unit);
+    });
+    // After the October 12 replacements: ordinary call volume, none to those four units.
+    for (let n = 0; n < 5; n++) {
+      const opened = addDays("2026-10-19", n * 11 + rng.int(0, 4));
+      const done = opened < addDays(TODAY, -3);
+      push({
+        unit_number: rng.pick(others),
+        category: "hvac",
+        description: rng.pick(WO_TEMPLATES.hvac.slice(1, 4)),
+        priority: "normal",
+        status: done ? "completed" : "open",
+        opened_at: opened,
+        completed_at: done ? addDays(opened, 2) : null,
+        vendor_id: "ven_coolflow",
+        cost: done ? Math.round(rng.range(180, 520) / 10) * 10 : null,
+        repeat: false,
       });
     }
   }
@@ -315,17 +339,21 @@ function generate(): GeneratedPortfolio {
       const occBudget = seed.budgetOccupancy;
       const occActual = occupancyActual(seed, i, occNoise[i]);
 
-      const ltlBudgetRate = seed.story === "below_market" ? 0.062 : profile.ltl;
-      const ltlActualRate =
+      // Brookstone's below-market leases are known and budgeted; the upside is at renewal.
+      const ltlBudgetRate = seed.story === "below_market" ? 0.084 : profile.ltl;
+      let ltlActualRate =
         seed.story === "below_market" ? 0.084 + rng.normal(0.003) : profile.ltl + rng.normal(0.003);
+      // Oakridge: renewals priced below market, more concessions, and more write-offs since late spring.
+      const gapRamp = seed.story === "economic_gap" ? ramp(i, MAY_26 - 1, JUL_26, 0, 1) : 0;
+      ltlActualRate += gapRamp * 0.015;
 
       let concessionsRate = profile.concessions * (1 + rng.normal(0.18));
       if (seed.story === "vacancy_concessions") concessionsRate = ramp(i, JAN_26, MAR_26 + 1, 0.011, 0.059) + rng.normal(0.002);
-      // A six-week move-in special ran January to May; it ended in June.
-      if (seed.story === "concession_reset" && i >= JAN_26 && i < JUN_26) concessionsRate = 0.034 + rng.normal(0.002);
+      concessionsRate += gapRamp * 0.016;
 
       let badDebtRate = profile.badDebt * (1 + rng.normal(0.2));
-      if (seed.story === "bad_debt") badDebtRate = ramp(i, MAR_26 - 1, 23, 0.014, 0.062) + rng.normal(0.0015);
+      if (seed.story === "bad_debt") badDebtRate = ramp(i, MAR_26 - 1, NOV_26, 0.014, 0.05) + rng.normal(0.0015);
+      badDebtRate += gapRamp * 0.01;
 
       line(budget, "gross_potential_rent", gprBudget);
       line(actual, "gross_potential_rent", gprActual);
@@ -354,17 +382,15 @@ function generate(): GeneratedPortfolio {
         const b = property.units * perUnit * budgetInflation * seasonal;
         let a = b * (1 + bias.opex + rng.normal(category === "property_taxes" || category === "insurance" ? 0.004 : 0.045));
 
-        if (seed.story === "hvac" && category === "repairs_maintenance") {
-          a *= [1, 1.48, 1.84, 2.12, 2.26, 1.96][Math.max(0, Math.min(5, i - (MAY_26 - 1)))];
+        // Failing original condensers May to September; four were replaced in October.
+        if (seed.story === "hvac" && category === "repairs_maintenance" && i >= MAY_26 && i <= SEP_26) {
+          a *= [1.48, 1.84, 2.12, 2.26, 1.96][i - MAY_26];
         }
-        if (seed.story === "utilities_leak" && category === "utilities" && i >= JUN_26) a *= 1.24;
-        // An irrigation leak from March to June, repaired at the start of July.
-        if (seed.story === "irrigation_fixed" && category === "utilities" && i >= MAR_26 && i < JUL_26) a *= 1.27;
+        if (seed.story === "hvac" && category === "repairs_maintenance" && i >= OCT_26) a = b * (0.97 + rng.normal(0.015));
+        if (seed.story === "utilities_leak" && category === "utilities" && i >= JUN_26) a *= 1.26;
         if (seed.story === "payroll_contract_labor" && category === "payroll" && i >= APR_26) a *= 1.22;
-        if (property.property_manager_id === "pm_crestline" && category === "contract_services") {
-          // GreenScape's 2026 contract renewal came in above what the budget assumed.
-          a *= i >= JAN_26 ? 1.17 : 1.03;
-        }
+        // GreenScape's 2026 landscaping contract came in well above what the budget assumed.
+        if (seed.story === "landscaping" && category === "contract_services") a *= i >= JAN_26 ? 1.36 : 1.03;
         line(budget, category, b);
         line(actual, category, a);
       }
@@ -374,7 +400,7 @@ function generate(): GeneratedPortfolio {
 
       // ---- Month-end stats ----------------------------------------------
       let delinquency = profile.delinquency * (1 + rng.normal(0.12));
-      if (seed.story === "bad_debt") delinquency = ramp(i, MAR_26 - 1, 23, 0.041, 0.104) + rng.normal(0.003);
+      if (seed.story === "bad_debt") delinquency = ramp(i, MAR_26 - 1, NOV_26, 0.04, 0.098) + rng.normal(0.003);
       const billed = gprActual * (occActual - ltlActualRate) + otherBudget;
       occupancy.push({
         org_id: ORG_ID,

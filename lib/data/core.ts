@@ -139,6 +139,8 @@ export function isNewWorkspace() {
 export function memberName(id: string) {
   const profile = readOverlay().profile;
   if (profile && id === CURRENT_MEMBER_ID) return profile.name;
+  const manager = propertyManagers.find((m) => m.id === id);
+  if (manager) return `${manager.contact_name}, ${manager.name}`;
   return members.find((m) => m.id === id)?.name ?? "A teammate";
 }
 
@@ -155,7 +157,7 @@ export function effectiveImports(): Import[] {
 }
 
 /** Months before the earliest seeded upload came from the onboarding backfill. */
-const BACKFILL_THROUGH: MonthKey = "2026-06";
+const BACKFILL_THROUGH: MonthKey = "2026-08";
 
 function latestT12(propertyId: string, imports: Import[]): MonthKey | null {
   return (

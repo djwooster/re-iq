@@ -4,6 +4,7 @@ import { AnimatePresence, motion } from "motion/react";
 import { usePathname } from "next/navigation";
 import { createContext, Suspense, useContext, useEffect, useState } from "react";
 import { UploadProvider } from "@/components/data-sources/upload-button";
+import { SourceProvider } from "@/components/sources/source-drawer";
 import { DarkModePrompt } from "@/components/theme/dark-mode-prompt";
 import { ToastProvider } from "@/components/ui/toast";
 import { AppProvider } from "./app-context";
@@ -25,6 +26,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     <AppProvider>
       <ToastProvider>
         <UploadProvider>
+        <SourceProvider>
         <MobileNavContext.Provider value={() => setNavOpen(true)}>
           <div className="min-h-screen bg-bg">
             <aside className="fixed inset-y-0 left-0 z-40 hidden md:block">
@@ -61,6 +63,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             <DarkModePrompt />
           </div>
         </MobileNavContext.Provider>
+        </SourceProvider>
         </UploadProvider>
       </ToastProvider>
     </AppProvider>

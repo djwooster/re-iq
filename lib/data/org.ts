@@ -10,10 +10,10 @@ export function getSession(): Session {
   return { member_id: CURRENT_MEMBER_ID, org_id: ORG_ID };
 }
 
-export async function getOrganization(orgId: string): Promise<Organization & { logo: string | null }> {
+export async function getOrganization(orgId: string): Promise<Organization & { logo: string | null; is_sample: boolean }> {
   await delay();
   const patch = readOverlay().organization;
-  return { ...organization, logo: null, ...patch, id: orgId };
+  return { ...organization, logo: null, ...patch, id: orgId, is_sample: !isNewWorkspace() };
 }
 
 export async function updateOrganization(orgId: string, patch: { name?: string; logo?: string | null }) {
