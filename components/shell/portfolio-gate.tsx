@@ -7,7 +7,7 @@ import { UploadReportButton } from "@/components/data-sources/upload-button";
 import { Card } from "@/components/ui/card";
 import { EmptyState } from "@/components/ui/empty-state";
 import { FadeIn } from "@/components/ui/motion";
-import { hasPortfolio, subscribe } from "@/lib/data";
+import { hasPortfolio, loadSamplePortfolio, subscribe } from "@/lib/data";
 import { PageBody, PageHeader } from "./page-header";
 
 type Page = "overview" | "performance" | "properties" | "actions";
@@ -69,6 +69,12 @@ export function PortfolioGate({ page, children }: { page: Page; children: React.
                 </>
               }
             />
+            <p className="-mt-10 pb-8 text-center text-[11px] text-fg-3">
+              Exploring?{" "}
+              <button type="button" onClick={loadSamplePortfolio} className="cursor-pointer text-fg-2 underline decoration-border underline-offset-2 hover:text-fg">
+                Load sample portfolio
+              </button>
+            </p>
           </Card>
         </FadeIn>
       </PageBody>

@@ -95,6 +95,11 @@ export function setRole(role: Role) {
   });
 }
 
+/** Leaves an empty workspace for the full sample portfolio, for demos. */
+export function loadSamplePortfolio() {
+  resetOverlay();
+}
+
 export function resetDemoData() {
   resetOverlay();
 }
