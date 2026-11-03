@@ -63,7 +63,7 @@ interface Step {
 }
 
 export const TOUR_STEPS: Step[] = [
-  { title: "Upload a T12 and see it cleaned up", body: "Upload any file. It's read as Brookstone's November T12: mapping review, then the standardized statement.", href: "/demo?fresh=1", fresh: true },
+  { title: "Upload a T12 and see it cleaned up", body: "Click Upload report. It reads Brookstone's November T12, then shows the mapping review and the standardized statement.", href: "/demo?fresh=1", fresh: true },
   { title: "November close and portfolio health", body: "The close line, NOI vs budget, physical and economic occupancy side by side, and issues by dollars.", href: "/app" },
   { title: "Lakeline Flats: driver, trend, evidence", body: "Why vacancy and concessions are behind budget. Click any number to open the line in Harbor's report.", href: "/app/issues/iss_lakeline_vacancy" },
   { title: "Mesa Verde: a resolved issue and its result", body: "Flagged in June, acted on in October, resolved in December. R&M back on budget.", href: "/app/issues/iss_mesa_hvac" },

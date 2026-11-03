@@ -9,7 +9,7 @@ Tour: Settings → Demo tour.
 
 | Stage | Screen | Demo state |
 |---|---|---|
-| 0. First T12 | Overview (empty) | Any file reads as `Brookstone_T12_Nov2026.xlsx` → mapping review → standardized T12 that ties to the ledger → Brookstone added → "Add your other properties" loads the sample |
+| 0. First T12 | Overview (empty) | Upload report (simulated, no file picker) reads `Brookstone_T12_Nov2026.xlsx` → mapping review → standardized T12 that ties to the ledger → Brookstone added → "Add your other properties" loads the sample |
 | 1. Close status | Overview | November: 3 of 4 managers in · Crestline late · The Vale missing AR aging |
 | 2. Packages arrive | Data Sources → Close tracker, `/upload/[token]` | Summit Dec 9, Harbor Dec 11, Northgate Dec 12 (no Vale AR), Crestline nothing |
 | 3. Rebuild in Excel | Data Sources → Mapping review | Summit's Contract Labor and Crestline's Misc Turn Exp / Pkg Lockers need a look; four managers' repair labels land on one account; changes are remembered per manager |

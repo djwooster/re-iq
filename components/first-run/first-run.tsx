@@ -1,7 +1,7 @@
 "use client";
 
 import { Check, LayoutGrid, Upload } from "lucide-react";
-import { useRef, useState } from "react";
+import { useState } from "react";
 import { MappingLines } from "@/components/data-sources/mapping-review";
 import { StandardStatementTable } from "@/components/financials/standard-statement";
 import { PageBody, PageHeader } from "@/components/shell/page-header";
@@ -27,14 +27,13 @@ import type { AccountMapping, MappingTarget } from "@/lib/types";
 type Phase = { kind: "start" } | { kind: "reading"; step: number; detail: string } | { kind: "mapping"; draft: UploadDraft } | { kind: "statement"; draft: UploadDraft };
 
 /**
- * First run: one T12 in, a clean standard statement out. Any file works; it's
- * read as Brookstone Park's November T12 so the demo is the same every time.
+ * First run: one T12 in, a clean standard statement out. Upload is simulated:
+ * it reads Brookstone Park's November T12 so the demo is the same every time.
  */
 export function FirstRun() {
   const [phase, setPhase] = useState<Phase>({ kind: "start" });
   const [mappings, setMappings] = useState<AccountMapping[]>([]);
   const [saving, setSaving] = useState(false);
-  const input = useRef<HTMLInputElement>(null);
 
   const read = async () => {
     setPhase({ kind: "reading", step: 0, detail: "" });
@@ -58,7 +57,6 @@ export function FirstRun() {
     <>
       <PageHeader title="Overview" subtitle="Start with one property's T12" />
       <PageBody>
-        <input ref={input} type="file" className="hidden" onChange={(e) => e.target.files?.length && read()} />
         {phase.kind === "start" && (
           <FadeIn>
             <Card>
@@ -68,7 +66,7 @@ export function FirstRun() {
                 title="Start with one property's T12"
                 description="Upload the trailing 12-month income statement your property manager sends, in whatever format it comes in. RE-IQ reads it, maps every line to a standard chart of accounts, and checks the totals."
                 action={
-                  <Button variant="primary" icon={<Upload className="size-3" />} onClick={() => input.current?.click()}>
+                  <Button variant="primary" icon={<Upload className="size-3" />} onClick={read}>
                     Upload report
                   </Button>
                 }
