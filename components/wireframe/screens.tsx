@@ -1,6 +1,7 @@
 "use client";
 
 import { motion } from "motion/react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { ForceLight } from "@/components/theme/theme-provider";
@@ -20,7 +21,9 @@ export function LoginScreen() {
     <div className="flex min-h-screen items-center justify-center bg-bg px-4">
       <ForceLight />
       <div className="flex w-full max-w-[320px] flex-col gap-3">
-        <div className="num mb-2 text-center text-[15px] font-semibold tracking-[0.06em] text-fg">{PRODUCT_NAME}</div>
+        <Link href="/" className="num mb-2 text-center text-[15px] font-semibold tracking-[0.06em] text-fg hover:opacity-70">
+          {PRODUCT_NAME}
+        </Link>
         <Box label="Email" className="min-h-10" />
         <Box label="Password" className="min-h-10" />
         <WfButton href="/wireframe/upload">Sign in</WfButton>

@@ -28,7 +28,9 @@ export function WireframeShell({ children }: { children: React.ReactNode }) {
     <div className="flex min-h-screen bg-bg text-fg">
       <ForceLight />
       <aside className="w-[200px] shrink-0 border-r border-fg/15 px-3 py-4">
-        <div className="num mb-6 px-2 text-[13px] font-semibold tracking-[0.06em]">{PRODUCT_NAME}</div>
+        <Link href="/" className="num mb-6 block px-2 text-[13px] font-semibold tracking-[0.06em] hover:opacity-70">
+          {PRODUCT_NAME}
+        </Link>
         <nav className="flex flex-col gap-0.5">
           {NAV.map((n) => {
             const active = section === n.href || section.startsWith(`${n.href}/`);
