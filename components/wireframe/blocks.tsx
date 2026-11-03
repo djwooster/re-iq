@@ -66,7 +66,7 @@ export function TableBox({ label, rowLabel, columns = 4, rows = 5, rowHref }: { 
             <>
               {Array.from({ length: columns }, (_, i) =>
                 i === 0 && rowLabel ? (
-                  <span key={i} className="text-[11px] text-fg-2">
+                  <span key={i} className={cn("text-[11px]", rowHref ? "font-medium text-[var(--wf-accent)] group-hover:underline" : "text-fg-2")}>
                     {rowLabel}
                   </span>
                 ) : (
