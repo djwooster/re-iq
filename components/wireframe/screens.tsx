@@ -47,7 +47,7 @@ export function UploadScreen() {
           <ul className="mt-2.5 flex flex-col gap-1.5">
             {Array.from({ length: files }, (_, i) => (
               <li key={i} className="flex items-center gap-3 rounded border border-fg/15 bg-bg px-3 py-2 text-[11px] text-fg-2">
-                File
+                File {i + 1}
                 <span className="h-2 flex-1 rounded-sm bg-fg/[0.08]" />
               </li>
             ))}
