@@ -8,6 +8,8 @@ export * from "./properties";
 export * from "./insights";
 export * from "./issues";
 export * from "./lineage";
+export * from "./review";
+export * from "./first-run";
 export * from "./actions";
 export * from "./imports";
 export * from "./sources";

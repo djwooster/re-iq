@@ -1,92 +1,88 @@
 "use client";
 
-import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { UploadReportButton } from "@/components/data-sources/upload-button";
 import { useApp } from "@/components/shell/app-context";
 import { PageBody, PageHeader } from "@/components/shell/page-header";
-import { Card } from "@/components/ui/card";
+import { Tabs } from "@/components/ui/controls";
 import { Skeleton } from "@/components/ui/empty-state";
 import { FadeIn } from "@/components/ui/motion";
-import { LATEST_MONTH, formatDate, monthEnd } from "@/lib/dates";
-import { listImports, listMembers, listProperties, listPropertyOptions } from "@/lib/data";
+import { getCloseTracker, getReconciliation, listImports, listMembers, listPropertyOptions, listReviewFiles } from "@/lib/data";
 import { useData } from "@/lib/hooks/use-data";
-// Connectors are on hold while RE-IQ is upload-only. Restore these with the section below.
+// Connectors are on hold while RE-IQ is upload-only. Restore with a "Connectors" tab.
 // import { listConnectors } from "@/lib/data";
 // import { Connectors } from "./connectors";
+import { CloseTrackerView } from "./close-tracker";
 import { ImportDrawer } from "./import-drawer";
 import { ImportHistory } from "./import-history";
-import { UploadFlow } from "./upload-flow";
+import { MappingReview } from "./mapping-review";
+import { Reconciliation } from "./reconciliation";
 
+type Tab = "close" | "mapping" | "reconciliation" | "files";
+
+/** Stages 2–4 of the close: packages come in, lines map to one chart, files are checked against each other. */
 export function DataSourcesView() {
   const { orgId } = useApp();
   const router = useRouter();
   const pathname = usePathname();
   const params = useSearchParams();
   const selectedId = params.get("import");
+  const tab = (params.get("tab") as Tab) ?? (selectedId ? "files" : "close");
 
   const { data } = useData(async () => {
-    const [imports, properties, options, members] = await Promise.all([listImports(orgId), listProperties(orgId), listPropertyOptions(orgId), listMembers(orgId)]);
-    return { imports, properties: properties.map((p) => p.property), allProperties: options.map((o) => o.property), members };
+    const [tracker, recon, review, imports, options, members] = await Promise.all([
+      getCloseTracker(orgId),
+      getReconciliation(orgId),
+      listReviewFiles(orgId),
+      listImports(orgId),
+      listPropertyOptions(orgId),
+      listMembers(orgId),
+    ]);
+    return { tracker, recon, review, imports, properties: options.map((o) => o.property), members };
   }, [orgId]);
 
-  const select = (id: string | null) => router.replace(id ? `${pathname}?import=${id}` : pathname, { scroll: false });
-  const current = data?.properties.filter((p) => p.data_through === monthEnd(LATEST_MONTH)).length ?? 0;
+  const go = (next: { tab?: Tab; import?: string | null }) => {
+    const q = new URLSearchParams();
+    const t = next.tab ?? tab;
+    if (t !== "close") q.set("tab", t);
+    if (next.import) q.set("import", next.import);
+    router.replace(q.size ? `${pathname}?${q}` : pathname, { scroll: false });
+  };
+
+  const late = data?.tracker.managers.filter((m) => m.state !== "complete").length;
+  const toConfirm = data?.review.reduce((s, f) => s + f.pending, 0);
+  const breaks = data?.recon.flatMap((r) => r.checks).filter((c) => c.state === "break").length;
 
   return (
     <>
-      <PageHeader title="Data Sources" subtitle="Upload the reports your property managers already send. Any system's exports work." />
+      <PageHeader title="Data Sources" subtitle="The reports your property managers send, mapped to one chart of accounts and checked against each other." actions={<UploadReportButton variant="secondary" />} />
       <PageBody>
-        <div className="flex flex-col gap-6">
-          <FadeIn>
-            <section id="upload" className="grid gap-3 lg:grid-cols-[minmax(0,1fr)_260px]">
-              <UploadFlow />
-              <Card className="flex flex-col gap-3 p-4 text-xs">
-                <div>
-                  <div className="eyebrow mb-1.5">Coverage</div>
-                  {data && data.properties.length === 0 ? (
-                    <p className="text-fg-2">No properties yet. A property is added when its first T12 is confirmed.</p>
-                  ) : data ? (
-                    <p className="text-fg-2">
-                      <span className="num text-fg">{current}</span> of <span className="num text-fg">{data.properties.length}</span> properties have data through{" "}
-                      {formatDate(monthEnd(LATEST_MONTH))}.
-                    </p>
-                  ) : (
-                    <Skeleton className="h-4 w-40" />
-                  )}
-                </div>
-                <p className="border-t border-border pt-3 text-[11px] leading-relaxed text-fg-3">
-                  Yardi, ResMan, Rent Manager, Entrata, and AppFolio exports all land in one chart of accounts, so numbers compare across managers. See what September still needs on{" "}
-                  <Link href="/app/close" className="text-fg-2 underline-offset-2 hover:text-fg hover:underline">
-                    Close
-                  </Link>
-                  .
-                </p>
-              </Card>
-            </section>
-          </FadeIn>
-
-          <FadeIn delay={0.06}>
-            {data ? (
-              <ImportHistory imports={data.imports} properties={data.allProperties} members={data.members} selectedId={selectedId} onSelect={select} />
-            ) : (
-              <Skeleton className="h-64 w-full rounded-lg" />
-            )}
-          </FadeIn>
-
-          {/* Connectors are on hold while RE-IQ is upload-only.
-          <FadeIn delay={0.1}>
-            <section id="connectors">
-              <div className="mb-3">
-                <h2 className="text-[13px] font-semibold text-fg">Connectors</h2>
-                <p className="mt-0.5 text-xs text-fg-3">Optional. A direct connection saves the monthly upload where a property manager&apos;s system supports it.</p>
-              </div>
-              {data ? <Connectors connectors={data.connectors} /> : <Skeleton className="h-40 w-full rounded-lg" />}
-            </section>
-          </FadeIn>
-          */}
-        </div>
+        <Tabs
+          className="mb-4"
+          value={tab}
+          onChange={(t) => go({ tab: t })}
+          tabs={[
+            { id: "close", label: "Close tracker", count: late || undefined },
+            { id: "mapping", label: "Mapping review", count: toConfirm || undefined },
+            { id: "reconciliation", label: "Reconciliation", count: breaks || undefined },
+            { id: "files", label: "All files", count: data?.imports.length },
+          ]}
+        />
+        <FadeIn key={tab}>
+          {!data ? (
+            <Skeleton className="h-96 w-full rounded-lg" />
+          ) : tab === "close" ? (
+            <CloseTrackerView tracker={data.tracker} />
+          ) : tab === "mapping" ? (
+            <MappingReview />
+          ) : tab === "reconciliation" ? (
+            <Reconciliation recon={data.recon} />
+          ) : (
+            <ImportHistory imports={data.imports} properties={data.properties} members={data.members} selectedId={selectedId} onSelect={(id) => go({ tab: "files", import: id })} />
+          )}
+        </FadeIn>
       </PageBody>
-      <ImportDrawer importId={selectedId} onClose={() => select(null)} />
+      <ImportDrawer importId={selectedId} onClose={() => go({ import: null })} />
     </>
   );
 }

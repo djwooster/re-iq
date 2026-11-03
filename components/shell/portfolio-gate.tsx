@@ -4,6 +4,7 @@ import { Building2, ChartNoAxesColumn, LayoutGrid, ListChecks } from "lucide-rea
 import Link from "next/link";
 import { useSyncExternalStore } from "react";
 import { UploadReportButton } from "@/components/data-sources/upload-button";
+import { FirstRun } from "@/components/first-run/first-run";
 import { Card } from "@/components/ui/card";
 import { EmptyState } from "@/components/ui/empty-state";
 import { FadeIn } from "@/components/ui/motion";
@@ -45,6 +46,7 @@ export function PortfolioGate({ page, children }: { page: Page; children: React.
   // The server renders the page as usual; the client swaps in the empty state if there's nothing yet.
   const ready = useSyncExternalStore(subscribe, hasPortfolio, () => true);
   if (ready) return children;
+  if (page === "overview") return <FirstRun />;
   const { title, icon: Icon, heading, description } = EMPTY[page];
   return (
     <>

@@ -17,6 +17,7 @@ import type {
 import { CURRENT_MEMBER_ID, dataSources, members, propertyManagers, properties } from "./mock/catalog";
 import { getGenerated } from "./mock/generate";
 import { getSeedImports, seedMappingsFor } from "./mock/imports";
+import { t12Lines } from "./lineage";
 import { readOverlay } from "./store";
 
 /**
@@ -213,17 +214,28 @@ export function propertyRecords(imports = effectiveImports()): PropertyRecord[] 
 export function mappingsFor(imp: Import): AccountMapping[] {
   const overlay = readOverlay();
   const added = overlay.mappings.filter((m) => m.import_id === imp.id);
+  const latest = imp.report_type === "t12" && latestT12(imp.property_id, effectiveImports()) === imp.period;
+  const lines = imp.report_type === "t12" ? t12Lines(imp.property_id, imp.period) : [];
   const base = added.length
     ? added
-    : seedMappingsFor(imp, (category) => {
-        if (imp.report_type === "budget") {
-          // Generated budgets run through the latest month; annualize what exists.
-          const rows = periodMonths("ytd", imp.period).map((m) => ledgerRow("budget", imp.property_id, m)).filter(Boolean);
-          return (rows.reduce((s, r) => s + r![category], 0) * 12) / Math.max(1, rows.length);
-        }
-        return periodMonths("t12", imp.period).reduce((s, m) => s + (ledgerRow("actual", imp.property_id, m)?.[category] ?? 0), 0);
-      });
-  return base.map((m) => ({ ...m, ...overlay.mappingPatches[m.id] }));
+    : seedMappingsFor(
+        imp,
+        (code, category, share) => {
+          if (imp.report_type === "budget") {
+            // Generated budgets run through the latest month; annualize what exists.
+            const rows = periodMonths("ytd", imp.period).map((m) => ledgerRow("budget", imp.property_id, m)).filter(Boolean);
+            return ((rows.reduce((s, r) => s + r![category], 0) * 12) / Math.max(1, rows.length)) * share;
+          }
+          // A T12 line's amount is its total as the manager reported it.
+          return lines.find((l) => l.code === code)?.total ?? 0;
+        },
+        latest,
+      );
+  const remembered = overlay.managerMappings[allPropertyRecords().find((p) => p.id === imp.property_id)?.property_manager_id ?? ""] ?? {};
+  return base.map((m) => {
+    const saved = m.source_code ? remembered[m.source_code] : undefined;
+    return { ...m, ...(saved ? { target: saved, confirmed_by_user: true } : {}), ...overlay.mappingPatches[m.id] };
+  });
 }
 
 // ---- Aggregation ----------------------------------------------------------------

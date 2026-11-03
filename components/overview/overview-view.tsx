@@ -4,13 +4,14 @@ import { useState } from "react";
 import { IssueList } from "@/components/issues/issue-list";
 import { useApp } from "@/components/shell/app-context";
 import { PageBody, PageHeader } from "@/components/shell/page-header";
+import { Button } from "@/components/ui/button";
 import { Card, CardHeader } from "@/components/ui/card";
 import { Tabs } from "@/components/ui/controls";
 import { Skeleton } from "@/components/ui/empty-state";
 import { FadeIn } from "@/components/ui/motion";
 import { PeriodSelector } from "@/components/ui/period-selector";
 import { LATEST_MONTH, formatDate, formatMonth } from "@/lib/dates";
-import { getCloseSummary, getPortfolioSummary, listIssues } from "@/lib/data";
+import { getCloseSummary, getOrganization, getPortfolioSummary, listIssues, loadSamplePortfolio } from "@/lib/data";
 import { useData } from "@/lib/hooks/use-data";
 import { joinList } from "@/lib/format";
 import type { IssueStatus, Period } from "@/lib/types";
@@ -27,8 +28,8 @@ export function OverviewView() {
 
   const { data: summary } = useData(() => getPortfolioSummary(orgId, period), [orgId, period]);
   const { data } = useData(async () => {
-    const [close, issues] = await Promise.all([getCloseSummary(orgId), listIssues(orgId)]);
-    return { close, issues };
+    const [close, issues, org] = await Promise.all([getCloseSummary(orgId), listIssues(orgId), getOrganization(orgId)]);
+    return { close, issues, sample: org.is_sample };
   }, [orgId]);
 
   const issues = data?.issues;
@@ -41,9 +42,15 @@ export function OverviewView() {
       <PageHeader title="Overview" subtitle={summary ? `${summary.period_label} · ${summary.properties.length} properties, ${summary.units.toLocaleString("en-US")} units` : " "} actions={<PeriodSelector value={period} onChange={setPeriod} />} />
       <PageBody>
         <div className="flex flex-col gap-3">
-          <FadeIn>
-            <CloseLine close={data?.close} />
-          </FadeIn>
+          {data && !data.sample ? (
+            <FadeIn>
+              <AddProperties />
+            </FadeIn>
+          ) : (
+            <FadeIn>
+              <CloseLine close={data?.close} />
+            </FadeIn>
+          )}
 
           <FadeIn delay={0.05}>
             {summary ? <LeadKpis summary={summary} /> : <Skeleton className="h-[86px] w-full rounded-lg" />}
@@ -76,5 +83,25 @@ export function OverviewView() {
         </div>
       </PageBody>
     </>
+  );
+}
+
+/** After the first T12: one property in, the rest one step away. Both paths load the sample portfolio. */
+function AddProperties() {
+  return (
+    <Card className="flex flex-wrap items-center justify-between gap-3 px-4 py-3">
+      <div>
+        <h2 className="text-[13px] font-semibold text-fg">Add your other properties</h2>
+        <p className="mt-0.5 text-xs text-fg-3">Upload more reports, or send each property manager an upload link so their packages arrive here every month.</p>
+      </div>
+      <div className="flex items-center gap-2">
+        <Button size="sm" onClick={loadSamplePortfolio}>
+          Upload more reports
+        </Button>
+        <Button size="sm" variant="primary" onClick={loadSamplePortfolio}>
+          Send managers an upload link
+        </Button>
+      </div>
+    </Card>
   );
 }

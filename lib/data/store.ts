@@ -1,4 +1,4 @@
-import type { AccountMapping, Action, Import, IssueEvent, Member, MonthKey, Organization, Role, VarianceQuestion } from "@/lib/types";
+import type { AccountMapping, Action, Import, IssueEvent, MappingTarget, Member, MonthKey, Organization, Role, VarianceQuestion } from "@/lib/types";
 
 /**
  * Demo persistence. The seeded portfolio is regenerated in memory on every
@@ -14,6 +14,8 @@ export interface Overlay {
   deletedImportIds: string[];
   importPatches: Record<string, Partial<Import>>;
   mappingPatches: Record<string, Partial<AccountMapping>>;
+  /** Mappings a person set, remembered per manager by source line code. */
+  managerMappings: Record<string, Record<string, MappingTarget>>;
   actionPatches: Record<string, Partial<Action>>;
   /** Status changes made in this browser, appended to each issue's seeded history. */
   issueEvents: Record<string, IssueEvent[]>;
@@ -31,14 +33,15 @@ export interface Overlay {
   profile: { name: string; email: string } | null;
 }
 
-const KEY = "reiq.demo.v1";
 
 /**
- * Inline script for the root layout. `/demo?fresh=1` lands on `/signup#fresh`; before
- * anything reads storage, this clears every `reiq.*` key (workspace, theme) so each
- * usability-test participant signs up into an empty workspace on a shared machine.
+ * Inline script for the root layout. `/demo?fresh=1` lands on `/app#fresh`; before
+ * anything reads storage, this clears every `reiq.*` key (workspace, theme) and
+ * starts an empty workspace, so each test participant begins with nothing.
  */
-export const freshStartScript = `(function(){try{if(location.hash!=="#fresh")return;Object.keys(localStorage).forEach(function(k){if(k.indexOf("reiq.")===0)localStorage.removeItem(k)});history.replaceState(null,"",location.pathname+location.search)}catch(e){}})()`;
+const KEY = "reiq.demo.v1";
+
+export const freshStartScript = `(function(){try{if(location.hash!=="#fresh")return;Object.keys(localStorage).forEach(function(k){if(k.indexOf("reiq.")===0)localStorage.removeItem(k)});localStorage.setItem("${KEY}",JSON.stringify({version:1,workspace:"new"}));history.replaceState(null,"",location.pathname+location.search)}catch(e){}})()`;
 
 const empty = (): Overlay => ({
   version: 1,
@@ -47,6 +50,7 @@ const empty = (): Overlay => ({
   deletedImportIds: [],
   importPatches: {},
   mappingPatches: {},
+  managerMappings: {},
   actionPatches: {},
   issueEvents: {},
   questionPatches: {},

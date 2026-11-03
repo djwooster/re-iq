@@ -383,11 +383,15 @@ export function getSeedImports(): Import[] {
   return importCache;
 }
 
-/** Seed mappings, built on demand per import from the PMS template. */
-export function seedMappingsFor(imp: Import, amountFor: (target: GlCategory) => number): AccountMapping[] {
+/**
+ * Seed mappings, built on demand per import from the PMS template. `pending`
+ * marks the latest file for a property: its uncertain lines still wait for a
+ * person, while older files were confirmed when they arrived.
+ */
+export function seedMappingsFor(imp: Import, amountFor: (code: string | null, target: GlCategory, share: number) => number, pending = false): AccountMapping[] {
   const system = imp.detected_source_format ?? "yardi";
   const template = mappingTemplate(imp.report_type, system);
-  const needsReview = imp.status === "needs_review";
+  const needsReview = imp.status === "needs_review" || pending;
   return template.map((row, idx) => {
     const isGl = !row.target.startsWith("field:") && row.target !== "ignore";
     const lowConfidence = row.confidence < REVIEW_THRESHOLD;
@@ -397,10 +401,9 @@ export function seedMappingsFor(imp: Import, amountFor: (target: GlCategory) => 
       import_id: imp.id,
       source_label: row.source_label,
       source_code: row.source_code,
-      amount: isGl ? Math.round(amountFor(row.target as GlCategory) * row.share) : null,
+      amount: isGl ? Math.round(amountFor(row.source_code, row.target as GlCategory, row.share)) : null,
       target: row.target,
       confidence: row.confidence,
-      // Low-confidence rows on processed imports were confirmed by someone earlier.
       confirmed_by_user: lowConfidence && !needsReview,
     };
   });
