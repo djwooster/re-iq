@@ -17,11 +17,17 @@ import { joinList } from "@/lib/format";
 import type { IssueStatus, Period } from "@/lib/types";
 import { CloseLine } from "./close-line";
 import { LeadKpis } from "./lead-kpis";
+import { OwnerOverview } from "./owner-overview";
 
 type Filter = "all" | IssueStatus;
 
 /** Jordan's home: where the close stands, how the portfolio is tracking, and every open issue by dollars. */
 export function OverviewView() {
+  const { role } = useApp();
+  return role === "owner" ? <OwnerOverview /> : <AssetManagerOverview />;
+}
+
+function AssetManagerOverview() {
   const { orgId } = useApp();
   const [period, setPeriod] = useState<Period>("qtd");
   const [filter, setFilter] = useState<Filter>("all");

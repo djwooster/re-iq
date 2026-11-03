@@ -37,7 +37,7 @@ const EMPTY: Record<Page, { title: string; icon: typeof LayoutGrid; heading: str
     title: "Actions",
     icon: ListChecks,
     heading: "No actions yet",
-    description: "Actions come from the issues and opportunities found in your reports. Upload a T12 to get the first ones.",
+    description: "Issues you move to Acting or Resolved appear here. Upload a T12 to start finding them.",
   },
 };
 

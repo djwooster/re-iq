@@ -1,3 +1,4 @@
+import type { ReportDoc } from "./reports";
 import type { AccountMapping, Action, Import, IssueEvent, MappingTarget, Member, MonthKey, Organization, Role, VarianceQuestion } from "@/lib/types";
 
 /**
@@ -24,6 +25,12 @@ export interface Overlay {
   reminders: Record<string, string>;
   /** When each month's owner report was marked shared. */
   reportsShared: Record<MonthKey, string>;
+  /** Reports Jordan edited, stored whole, by report kind. */
+  reportDocs: Record<string, ReportDoc>;
+  /** Report kinds shared with the owner. */
+  sharedReports: Record<string, string>;
+  /** What the owner view shows. */
+  ownerView: { show_in_progress: boolean; show_properties: boolean };
   members: Member[];
   organization: Partial<Organization> & { logo?: string | null };
   role: Role;
@@ -56,6 +63,9 @@ const empty = (): Overlay => ({
   questionPatches: {},
   reminders: {},
   reportsShared: {},
+  reportDocs: {},
+  sharedReports: { owner_monthly: "2026-12-11T15:20:00Z" },
+  ownerView: { show_in_progress: true, show_properties: true },
   members: [],
   organization: {},
   role: "asset_manager",

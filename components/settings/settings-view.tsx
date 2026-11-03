@@ -3,6 +3,7 @@
 import { UserPlus } from "lucide-react";
 import { useState } from "react";
 import { useApp } from "@/components/shell/app-context";
+import { AlertThresholds, ChartOfAccounts, DemoTour, OwnerViewControls, PropertiesAndManagers } from "./workspace-settings";
 import { PageBody, PageHeader } from "@/components/shell/page-header";
 import { useTheme, type ThemePreference } from "@/components/theme/theme-provider";
 import { Badge } from "@/components/ui/badge";
@@ -20,19 +21,37 @@ import type { Member } from "@/lib/types";
 const ROLE_LABEL: Record<Member["role"], string> = { admin: "Admin", member: "Member", viewer: "Viewer" };
 
 export function SettingsView() {
+  const { orgId } = useApp();
   return (
     <>
-      <PageHeader title="Settings" subtitle="Appearance, organization, and team" />
-      <PageBody narrow>
-        <div className="flex flex-col gap-3">
+      <PageHeader title="Settings" subtitle="Properties and managers, chart of accounts, what the owner sees, and alert thresholds" />
+      <PageBody>
+        <div className="mx-auto flex max-w-[960px] flex-col gap-3">
           <FadeIn>
-            <Appearance />
+            <PropertiesAndManagers orgId={orgId} />
           </FadeIn>
-          <FadeIn delay={0.05}>
+          <FadeIn delay={0.03}>
+            <ChartOfAccounts orgId={orgId} />
+          </FadeIn>
+          <div className="grid gap-3 lg:grid-cols-2">
+            <FadeIn delay={0.06}>
+              <OwnerViewControls />
+            </FadeIn>
+            <FadeIn delay={0.06}>
+              <AlertThresholds />
+            </FadeIn>
+          </div>
+          <FadeIn delay={0.09}>
             <Organization />
           </FadeIn>
           <FadeIn delay={0.1}>
             <Team />
+          </FadeIn>
+          <FadeIn delay={0.11}>
+            <Appearance />
+          </FadeIn>
+          <FadeIn delay={0.12}>
+            <DemoTour />
           </FadeIn>
         </div>
       </PageBody>

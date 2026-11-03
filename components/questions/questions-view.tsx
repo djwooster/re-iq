@@ -147,7 +147,7 @@ export function QuestionsView() {
                     ? `${joinList(lagging.map((p) => p.name))} get questions once ${lagging.length === 1 ? "its" : "their"} ${monthName} T12 posts.`
                     : `Every property's ${monthName} T12 has posted.`}
                 </span>
-                <Link href="/app/report" className="inline-flex items-center gap-1 text-fg-2 hover:text-fg">
+                <Link href="/app/reports" className="inline-flex items-center gap-1 text-fg-2 hover:text-fg">
                   Next: owner report <ArrowRight className="size-3" />
                 </Link>
               </CardFooter>

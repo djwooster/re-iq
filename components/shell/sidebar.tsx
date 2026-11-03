@@ -1,12 +1,12 @@
 "use client";
 
-import { Building2, ChartNoAxesColumn, Database, FileText, LayoutGrid, ListChecks, LogOut, Settings } from "lucide-react";
+import { ArrowLeftRight, Building2, ChartNoAxesColumn, Database, FileText, LayoutGrid, ListChecks, LogOut, Settings } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useState } from "react";
 import { Dot } from "@/components/ui/badge";
 import { cn } from "@/lib/cn";
-import { getCloseSummary, getCurrentMember, getOrganization, listIssues, SESSION_COOKIE } from "@/lib/data";
+import { getCloseSummary, getCurrentMember, getOrganization, getOwnerMember, listIssues, SESSION_COOKIE } from "@/lib/data";
 import { useData } from "@/lib/hooks/use-data";
 import { PRODUCT_NAME } from "@/lib/labels";
 import { SHOW_DEV_TOOLS, useApp } from "./app-context";
@@ -33,7 +33,7 @@ const NAV: { label: string; items: NavItem[] }[] = [
     label: "Workflow",
     items: [
       { href: "/app/actions", label: "Actions", icon: ListChecks, badge: "acting" },
-      { href: "/app/report", label: "Reports", icon: FileText },
+      { href: "/app/reports", label: "Reports", icon: FileText },
       { href: "/app/data-sources", label: "Data Sources", icon: Database, badge: "close" },
       // Questions to property managers are on hold for the MVP (see components/questions).
       // { href: "/app/questions", label: "Questions", icon: MessageSquareText },
@@ -45,12 +45,24 @@ const NAV: { label: string; items: NavItem[] }[] = [
   },
 ];
 
+/** What the owner sees: one page and the reports shared with them. */
+const OWNER_NAV: { label: string; items: NavItem[] }[] = [
+  {
+    label: "Owner view",
+    items: [
+      { href: "/app", label: "Portfolio", icon: LayoutGrid, exact: true },
+      { href: "/app/reports", label: "Shared reports", icon: FileText },
+    ],
+  },
+];
+
 export function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
   const pathname = usePathname();
   const router = useRouter();
-  const { orgId } = useApp();
+  const { orgId, role, setRole } = useApp();
+  const owner = role === "owner";
   const { data: org } = useData(() => getOrganization(orgId), [orgId]);
-  const { data: me } = useData(() => getCurrentMember(), []);
+  const { data: me } = useData(() => (owner ? getOwnerMember() : getCurrentMember()), [owner]);
   const { data: issues } = useData(() => listIssues(orgId), [orgId]);
   const { data: close } = useData(() => getCloseSummary(orgId), [orgId]);
   const [menuOpen, setMenuOpen] = useState(false);
@@ -75,7 +87,7 @@ export function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
       </div>
 
       <div className="flex-1 overflow-y-auto px-2 pt-2">
-        {NAV.map((section) => (
+        {(owner ? OWNER_NAV : NAV).map((section) => (
           <div key={section.label} className="mb-4">
             <div className="eyebrow px-2 pb-1.5">{section.label}</div>
             <ul className="flex flex-col gap-px">
@@ -125,6 +137,18 @@ export function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
         </button>
         {menuOpen && (
           <div className="absolute right-2 bottom-full left-2 mb-1 rounded-md border border-border bg-bg p-1 shadow-overlay">
+            <button
+              type="button"
+              onClick={() => {
+                setRole(owner ? "asset_manager" : "owner");
+                setMenuOpen(false);
+                router.push("/app");
+              }}
+              className="flex h-7 w-full cursor-pointer items-center gap-2 rounded px-2 text-xs text-fg-2 hover:bg-fg/[0.04] hover:text-fg"
+            >
+              <ArrowLeftRight className="size-3.5" strokeWidth={1.75} /> {owner ? "Back to Jordan Reyes" : "View as owner (Dana Whitfield)"}
+            </button>
+            {!owner && (
             <Link
               href="/app/settings"
               onClick={() => {
@@ -135,6 +159,7 @@ export function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
             >
               <Settings className="size-3.5" strokeWidth={1.75} /> Settings
             </Link>
+            )}
             <button type="button" onClick={signOut} className="flex h-7 w-full cursor-pointer items-center gap-2 rounded px-2 text-xs text-fg-2 hover:bg-fg/[0.04] hover:text-fg">
               <LogOut className="size-3.5" strokeWidth={1.75} /> Sign out
             </button>

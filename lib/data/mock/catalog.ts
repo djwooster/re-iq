@@ -149,7 +149,47 @@ export const propertySeeds: PropertySeed[] = [
   },
 ];
 
-export const properties: Property[] = propertySeeds.map((s) => s.property);
+/** Mortgage on each property. DSCR is computed from the T12; the covenant is the lender's minimum. */
+export interface LoanSeed {
+  property_id: string;
+  lender: string;
+  balance: number;
+  rate: number;
+  dscr_covenant: number;
+}
+
+export const loans: LoanSeed[] = [
+  { property_id: "prop_mesa", lender: "Freddie Mac (SBL)", balance: 12_600_000, rate: 0.0512, dscr_covenant: 1.25 },
+  { property_id: "prop_willow", lender: "Freddie Mac (SBL)", balance: 18_500_000, rate: 0.0498, dscr_covenant: 1.25 },
+  { property_id: "prop_gulch", lender: "Pacific Western Life", balance: 39_300_000, rate: 0.0476, dscr_covenant: 1.25 },
+  { property_id: "prop_lakeline", lender: "Fannie Mae (DUS)", balance: 50_500_000, rate: 0.0481, dscr_covenant: 1.25 },
+  { property_id: "prop_magnolia", lender: "Regional bank, recourse", balance: 10_200_000, rate: 0.0565, dscr_covenant: 1.25 },
+  { property_id: "prop_peachtree", lender: "Fannie Mae (DUS)", balance: 42_600_000, rate: 0.0472, dscr_covenant: 1.25 },
+  { property_id: "prop_brookstone", lender: "Freddie Mac", balance: 30_700_000, rate: 0.0459, dscr_covenant: 1.25 },
+  { property_id: "prop_oakridge", lender: "Freddie Mac", balance: 30_800_000, rate: 0.0468, dscr_covenant: 1.25 },
+  { property_id: "prop_vale", lender: "Pacific Western Life", balance: 43_100_000, rate: 0.0471, dscr_covenant: 1.25 },
+  { property_id: "prop_crestline_north", lender: "Fannie Mae (Small)", balance: 24_600_000, rate: 0.0485, dscr_covenant: 1.25 },
+  { property_id: "prop_crestline_south", lender: "Fannie Mae (Small)", balance: 21_000_000, rate: 0.0489, dscr_covenant: 1.25 },
+  { property_id: "prop_crestline_commons", lender: "Regional bank, recourse", balance: 13_900_000, rate: 0.0571, dscr_covenant: 1.25 },
+];
+
+/** Share of leases expiring in the trailing 12 months that renewed, as reported in each rent roll. */
+export const renewalRates: Record<string, number> = {
+  prop_mesa: 0.54, prop_willow: 0.51, prop_gulch: 0.58,
+  prop_lakeline: 0.41, prop_magnolia: 0.46, prop_peachtree: 0.52,
+  prop_brookstone: 0.61, prop_oakridge: 0.57, prop_vale: 0.63,
+  prop_crestline_north: 0.55, prop_crestline_south: 0.53, prop_crestline_commons: 0.5,
+};
+
+/** Annual payment on a 30-year amortizing loan. */
+function annualDebtService(propertyId: string) {
+  const loan = loans.find((l) => l.property_id === propertyId);
+  if (!loan) return 0;
+  const r = loan.rate / 12;
+  return Math.round((12 * loan.balance * r) / (1 - Math.pow(1 + r, -360)));
+}
+
+export const properties: Property[] = propertySeeds.map((s) => ({ ...s.property, annual_debt_service: annualDebtService(s.property.id) }));
 
 const uploadIds = properties.filter((x) => x.data_source_ids.includes("src_upload")).map((x) => x.id);
 

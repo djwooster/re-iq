@@ -69,7 +69,7 @@ export function Metric({
 export function ConfidenceIndicator({ value, threshold = 0.75, showValue = true }: { value: number; threshold?: number; showValue?: boolean }) {
   const review = value < threshold;
   return (
-    <span className="inline-flex items-center gap-1.5" title={`${Math.round(value * 100)}% confidence${review ? " · review suggested" : ""}`}>
+    <span className="inline-flex items-center gap-1.5" title={`${Math.round(value * 100)}% confidence${review ? " · below the review threshold" : ""}`}>
       <span className="relative h-1 w-6 overflow-hidden rounded-full bg-fg/10" aria-hidden>
         <span className={cn("absolute inset-y-0 left-0 rounded-full", review ? "bg-warning" : "bg-fg-3")} style={{ width: `${Math.round(value * 100)}%` }} />
       </span>

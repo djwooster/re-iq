@@ -330,3 +330,26 @@ export async function getReconciliation(orgId: string): Promise<PropertyRecon[]>
       return { property, checks };
     });
 }
+
+export interface SavedMapping {
+  manager: PropertyManager;
+  code: string;
+  label: string;
+  target: MappingTarget;
+}
+
+/** Mappings a person changed, remembered per manager. */
+export async function listSavedMappings(orgId: string): Promise<SavedMapping[]> {
+  await delay();
+  const saved = readOverlay().managerMappings;
+  return propertyManagers
+    .filter((m) => m.org_id === orgId)
+    .flatMap((manager) =>
+      Object.entries(saved[manager.id] ?? {}).map(([code, target]) => ({
+        manager,
+        code,
+        label: mappingTemplate("t12", manager.system).find((r) => r.source_code === code)?.source_label ?? code,
+        target,
+      })),
+    );
+}

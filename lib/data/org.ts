@@ -1,6 +1,6 @@
 import type { Member, Organization, Role, Session } from "@/lib/types";
 import { delay, isNewWorkspace } from "./core";
-import { CURRENT_MEMBER_ID, ORG_ID, members, organization } from "./mock/catalog";
+import { CURRENT_MEMBER_ID, ORG_ID, OWNER_MEMBER_ID, members, organization } from "./mock/catalog";
 import { readOverlay, resetOverlay, writeOverlay } from "./store";
 
 export const SESSION_COOKIE = "reiq_session";
@@ -49,6 +49,12 @@ export async function listMembers(orgId: string): Promise<Member[]> {
 export async function getCurrentMember(): Promise<Member> {
   await delay();
   return currentMember();
+}
+
+/** The owner Jordan reports to, whose view "View as owner" previews. */
+export async function getOwnerMember(): Promise<Member> {
+  await delay();
+  return members.find((m) => m.id === OWNER_MEMBER_ID)!;
 }
 
 /** Signup: an empty workspace for the company, signed in as the person who created it. */

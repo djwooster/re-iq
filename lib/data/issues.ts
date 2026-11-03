@@ -35,6 +35,8 @@ export interface IssueTable {
 }
 
 export interface IssueResult {
+  /** NOI a year the result is worth, for the "results this year" total. */
+  annual: number;
   before: { label: string; value: string };
   after: { label: string; value: string };
   sentence: string;
@@ -81,6 +83,18 @@ const MONTH_NAME = (m: MonthKey) => formatMonth(m, "long").split(" ")[0];
 
 /** Each system's landscaping line, for cost-per-unit comparisons. */
 const LANDSCAPING_CODE: Record<PmsSystem, string> = { yardi: "6810-0000", appfolio: "6410", rent_manager: "64100", resman: "5410", entrata: "55000" };
+
+/**
+ * What becomes an issue. Shown in Settings; the planted issues were found with
+ * these rules. A future org setting.
+ */
+export const ALERT_RULES: { id: string; label: string; value: string }[] = [
+  { id: "line_over", label: "A line is over budget by more than", value: "5% and $5,000" },
+  { id: "trend", label: "A line moves the wrong way for", value: "3 months in a row" },
+  { id: "economic_gap", label: "Economic occupancy is below physical by more than", value: "5 points" },
+  { id: "delinquency", label: "Delinquency rises by more than", value: "50% since its 12-month low" },
+  { id: "cost_per_unit", label: "Cost per unit exceeds the rest of the portfolio by more than", value: "25%" },
+];
 
 // ---- Helpers ----------------------------------------------------------------------
 
@@ -227,6 +241,7 @@ function computeIssues(): Draft[] {
         { status: "resolved", at: "2026-12-10", by: CURRENT_MEMBER_ID, note: null, reason: "fixed" },
       ],
       result: {
+        annual: repeatCost,
         before: { label: "R&M vs budget, May–Sep", value: `${money(rm.variance / months.length)}/mo over` },
         after: { label: `R&M vs budget, Oct–${formatMonth(through(p), "tiny")}`, value: after.variance >= 0 ? `${money(after.variance / afterMonths)}/mo under` : `${money(after.variance / afterMonths)}/mo over` },
         sentence: `R&M back on budget since October · ~${money(repeatCost)}/yr in repairs on the ${repeatUnits.length} units vs. ${money(capex.planned)} one-time capex`,
@@ -564,4 +579,29 @@ export async function getIssueTrend(issue: Issue): Promise<IssueTrend> {
       return { month: m, actual: compareMonths(m, through(p)) <= 0 ? o.delinquent_balance / o.billed_charges : null, reference: restRate };
     }),
   };
+}
+
+// ---- Decisions ------------------------------------------------------------------------
+
+export interface Decisions {
+  acting: Issue[];
+  resolved: Issue[];
+  /** NOI a year from issues resolved this calendar year. An estimate. */
+  results_this_year: number;
+}
+
+/** Everything the asset manager is acting on, and what came of what's resolved. */
+export async function getDecisions(orgId: string): Promise<Decisions> {
+  const issues = await listIssues(orgId);
+  const resolved = issues.filter((i) => i.status === "resolved");
+  return {
+    acting: issues.filter((i) => i.status === "acting"),
+    resolved,
+    results_this_year: resolved.filter((i) => i.status_at.startsWith(TODAY.slice(0, 4))).reduce((s, i) => s + (i.result?.annual ?? 0), 0),
+  };
+}
+
+/** When an issue moved to Acting, and the note recorded then. */
+export function actingEvent(issue: Issue) {
+  return [...issue.history].reverse().find((e) => e.status === "acting") ?? null;
 }

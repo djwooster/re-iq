@@ -6,8 +6,10 @@ import { createContext, Suspense, useContext, useEffect, useState } from "react"
 import { UploadProvider } from "@/components/data-sources/upload-button";
 import { SourceProvider } from "@/components/sources/source-drawer";
 import { DarkModePrompt } from "@/components/theme/dark-mode-prompt";
+import { TourButton } from "@/components/tour/tour";
 import { ToastProvider } from "@/components/ui/toast";
 import { AppProvider } from "./app-context";
+import { OwnerBanner } from "./owner-banner";
 import { Sidebar } from "./sidebar";
 
 const MobileNavContext = createContext<() => void>(() => {});
@@ -59,8 +61,12 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                 </>
               )}
             </AnimatePresence>
-            <main className="min-w-0 md:pl-[220px]">{children}</main>
+            <main className="min-w-0 md:pl-[220px]">
+              <OwnerBanner />
+              {children}
+            </main>
             <DarkModePrompt />
+            <TourButton />
           </div>
         </MobileNavContext.Provider>
         </SourceProvider>

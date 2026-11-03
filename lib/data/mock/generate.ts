@@ -252,6 +252,39 @@ function generateWorkOrders(seed: PropertySeed, units: Unit[]): WorkOrder[] {
     });
   }
 
+  // Completed work over the trailing 12 months. Vendor jobs carry a cost; in-house jobs don't.
+  // Mesa Verde's HVAC history is written below, call by call.
+  const vendorFor: Partial<Record<WorkOrderCategory, string>> = {
+    hvac: property.market === "Phoenix" ? "ven_coolflow" : "ven_allseason",
+    plumbing: "ven_clearpath",
+    make_ready: "ven_brightturn",
+    pest: "ven_apex",
+  };
+  const costRange: Record<WorkOrderCategory, [number, number]> = {
+    hvac: [180, 900], plumbing: [140, 720], electrical: [90, 420], appliance: [120, 640],
+    make_ready: [650, 2_400], grounds: [80, 600], pest: [60, 180], general: [40, 260],
+  };
+  const historyCount = Math.round(property.units * 1.9);
+  for (let n = 0; n < historyCount; n++) {
+    const category = pickCategory();
+    if (seed.story === "hvac" && category === "hvac") continue;
+    const opened = addDays(TODAY, -rng.int(20, 364));
+    const vendor = vendorFor[category] && rng.chance(0.55) ? vendorFor[category]! : null;
+    const [lo, hi] = costRange[category];
+    push({
+      unit_number: category === "grounds" ? null : rng.pick(units).unit_number,
+      category,
+      description: rng.pick(WO_TEMPLATES[category]),
+      priority: rng.chance(0.06) ? "emergency" : rng.chance(0.2) ? "high" : "normal",
+      status: "completed",
+      opened_at: opened,
+      completed_at: addDays(opened, rng.int(0, 4)),
+      vendor_id: vendor,
+      cost: vendor ? Math.round(rng.range(lo, hi) / 10) * 10 : null,
+      repeat: false,
+    });
+  }
+
   if (seed.story === "hvac") {
     // May to September: 45 HVAC calls, 26 of them to four units whose 1986 condensers kept failing.
     const problemUnits = ["1203", "1104", "3102", "2205"];
