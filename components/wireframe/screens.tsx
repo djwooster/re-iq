@@ -30,11 +30,17 @@ export function LoginScreen() {
 }
 
 export function UploadScreen() {
+  const router = useRouter();
   const [files, setFiles] = useState(0);
+  // Upload adds the files, then moves on to processing on its own.
+  const upload = () => {
+    setFiles((n) => n + 3);
+    window.setTimeout(() => router.push("/wireframe/processing"), 900);
+  };
   return (
     <WfPage title="Upload">
       <Box label="Drop reports here" className="flex min-h-48 flex-col items-center justify-center gap-3">
-        <WfButton onClick={() => setFiles((n) => n + 3)}>+ Upload</WfButton>
+        <WfButton onClick={upload}>+ Upload</WfButton>
       </Box>
       <Box label="Uploaded files" className="min-h-28">
         {files > 0 && (
@@ -48,9 +54,6 @@ export function UploadScreen() {
           </ul>
         )}
       </Box>
-      <div>
-        <WfButton href="/wireframe/processing">Continue</WfButton>
-      </div>
       <ExpectBox />
     </WfPage>
   );
