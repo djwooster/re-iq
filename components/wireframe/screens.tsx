@@ -24,11 +24,27 @@ export function LoginScreen() {
         <Link href="/" className="num mb-2 text-center text-[15px] font-semibold tracking-[0.06em] text-fg hover:opacity-70">
           {PRODUCT_NAME}
         </Link>
-        <Box label="Email" className="min-h-10" />
-        <Box label="Password" className="min-h-10" />
+        <WfInput label="Email" type="email" value="jordan@alderpeak.com" />
+        <WfInput label="Password" type="password" value="wireframe-demo" />
         <WfButton href="/wireframe/upload">Sign in</WfButton>
       </div>
     </div>
+  );
+}
+
+/** A prefilled, disabled field: the login is part of the story, not something to fill in. */
+function WfInput({ label, type, value }: { label: string; type: string; value: string }) {
+  return (
+    <label className="flex flex-col gap-1.5">
+      <span className="text-[11px] font-medium text-fg-2">{label}</span>
+      <input
+        type={type}
+        value={value}
+        disabled
+        readOnly
+        className="h-9 cursor-not-allowed rounded-md border border-fg/15 bg-fg/[0.035] px-3 text-xs text-fg-2"
+      />
+    </label>
   );
 }
 
