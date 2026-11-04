@@ -115,8 +115,8 @@ export function Page({ title, subtitle, crumbs, controls, actions, children }: {
         )}
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div className="min-w-0">
-            <h1 className="text-sm font-semibold">{title}</h1>
-            {subtitle && <div className="mt-0.5 text-[11px] text-fg-3">{subtitle}</div>}
+            <h1 className="text-lg font-semibold tracking-tight text-fg">{title}</h1>
+            {subtitle && <div className="mt-1 text-xs text-fg-2">{subtitle}</div>}
           </div>
           <div className="flex flex-wrap items-center gap-3">
             {controls && <PeriodControls />}

@@ -186,7 +186,7 @@ function Section({ n, title, state, note, children }: { n: number; title: string
     <section className={cn("rounded-md border bg-bg", state === "current" ? "border-[var(--wf-accent)]/50" : "border-fg/15")}>
       <header className="flex items-center gap-3 border-b border-fg/10 px-4 py-2.5">
         <StepNum n={n} state={state} />
-        <h2 className="text-xs font-semibold">{title}</h2>
+        <h2 className="text-[13px] font-semibold text-fg">{title}</h2>
         {state === "done" && <Chip tone="green">Done</Chip>}
       </header>
       <div className="p-4">{children}</div>

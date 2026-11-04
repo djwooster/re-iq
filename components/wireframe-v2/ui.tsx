@@ -56,7 +56,7 @@ export function Card({ title, action, className, children }: { title?: React.Rea
     <section className={cn("rounded-md border border-fg/15 bg-bg", className)}>
       {(title || action) && (
         <header className="flex min-h-10 items-center justify-between gap-3 border-b border-fg/10 px-4 py-2">
-          <h2 className="text-xs font-semibold">{title}</h2>
+          <h2 className="text-[13px] font-semibold text-fg">{title}</h2>
           {action}
         </header>
       )}

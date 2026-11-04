@@ -45,7 +45,7 @@ export function Overview() {
   return (
     <Page title="Overview" subtitle={`${fmtLongDate(TODAY)} · ${CLOSE_MONTH} close in progress`} controls>
       <section aria-label={`${CLOSE_MONTH} close`} className="flex flex-col gap-2">
-        <h2 className="text-xs font-semibold">{CLOSE_MONTH} close</h2>
+        <h2 className="text-[15px] font-semibold text-fg">{CLOSE_MONTH} close</h2>
         <div className="grid gap-2 lg:grid-cols-[1fr_2fr_1fr]">
           <Panel title="Close" href="/wireframe-v2/close" chip={m.close.done ? <Chip tone="green">Closed</Chip> : null}>
             <Progress value={m.close.managersIn} total={m.close.managers} label={`${m.close.managersIn} of ${m.close.managers} managers in`} />
