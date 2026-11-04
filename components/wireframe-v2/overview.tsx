@@ -5,10 +5,10 @@ import { ForceLight } from "@/components/theme/theme-provider";
 import { cn } from "@/lib/cn";
 import { PRODUCT_NAME } from "@/lib/labels";
 import { blocker, monthStatus } from "./derive";
-import { CLOSE_MONTH, PROPERTIES, STAGES, STAGE_LABEL, TODAY, fmtDate, fmtLongDate, managerOf, type Exception } from "./seed";
+import { CLOSE_MONTH, PROPERTIES, STAGES, STAGE_LABEL, TODAY, fmtDate, fmtLongDate, managerOf, projectStage, type Exception } from "./seed";
 import { href, Page } from "./shell";
 import { isOverdue, openExceptions, useWf } from "./store";
-import { A, Bar, barW, Button, Card, Chip, RagChip, Row, Stat, Table, Td } from "./ui";
+import { A, Bar, barW, Button, Card, Chip, PlanChip, Row, Stat, Table, Td } from "./ui";
 
 export function Login() {
   return (
@@ -47,7 +47,7 @@ export function Overview() {
       <section aria-label={`${CLOSE_MONTH} close`} className="flex flex-col gap-2">
         <h2 className="text-xs font-semibold">{CLOSE_MONTH} close</h2>
         <div className="grid gap-2 lg:grid-cols-[1fr_2fr_1fr]">
-          <Panel title="Close" href="/wireframe-v2/close" chip={m.close.done ? <Chip tone="green">Done</Chip> : <Chip tone="amber">In progress</Chip>}>
+          <Panel title="Close" href="/wireframe-v2/close" chip={m.close.done ? <Chip tone="green">Closed</Chip> : null}>
             <Progress value={m.close.managersIn} total={m.close.managers} label={`${m.close.managersIn} of ${m.close.managers} managers in`} />
             <span className="text-[11px] text-fg-3">{m.close.notes.join(" · ") || "Every package in and reconciled"}</span>
           </Panel>
@@ -136,14 +136,14 @@ export function PropertyTable() {
               <A href={href.manager(managerOf(p.id).id)}>{managerOf(p.id).name}</A>
             </Td>
             <Td>
-              <RagChip rag={p.rag} />
+              <PlanChip off={open > 0} />
             </Td>
             {[0, 1, 2, 3].map((j) => (
               <Td key={j}>
                 <Bar w={barW(i + j * 3)} />
               </Td>
             ))}
-            <Td className="whitespace-nowrap text-fg-2">{project ? `Step ${project.step} of 6` : <span className="text-fg-3">None</span>}</Td>
+            <Td className="whitespace-nowrap text-fg-2">{project ? projectStage(project) : <span className="text-fg-3">None</span>}</Td>
             <Td className={cn(open ? "text-fg" : "text-fg-3")}>{open || "None"}</Td>
             <Td>{block ? <span className="text-[11px] whitespace-nowrap text-fg-3">{block}</span> : <Chip tone="green">Ready for owner report</Chip>}</Td>
           </Row>

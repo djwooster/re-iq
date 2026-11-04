@@ -2,7 +2,7 @@
 
 import { useToast } from "@/components/ui/toast";
 import { blocker, readyProperties } from "./derive";
-import { CLOSE_MONTH, MANAGERS, PROPERTIES, STAGE_LABEL, fmtDate, property, stepName } from "./seed";
+import { CLOSE_MONTH, MANAGERS, PROPERTIES, STAGE_LABEL, fmtDate, property, projectStage } from "./seed";
 import { href, Page } from "./shell";
 import { useWf } from "./store";
 import { A, Bar, barW, Button, Card, Chart, Chip, Empty, Row, Segmented, StageChip, Table, Td } from "./ui";
@@ -49,7 +49,7 @@ export function Tasks() {
                 </Td>
                 <Td className="whitespace-nowrap">{property(p.property)!.name}</Td>
                 <Td className="text-fg-2">Renovations</Td>
-                <Td className="text-fg-2">{stepName(p.type, p.step)}</Td>
+                <Td className="text-fg-2">{projectStage(p)}</Td>
                 <Td className="text-right text-[11px] text-fg-3">Decide on the project →</Td>
               </Row>
             ))}
@@ -205,7 +205,7 @@ export function OwnerReport() {
               <Td className="whitespace-nowrap">{property(p.property)!.name}</Td>
               <Td className="text-fg-2">{p.type}</Td>
               <Td className="whitespace-nowrap text-fg-2">
-                {p.step} · {stepName(p.type, p.step)}
+                {projectStage(p)}
               </Td>
               <Td>
                 <Bar w={barW(i, 10)} />

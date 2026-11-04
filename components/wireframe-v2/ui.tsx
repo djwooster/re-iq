@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { cn } from "@/lib/cn";
-import { STAGE_LABEL, fmtDate, type Exception, type Rag } from "./seed";
+import { STAGE_LABEL, fmtDate, type Exception } from "./seed";
 import { isOverdue } from "./store";
 
 /** Wireframe v2 blocks: real labels, gray bars where numbers would go. */
@@ -30,13 +30,12 @@ export function Chip({ tone = "neutral", children }: { tone?: Tone; children: Re
   return <span className={cn("inline-flex shrink-0 items-center gap-1 rounded px-1.5 py-0.5 text-[11px] font-medium whitespace-nowrap", TONE[tone])}>{children}</span>;
 }
 
-const RAG_LABEL: Record<Rag, [Tone, string]> = { red: ["red", "Off plan"], amber: ["amber", "Watch"], green: ["green", "On plan"] };
-export function RagChip({ rag }: { rag: Rag }) {
-  const [tone, label] = RAG_LABEL[rag];
+/** Off plan: the property has an open exception. */
+export function PlanChip({ off }: { off: boolean }) {
   return (
-    <Chip tone={tone}>
+    <Chip tone={off ? "red" : "green"}>
       <span className="h-1.5 w-1.5 rounded-full bg-current" />
-      {label}
+      {off ? "Off plan" : "On plan"}
     </Chip>
   );
 }

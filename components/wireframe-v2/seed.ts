@@ -17,30 +17,28 @@ export const MANAGERS = [
 ] as const;
 
 export type ManagerId = (typeof MANAGERS)[number]["id"];
-export type Rag = "red" | "amber" | "green";
 
 export interface Property {
   id: string;
   name: string;
   manager: ManagerId;
-  rag: Rag;
 }
 
-const P = (letter: string, manager: ManagerId, rag: Rag): Property => ({ id: letter.toLowerCase(), name: `Property ${letter}`, manager, rag });
+const P = (letter: string, manager: ManagerId): Property => ({ id: letter.toLowerCase(), name: `Property ${letter}`, manager });
 
 export const PROPERTIES: Property[] = [
-  P("A", "m1", "amber"),
-  P("B", "m1", "amber"),
-  P("C", "m1", "amber"),
-  P("D", "m2", "red"),
-  P("E", "m2", "red"),
-  P("F", "m2", "red"),
-  P("G", "m3", "amber"),
-  P("H", "m3", "green"),
-  P("I", "m3", "amber"),
-  P("J", "m2", "green"),
-  P("K", "m4", "amber"),
-  P("L", "m1", "green"),
+  P("A", "m1"),
+  P("B", "m1"),
+  P("C", "m1"),
+  P("D", "m2"),
+  P("E", "m2"),
+  P("F", "m2"),
+  P("G", "m3"),
+  P("H", "m3"),
+  P("I", "m3"),
+  P("J", "m2"),
+  P("K", "m4"),
+  P("L", "m1"),
 ];
 
 export const property = (id: string) => PROPERTIES.find((p) => p.id === id);
@@ -470,6 +468,14 @@ export interface Project {
 
 export const STEP_NAMES = ["Find the opportunity", "Scope and underwrite", "Bid and award", "Pilot", "Scale / execute", "Measure and decide"];
 export const stepName = (type: ProjectType, step: number) => (type === "Exterior" && step === 4 ? "Sequence and notify" : step === 5 && type === "Exterior" ? "Execute" : STEP_NAMES[step - 1]);
+
+/** Where a project stands, in words: a pending gate, or the stage it's in. */
+export function projectStage(p: Project) {
+  if (p.status !== "Active") return p.status;
+  if (p.step === 2) return "Gate A pending";
+  if (p.step === 4 && p.type === "Interior") return "Gate B pending";
+  return stepName(p.type, p.step);
+}
 
 export const PROJECTS: Project[] = [
   {

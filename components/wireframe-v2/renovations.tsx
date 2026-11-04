@@ -4,17 +4,16 @@ import Link from "next/link";
 import { useState } from "react";
 import { useToast } from "@/components/ui/toast";
 import { cn } from "@/lib/cn";
-import { STEP_NAMES, fmtDate, property, stepName, unitNumbers, unitStatus, type Project } from "./seed";
+import { STEP_NAMES, projectStage, fmtDate, property, stepName, unitNumbers, unitStatus, type Project } from "./seed";
 import { href, Page } from "./shell";
 import { useWf } from "./store";
 import { A, Bar, barW, Button, Card, Chart, Chip, Empty, Log, Row, Select, StageChip, Table, Td, Tabs, type Tone } from "./ui";
 
-/** Where a project stands, in the words an asset manager would use. */
+/** Chip color for a project's stage: amber when a gate waits on you. */
 export function projectStatus(p: Project): [Tone, string] {
-  if (p.status !== "Active") return [p.status === "Complete" ? "green" : "neutral", p.status];
-  if (p.step === 2) return ["amber", "Gate A pending"];
-  if (p.step === 4 && p.type === "Interior") return ["amber", "Gate B pending"];
-  return [p.step === 5 ? "blue" : "neutral", { 1: "Finding the opportunity", 3: "Bidding", 4: "Sequencing", 5: "Executing", 6: "Measuring" }[p.step]!];
+  const label = projectStage(p);
+  if (p.status !== "Active") return [p.status === "Complete" ? "green" : "neutral", label];
+  return [label.startsWith("Gate") ? "amber" : p.step === 5 ? "blue" : "neutral", label];
 }
 
 // ---- List ----
@@ -36,7 +35,7 @@ export function Renovations() {
         ]}
       />
       {tab === "projects" ? (
-        <Table columns={["Project", "Property", "Type", "Current step", "Budget", "Spent", "Status"]}>
+        <Table columns={["Project", "Property", "Type", "Stage", "Budget", "Spent"]}>
           {state.projects.map((p, i) => {
             const [tone, label] = projectStatus(p);
             return (
@@ -44,17 +43,14 @@ export function Renovations() {
                 <Td className="font-medium text-[var(--wf-accent)]">{p.name}</Td>
                 <Td className="whitespace-nowrap">{property(p.property)!.name}</Td>
                 <Td className="text-fg-2">{p.type}</Td>
-                <Td className="whitespace-nowrap text-fg-2">
-                  {p.step} · {stepName(p.type, p.step)}
+                <Td>
+                  <Chip tone={tone}>{label}</Chip>
                 </Td>
                 <Td>
                   <Bar w={barW(i, 10)} />
                 </Td>
                 <Td>
                   <Bar w={p.step < 3 ? 2 : barW(i + 1, 4)} />
-                </Td>
-                <Td>
-                  <Chip tone={tone}>{label}</Chip>
                 </Td>
               </Row>
             );

@@ -6,7 +6,7 @@ import { useState } from "react";
 import { useToast } from "@/components/ui/toast";
 import { cn } from "@/lib/cn";
 import { byUrgency } from "./overview";
-import { ACTION_SUGGESTIONS, CAPITAL_PROJECT, MANAGERS, PROPERTIES, STAGES, STAGE_LABEL, TEAM, TODAY, days, daysBetween, fmtDate, managerOf, property, stepName, type Exception, type Stage } from "./seed";
+import { ACTION_SUGGESTIONS, CAPITAL_PROJECT, MANAGERS, PROPERTIES, STAGES, STAGE_LABEL, TEAM, TODAY, days, daysBetween, fmtDate, managerOf, property, projectStage, type Exception, type Stage } from "./seed";
 import { href, Page } from "./shell";
 import { isOverdue, useWf } from "./store";
 import { A, Bar, barW, Button, Card, Chart, Chip, Empty, Field, Input, Log, Row, Segmented, Select, StageChip, Table, Td, TextArea } from "./ui";
@@ -538,7 +538,7 @@ function Tracking({ e }: { e: Exception }) {
         <span className="text-fg-3">Action:</span> {e.action}
         {project && (
           <span className="ml-3">
-            <span className="text-fg-3">Project:</span> <A href={href.project(project.id)}>{project.name}</A> · Step {project.step} of 6 · {stepName(project.type, project.step)}
+            <span className="text-fg-3">Project:</span> <A href={href.project(project.id)}>{project.name}</A> · {projectStage(project)}
           </span>
         )}
       </p>

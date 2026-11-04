@@ -5,7 +5,7 @@ import { managerState } from "./derive";
 import { CLOSE_MONTH, MANAGERS, PACKAGE_HISTORY, PROPERTIES, RECEIVED, TODAY, days, daysBetween, fmtDate, property, type ManagerId } from "./seed";
 import { href, Page } from "./shell";
 import { isOverdue, openExceptions, useWf } from "./store";
-import { Bar, barW, Button, Card, Chip, Empty, RagChip, Row, StageChip, Table, Td, type Tone } from "./ui";
+import { Bar, barW, Button, Card, Chip, Empty, PlanChip, Row, StageChip, Table, Td, type Tone } from "./ui";
 
 const propsOf = (id: ManagerId) => PROPERTIES.filter((p) => p.manager === id);
 
@@ -126,7 +126,7 @@ export function ManagerPage({ id }: { id: string }) {
               <Row key={p.id} href={href.property(p.id)}>
                 <Td className="font-medium whitespace-nowrap text-[var(--wf-accent)]">{p.name}</Td>
                 <Td>
-                  <RagChip rag={p.rag} />
+                  <PlanChip off={openExceptions(state, p.id).length > 0} />
                 </Td>
                 <Td>
                   <Bar w={barW(i)} />

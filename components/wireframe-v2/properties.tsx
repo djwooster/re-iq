@@ -4,10 +4,10 @@ import Link from "next/link";
 import { cn } from "@/lib/cn";
 import { ExceptionLink } from "./exceptions";
 import { PropertyTable } from "./overview";
-import { FLOORS, SCORECARD, UNITS_PER_FLOOR, UNIT_STATUSES, fmtLongDate, managerOf, property, stepName, unitStatus, type UnitStatus } from "./seed";
+import { FLOORS, SCORECARD, UNITS_PER_FLOOR, UNIT_STATUSES, fmtLongDate, managerOf, property, projectStage, unitStatus, type UnitStatus } from "./seed";
 import { href, Page } from "./shell";
 import { openExceptions, useWf } from "./store";
-import { A, Bar, barW, Card, Chip, Empty, RagChip, Row, Sparkline, Table, Td } from "./ui";
+import { A, Bar, barW, Card, Chip, Empty, PlanChip, Row, Sparkline, Table, Td } from "./ui";
 
 export function Properties() {
   return (
@@ -34,7 +34,7 @@ export function Scorecard({ id }: { id: string }) {
     <Page
       title={
         <span className="flex items-center gap-2">
-          {p.name} <RagChip rag={p.rag} />
+          {p.name} <PlanChip off={exceptions.length > 0} />
         </span>
       }
       subtitle={managerOf(id).name}
@@ -65,7 +65,7 @@ export function Scorecard({ id }: { id: string }) {
               <Link key={x.id} href={href.project(x.id)} className="group flex items-center justify-between gap-2 border-b border-fg/10 py-2 last:border-b-0">
                 <span className="text-xs font-medium text-[var(--wf-accent)] group-hover:underline">{x.name}</span>
                 <span className="text-[11px] text-fg-3">
-                  {x.type} · Step {x.step} · {stepName(x.type, x.step)}
+                  {x.type} · {projectStage(x)}
                 </span>
               </Link>
             ))
