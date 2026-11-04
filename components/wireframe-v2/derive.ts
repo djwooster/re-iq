@@ -69,6 +69,7 @@ export function cycle(s: Slice & { ownerReport: { sent?: string } }) {
   const r = reconSummary(s);
   const by = (stage: Exception["stage"]) => s.exceptions.filter((e) => e.stage === stage);
   const overdue = s.exceptions.filter(isOverdue).length;
+  const replied = by("waiting").filter((e) => e.question?.reply).length;
   const ready = readyProperties(s).length;
   const status = (n: number): StepStatus => (n ? "In progress" : "Not started");
   const plural = (n: number, w: string) => `${n} ${w}${n === 1 ? "" : "s"}`;
@@ -77,9 +78,8 @@ export function cycle(s: Slice & { ownerReport: { sent?: string } }) {
     { name: "Check and reconcile", href: "/wireframe-v2/close?tab=reconciliation", status: (r.breaks || r.waiting ? "In progress" : "Done") as StepStatus, line: `${plural(r.breaks, "break")} · ${mappingPending(s)} lines to map` },
     { name: "Scorecard vs. plan", href: "/wireframe-v2/exceptions?status=new", status: status(by("new").length), line: `${by("new").length} new off plan · ${ready} on plan` },
     { name: "Diagnose", href: "/wireframe-v2/exceptions?status=diagnosing", status: status(by("diagnosing").length), line: `${by("diagnosing").length} diagnosing` },
-    { name: "PM explains", href: "/wireframe-v2/questions", status: status(by("waiting").length), line: `${by("waiting").length} waiting on PM · ${overdue} overdue` },
-    { name: "Choose action", href: "/wireframe-v2/exceptions?status=decide", status: status(by("decide").length), line: by("decide").length ? `${by("decide").length} to decide` : "Nothing to decide yet" },
-    { name: "Assign and track", href: "/wireframe-v2/tasks", status: status(by("assigned").length), line: `${by("assigned").length} assigned` },
+    { name: "PM explains", href: "/wireframe-v2/questions", status: status(by("waiting").length), line: `${by("waiting").filter((e) => !e.question?.reply).length} waiting on PM · ${overdue} overdue${replied ? ` · ${replied} replied` : ""}` },
+    { name: "Act", href: "/wireframe-v2/tasks", status: status(by("assigned").length), line: `${by("assigned").length} actions assigned` },
     { name: "Report and log", href: "/wireframe-v2/owner-report", status: (s.ownerReport.sent ? "Done" : "In progress") as StepStatus, line: s.ownerReport.sent ? `Owner report sent ${fmtDate(s.ownerReport.sent)}` : "Owner report in draft" },
   ];
 }

@@ -87,14 +87,12 @@ function useActions(set: React.Dispatch<React.SetStateAction<State>>) {
           exceptions: ex(
             id,
             (e) => ({
-              stage: "decide",
               question: e.question && { ...e.question, reply: { text, file, received: TODAY } },
               log: [...e.log, entry(`Recorded reply from ${managerOf(e.property).name}${file ? ` · ${file}` : ""}`)],
             }),
             s,
           ),
         })),
-      skipToDecide: (id: string) => set((s) => ({ ...s, exceptions: ex(id, (e) => ({ stage: "decide", log: [...e.log, entry("Moved to decide without asking the PM")] }), s) })),
 
       assign: (id: string, input: AssignInput) =>
         set((s) => {
@@ -128,7 +126,7 @@ function useActions(set: React.Dispatch<React.SetStateAction<State>>) {
                 stage: "assigned",
                 action: input.action,
                 projectId: projectId ?? x.projectId,
-                log: [...x.log, entry(`Decided: ${input.action}`), entry(`Assigned to ${input.assignee} · due ${fmtDate(input.due)}`)],
+                log: [...x.log, entry(`Action: ${input.action}`), entry(`Assigned to ${input.assignee} · due ${fmtDate(input.due)}`)],
               }),
               s,
             ),

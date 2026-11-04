@@ -6,7 +6,7 @@ import { useState } from "react";
 import { useToast } from "@/components/ui/toast";
 import { cn } from "@/lib/cn";
 import { byUrgency } from "./overview";
-import { ACTIONS, MANAGERS, PROPERTIES, STAGES, STAGE_LABEL, TEAM, TODAY, daysBetween, fmtDate, managerOf, property, stepName, type Exception, type Stage } from "./seed";
+import { ACTION_SUGGESTIONS, CAPITAL_PROJECT, MANAGERS, PROPERTIES, STAGES, STAGE_LABEL, TEAM, TODAY, daysBetween, fmtDate, managerOf, property, stepName, type Exception, type Stage } from "./seed";
 import { href, Page } from "./shell";
 import { isOverdue, useWf } from "./store";
 import { A, Bar, barW, Button, Card, Chart, Chip, Empty, Field, Input, Log, Row, Segmented, Select, StageChip, Table, Td, TextArea } from "./ui";
@@ -92,6 +92,7 @@ const at = (e: Exception) => STAGES.indexOf(e.stage);
 
 export function ExceptionDetail({ id }: { id: string }) {
   const { state } = useWf();
+  const [actNow, setActNow] = useState(false);
   const e = state.exceptions.find((x) => x.id === id);
   if (!e) {
     return (
@@ -103,6 +104,9 @@ export function ExceptionDetail({ id }: { id: string }) {
   const p = property(e.property)!;
   const m = managerOf(e.property);
   const i = at(e);
+  const replied = !!e.question?.reply;
+  const ask: SectionState = i < 1 ? "upcoming" : replied || i >= 3 ? "done" : "current";
+  const act: SectionState = i === 4 ? "done" : i === 3 || replied || actNow ? "current" : "upcoming";
   return (
     <Page
       title={e.trigger}
@@ -130,14 +134,11 @@ export function ExceptionDetail({ id }: { id: string }) {
       <Section n={4} title="Diagnose" state={i <= 1 ? "current" : "done"}>
         <Diagnose e={e} />
       </Section>
-      <Section n={5} title="Ask the PM" state={i < 1 ? "upcoming" : i <= 2 ? "current" : "done"} note="Opens once you start diagnosing.">
-        <AskPm e={e} />
+      <Section n={5} title="Ask the PM" state={ask} note="Opens once you start diagnosing.">
+        <AskPm e={e} onActNow={() => setActNow(true)} actNow={actNow} />
       </Section>
-      <Section n={6} title="Choose action" state={i < 3 ? "upcoming" : i === 3 ? "current" : "done"} note="Opens once the PM replies, or when you decide without asking.">
-        <ChooseAndAssign e={e} />
-      </Section>
-      <Section n={7} title="Assign and track" state={i < 4 ? "upcoming" : i === 4 ? "current" : "done"} note="Choosing an action above assigns it and creates a task.">
-        <Track e={e} />
+      <Section n={6} title="Act" state={act} note="What you'll do, who owns it, by when. Opens once the PM replies.">
+        <Act e={e} />
       </Section>
       <Card title="Log" action={<A href="/wireframe-v2/decisions" className="text-[11px]">Decision log</A>}>
         <Log entries={e.log} />
@@ -367,7 +368,7 @@ function NatureToggle({ e }: { e: Exception }) {
 
 // ---- Step 5: ask the PM ----
 
-function AskPm({ e }: { e: Exception }) {
+function AskPm({ e, onActNow, actNow }: { e: Exception; onActNow: () => void; actNow: boolean }) {
   const { act } = useWf();
   const toast = useToast();
   const m = managerOf(e.property);
@@ -378,7 +379,7 @@ function AskPm({ e }: { e: Exception }) {
   const q = e.question;
 
   if (!q) {
-    if (at(e) >= 3) return <p className="text-xs text-fg-3">Not asked. Moved to decide without a question to {m.name}.</p>;
+    if (at(e) >= 3 || actNow) return <p className="text-xs text-fg-3">Not asked. Acting without a question to {m.name}.</p>;
     return (
       <div className="flex flex-col gap-3">
         <Field label={`Question to ${m.name}`}>
@@ -399,8 +400,8 @@ function AskPm({ e }: { e: Exception }) {
           >
             Send
           </Button>
-          <Button variant="secondary" onClick={() => act.skipToDecide(e.id)}>
-            Decide without asking
+          <Button variant="secondary" onClick={onActNow}>
+            Act without asking
           </Button>
         </div>
         <p className="text-[11px] text-fg-3">Goes by email to {m.contact.split(" · ")[1]}. The PM replies outside RE-IQ; record their answer here.</p>
@@ -468,58 +469,46 @@ function AskPm({ e }: { e: Exception }) {
   );
 }
 
-// ---- Steps 6–7: choose, assign, track ----
+// ---- Step 6: act (what, who, by when), then track it ----
 
-function ChooseAndAssign({ e }: { e: Exception }) {
-  const { state, act } = useWf();
+function Act({ e }: { e: Exception }) {
+  const { act } = useWf();
   const toast = useToast();
   const m = managerOf(e.property);
-  const [action, setAction] = useState<string>();
+  const [action, setAction] = useState("");
   const [why, setWhy] = useState("");
   const [assignee, setAssignee] = useState(`${m.name} (PM)`);
   const [due, setDue] = useState("2027-01-15");
   const [name, setName] = useState(`${property(e.property)!.name} capital project`);
   const [type, setType] = useState<"Interior" | "Exterior">("Exterior");
 
-  if (e.action) {
-    const project = state.projects.find((p) => p.id === e.projectId && p.exceptionId === e.id);
-    return (
-      <div className="flex flex-col gap-2 text-xs">
-        <span>
-          <span className="text-fg-3">Decided:</span> {e.action}
-        </span>
-        {project && (
-          <span>
-            <span className="text-fg-3">Project:</span> <A href={href.project(project.id)}>{project.name}</A> · Step {project.step} of 6 · {stepName(project.type, project.step)}
-          </span>
-        )}
-      </div>
-    );
-  }
+  if (e.action) return <Tracking e={e} />;
 
-  const capital = action === "Start a capital project";
+  const suggestions = [e.typical, ...ACTION_SUGGESTIONS.filter((a) => a !== e.typical)];
+  const capital = action.trim() === CAPITAL_PROJECT;
   const submit = () => {
-    if (!action) return;
-    act.assign(e.id, { action, why: why.trim(), assignee: assignee.replace(" (PM)", ""), due, project: capital ? { name: name.trim() || "Capital project", type } : undefined });
-    toast(capital ? "Project created in Renovations" : "Task created", { detail: "Decision written to the decision log." });
+    act.assign(e.id, { action: action.trim(), why: why.trim(), assignee: assignee.replace(" (PM)", ""), due, project: capital ? { name: name.trim() || "Capital project", type } : undefined });
+    toast(capital ? "Project created in Renovations" : "Action assigned", { detail: "Task created and written to the decision log." });
   };
 
   return (
     <div className="flex flex-col gap-4">
-      <div className="rounded-md bg-fg/[0.03] px-3 py-2.5 text-xs">
-        <span className="text-[11px] text-fg-3">Typical decision for this trigger</span>
-        <p className="mt-0.5">{e.typical}</p>
-        <p className="mt-1 text-[11px] text-fg-3">From your thresholds table. You decide.</p>
-      </div>
-      <fieldset className="grid gap-1.5 md:grid-cols-2">
-        <legend className="mb-1.5 text-[11px] font-medium text-fg-2">Action</legend>
-        {ACTIONS.map((a) => (
-          <label key={a} className={cn("flex cursor-pointer items-center gap-2 rounded-md border px-2.5 py-2 text-xs transition-colors", action === a ? "border-[var(--wf-accent)] bg-[var(--wf-accent)]/[0.05]" : "border-fg/15 hover:border-fg/40")}>
-            <input type="radio" name={`action-${e.id}`} checked={action === a} onChange={() => setAction(a)} className="accent-[var(--wf-accent)]" />
+      <Field label="Action">
+        <Input value={action} onChange={(ev) => setAction(ev.target.value)} placeholder="What you'll do about it" />
+      </Field>
+      <div className="-mt-2 flex flex-wrap items-center gap-1.5">
+        {suggestions.map((a, n) => (
+          <button
+            key={a}
+            type="button"
+            onClick={() => setAction(a)}
+            className={cn("cursor-pointer rounded-full border px-2.5 py-1 text-[11px] transition-colors", action === a ? "border-[var(--wf-accent)] text-fg" : "border-fg/15 text-fg-2 hover:border-fg/40")}
+          >
             {a}
-          </label>
+            {n === 0 && <span className="ml-1 text-fg-3">· typical for this trigger</span>}
+          </button>
         ))}
-      </fieldset>
+      </div>
       {capital && (
         <div className="grid gap-3 rounded-md border border-fg/15 p-3 md:grid-cols-[1fr_200px]">
           <Field label="Project name">
@@ -531,12 +520,9 @@ function ChooseAndAssign({ e }: { e: Exception }) {
           <p className="text-[11px] text-fg-3 md:col-span-2">Creates a renovation project at step 1, Find the opportunity, carrying this exception and its evidence.</p>
         </div>
       )}
-      <Field label="Why">
-        <TextArea rows={2} value={why} onChange={(ev) => setWhy(ev.target.value)} placeholder="Goes in the decision log" />
-      </Field>
-      <div className="flex flex-wrap items-end gap-3 border-t border-fg/10 pt-3">
+      <div className="flex flex-wrap items-end gap-3">
         <div className="w-48">
-          <Field label="Assign to">
+          <Field label="Owner">
             <Select value={assignee} onChange={setAssignee} options={[`${m.name} (PM)`, ...TEAM]} />
           </Field>
         </div>
@@ -545,7 +531,12 @@ function ChooseAndAssign({ e }: { e: Exception }) {
             <Input type="date" value={due} onChange={(ev) => setDue(ev.target.value)} />
           </Field>
         </div>
-        <Button disabled={!action} onClick={submit}>
+        <div className="min-w-56 flex-1">
+          <Field label="Why (optional)">
+            <Input value={why} onChange={(ev) => setWhy(ev.target.value)} placeholder="Kept in the decision log" />
+          </Field>
+        </div>
+        <Button disabled={!action.trim()} onClick={submit}>
           {capital ? "Create project and assign" : "Assign"}
         </Button>
       </div>
@@ -553,23 +544,24 @@ function ChooseAndAssign({ e }: { e: Exception }) {
   );
 }
 
-function Track({ e }: { e: Exception }) {
+function Tracking({ e }: { e: Exception }) {
   const { state, act } = useWf();
   const tasks = state.tasks.filter((t) => t.exceptionId === e.id);
-  if (!tasks.length) return <p className="text-xs text-fg-3">No task yet.</p>;
+  const project = state.projects.find((p) => p.id === e.projectId && p.exceptionId === e.id);
   return (
     <div className="flex flex-col gap-3">
+      <p className="text-xs">
+        <span className="text-fg-3">Action:</span> {e.action}
+        {project && (
+          <span className="ml-3">
+            <span className="text-fg-3">Project:</span> <A href={href.project(project.id)}>{project.name}</A> · Step {project.step} of 6 · {stepName(project.type, project.step)}
+          </span>
+        )}
+      </p>
       <Table columns={["Task", "Owner", "Due", "Status"]}>
         {tasks.map((t) => (
           <Row key={t.id}>
-            <Td>
-              {t.title}
-              {t.projectId && (
-                <span className="ml-2 text-[11px]">
-                  <A href={href.project(t.projectId)}>Open project</A>
-                </span>
-              )}
-            </Td>
+            <Td>{t.title}</Td>
             <Td className="whitespace-nowrap text-fg-2">{t.owner}</Td>
             <Td className="whitespace-nowrap text-fg-2">{fmtDate(t.due)}</Td>
             <Td className="w-40">

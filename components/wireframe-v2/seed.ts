@@ -117,14 +117,13 @@ export const CHART_OF_ACCOUNTS = [
 
 // ---- Exceptions ----
 
-export const STAGES = ["new", "diagnosing", "waiting", "decide", "assigned", "closed"] as const;
+export const STAGES = ["new", "diagnosing", "waiting", "assigned", "closed"] as const;
 export type Stage = (typeof STAGES)[number];
 export const STAGE_LABEL: Record<Stage, string> = {
   new: "New",
   diagnosing: "Diagnosing",
   waiting: "Waiting on PM",
-  decide: "Decide",
-  assigned: "Assigned",
+  assigned: "Action assigned",
   closed: "Closed",
 };
 
@@ -166,19 +165,9 @@ export interface Exception {
   log: LogEntry[];
 }
 
-export const ACTIONS = [
-  "Adjust pricing or concessions",
-  "Shift marketing spend",
-  "Collections plan or tighter screening",
-  "Raise renewal offers toward market",
-  "Rebid vendors or add turn crews",
-  "Staffing changes",
-  "Start a capital project",
-  "Re-price or re-scope the renovation tier",
-  "Reforecast",
-  "Cash management or rate cap",
-  "Refinance or sell",
-];
+/** Suggestions under the free-text action field. The AM writes their own. */
+export const ACTION_SUGGESTIONS = ["Adjust pricing or concessions", "Rebid vendors", "Reforecast", "Start a capital project", "Refinance or sell"];
+export const CAPITAL_PROJECT = "Start a capital project";
 
 export const TEAM = ["You", "Analyst", "Owner"] as const;
 
@@ -346,7 +335,7 @@ export const EXCEPTIONS: Exception[] = [
       { date: "2026-11-14", who: RE_IQ, text: "Flagged from Rent roll: loss to lease over 5%" },
       { date: "2026-11-15", who: ME, text: "Asked Manager 3 · due Nov 22" },
       { date: "2026-11-20", who: ME, text: "Recorded reply from Manager 3" },
-      { date: "2026-12-01", who: ME, text: "Decided: Raise renewal offers toward market" },
+      { date: "2026-12-01", who: ME, text: "Action: Raise renewal offers toward market" },
       { date: "2026-12-01", who: ME, text: "Assigned to Manager 3 · due Jan 15" },
     ],
   },
@@ -384,7 +373,7 @@ export const EXCEPTIONS: Exception[] = [
       { date: "2026-11-12", who: ME, text: "Diagnosed: ongoing, HVAC repairs on Buildings 2 and 3" },
       { date: "2026-11-13", who: ME, text: "Asked Manager 1 · due Nov 20" },
       { date: "2026-11-18", who: ME, text: "Recorded reply from Manager 1 · Rooftop unit replacement bid.pdf" },
-      { date: "2026-11-20", who: ME, text: "Decided: Start a capital project" },
+      { date: "2026-11-20", who: ME, text: "Action: Start a capital project" },
       { date: "2026-11-20", who: ME, text: "Created project: HVAC replacement · assigned to You · due Jan 8" },
     ],
   },

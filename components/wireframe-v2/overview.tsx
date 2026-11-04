@@ -49,7 +49,7 @@ export function Overview() {
     <Page title="Overview" subtitle={`${fmtLongDate(TODAY)} · ${CLOSE_MONTH} close in progress`} controls>
       <section aria-label={`${CLOSE_MONTH} close`} className="flex flex-col gap-2">
         <h2 className="text-xs font-semibold">{CLOSE_MONTH} close</h2>
-        <ol className="grid grid-cols-2 gap-2 md:grid-cols-4 xl:grid-cols-8">
+        <ol className="grid grid-cols-2 gap-2 md:grid-cols-4 xl:grid-cols-7">
           {steps.map((s, i) => (
             <li key={s.name}>
               <Link href={s.href} className="group flex h-full flex-col gap-1.5 rounded-md border border-fg/15 p-2.5 transition-colors hover:border-fg/40">
@@ -72,7 +72,7 @@ export function Overview() {
         <Stat label="DSCR" target="Covenant 1.25x" href="/wireframe-v2/capital" />
       </section>
 
-      <div className="grid gap-5 xl:grid-cols-[1fr_340px]">
+      <div className="grid gap-5 2xl:grid-cols-[minmax(0,1fr)_320px]">
         <Card title="Properties" action={<A href="/wireframe-v2/properties" className="text-[11px]">All properties</A>}>
           <PropertyTable />
         </Card>

@@ -124,7 +124,7 @@ export function Page({ title, subtitle, crumbs, controls, actions, children }: {
           </div>
         </div>
       </header>
-      <main className="mx-auto flex max-w-[1160px] flex-col gap-5 px-6 py-6">{children}</main>
+      <main className="flex min-w-0 flex-col gap-5 px-6 py-6">{children}</main>
     </>
   );
 }

@@ -41,12 +41,13 @@ export function RagChip({ rag }: { rag: Rag }) {
   );
 }
 
-const STAGE_TONE = { new: "blue", diagnosing: "neutral", waiting: "amber", decide: "amber", assigned: "neutral", closed: "green" } as const;
+const STAGE_TONE = { new: "blue", diagnosing: "neutral", waiting: "amber", assigned: "neutral", closed: "green" } as const;
 export function StageChip({ e }: { e: Exception }) {
   return (
     <span className="inline-flex gap-1">
       <Chip tone={STAGE_TONE[e.stage]}>{STAGE_LABEL[e.stage]}</Chip>
       {isOverdue(e) && <Chip tone="red">Overdue</Chip>}
+      {e.stage === "waiting" && e.question?.reply && <Chip tone="green">Replied</Chip>}
     </span>
   );
 }

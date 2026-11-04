@@ -257,7 +257,7 @@ export function OwnerReport() {
 export function DecisionLog() {
   const { state } = useWf();
   return (
-    <Page title="Decision log" subtitle="Who decided what, when, and why. Written automatically when an exception is decided or a project passes a gate.">
+    <Page title="Decision log" subtitle="Who decided what, when, and why. Written automatically when an action is assigned or a project passes a gate.">
       <Table columns={["Date", "Property", "Decision", "Who", "Why", "Linked"]}>
         {state.decisions.map((d, i) => {
           const e = state.exceptions.find((x) => x.id === d.exceptionId);
