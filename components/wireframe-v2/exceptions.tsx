@@ -9,44 +9,39 @@ import { byUrgency } from "./overview";
 import { ACTION_SUGGESTIONS, CAPITAL_PROJECT, MANAGERS, PROPERTIES, STAGES, STAGE_LABEL, TEAM, TODAY, days, daysBetween, fmtDate, managerOf, property, projectStage, type Exception, type Stage } from "./seed";
 import { href, Page } from "./shell";
 import { isOverdue, useWf } from "./store";
-import { A, Bar, barW, Button, Card, Chart, Chip, Empty, Field, Input, Log, Row, Segmented, Select, StageChip, Table, Td, TextArea } from "./ui";
+import { A, Bar, barW, Button, Card, Chart, Chip, Empty, Field, Input, Log, Row, Segmented, Select, StageChip, Table, Tabs, Td, TextArea } from "./ui";
 
 // ---- Exceptions list ----
 
-const ALL = "All open";
+type StatusTab = "open" | Stage;
 
 export function Exceptions({ initialStatus }: { initialStatus?: string }) {
   const { state } = useWf();
-  const start = STAGES.find((s) => s === initialStatus);
-  const [status, setStatus] = useState<string>(start ? STAGE_LABEL[start] : ALL);
+  const [status, setStatus] = useState<StatusTab>(STAGES.find((s) => s === initialStatus) ?? "open");
   const [prop, setProp] = useState("All properties");
   const [mgr, setMgr] = useState("All managers");
 
+  const inTab = (e: Exception, t: StatusTab) => (t === "open" ? e.stage !== "closed" : e.stage === t);
   const rows = state.exceptions
-    .filter((e) => (status === ALL ? e.stage !== "closed" : STAGE_LABEL[e.stage] === status))
+    .filter((e) => inTab(e, status))
     .filter((e) => prop === "All properties" || property(e.property)!.name === prop)
     .filter((e) => mgr === "All managers" || managerOf(e.property).name === mgr)
     .sort(byUrgency);
 
   return (
     <Page title="Exceptions">
-      <div className="flex flex-wrap items-end gap-3">
+      <Tabs
+        value={status}
+        onChange={setStatus}
+        tabs={(["open", ...STAGES] as StatusTab[]).map((t) => ({ id: t, label: t === "open" ? "All open" : STAGE_LABEL[t], count: state.exceptions.filter((e) => inTab(e, t)).length }))}
+      />
+      <div className="flex flex-wrap gap-2">
         <div className="w-40">
-          <Field label="Status">
-            <Select value={status} onChange={setStatus} options={[ALL, ...STAGES.map((s) => STAGE_LABEL[s])]} />
-          </Field>
+          <Select value={prop} onChange={setProp} options={["All properties", ...PROPERTIES.map((p) => p.name)]} />
         </div>
         <div className="w-40">
-          <Field label="Property">
-            <Select value={prop} onChange={setProp} options={["All properties", ...PROPERTIES.map((p) => p.name)]} />
-          </Field>
+          <Select value={mgr} onChange={setMgr} options={["All managers", ...MANAGERS.map((m) => m.name)]} />
         </div>
-        <div className="w-40">
-          <Field label="Manager">
-            <Select value={mgr} onChange={setMgr} options={["All managers", ...MANAGERS.map((m) => m.name)]} />
-          </Field>
-        </div>
-        <StageStrip counts={STAGES.map((s) => state.exceptions.filter((e) => e.stage === s).length)} onPick={(s) => setStatus(STAGE_LABEL[s])} />
       </div>
       {rows.length ? (
         <Table columns={["Trigger", "Property", "Manager", "Source report", "Status", "Age"]}>
@@ -69,21 +64,6 @@ export function Exceptions({ initialStatus }: { initialStatus?: string }) {
         <Empty>No exceptions match these filters.</Empty>
       )}
     </Page>
-  );
-}
-
-function StageStrip({ counts, onPick }: { counts: number[]; onPick: (s: Stage) => void }) {
-  return (
-    <ol className="ml-auto flex flex-wrap items-center gap-1 text-[11px]">
-      {STAGES.map((s, i) => (
-        <li key={s} className="flex items-center gap-1">
-          {i > 0 && <span className="text-fg-3">→</span>}
-          <button type="button" onClick={() => onPick(s)} className="cursor-pointer rounded px-1.5 py-1 text-fg-2 hover:bg-fg/[0.05] hover:text-fg">
-            {STAGE_LABEL[s]} <span className="text-fg-3">{counts[i]}</span>
-          </button>
-        </li>
-      ))}
-    </ol>
   );
 }
 
