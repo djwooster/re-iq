@@ -43,3 +43,6 @@ next-env.d.ts
 
 # waitlist signups captured in development
 /.data
+
+# source docs shared privately
+*.docx
