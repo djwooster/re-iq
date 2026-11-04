@@ -77,7 +77,6 @@ export function Overview() {
 
           <Panel title="Owner report" href="/wireframe-v2/owner-report" chip={m.report.sent ? <Chip tone="green">Sent {fmtDate(m.report.sent)}</Chip> : <Chip>Draft</Chip>}>
             <Progress value={m.report.ready} total={m.report.total} label={`${m.report.ready} of ${m.report.total} properties ready`} />
-            <span className="text-[11px] text-fg-3">The rest are held for a late package, a break, or an open exception</span>
           </Panel>
         </div>
       </section>

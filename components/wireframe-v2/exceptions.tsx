@@ -6,7 +6,7 @@ import { useState } from "react";
 import { useToast } from "@/components/ui/toast";
 import { cn } from "@/lib/cn";
 import { byUrgency } from "./overview";
-import { ACTION_SUGGESTIONS, CAPITAL_PROJECT, MANAGERS, PROPERTIES, STAGES, STAGE_LABEL, TEAM, TODAY, daysBetween, fmtDate, managerOf, property, stepName, type Exception, type Stage } from "./seed";
+import { ACTION_SUGGESTIONS, CAPITAL_PROJECT, MANAGERS, PROPERTIES, STAGES, STAGE_LABEL, TEAM, TODAY, days, daysBetween, fmtDate, managerOf, property, stepName, type Exception, type Stage } from "./seed";
 import { href, Page } from "./shell";
 import { isOverdue, useWf } from "./store";
 import { A, Bar, barW, Button, Card, Chart, Chip, Empty, Field, Input, Log, Row, Segmented, Select, StageChip, Table, Td, TextArea } from "./ui";
@@ -29,7 +29,7 @@ export function Exceptions({ initialStatus }: { initialStatus?: string }) {
     .sort(byUrgency);
 
   return (
-    <Page title="Exceptions" subtitle="Every metric outside its threshold, across properties. This is where the month's work starts.">
+    <Page title="Exceptions">
       <div className="flex flex-wrap items-end gap-3">
         <div className="w-40">
           <Field label="Status">
@@ -59,7 +59,7 @@ export function Exceptions({ initialStatus }: { initialStatus?: string }) {
               <Td>
                 <StageChip e={e} />
               </Td>
-              <Td className="whitespace-nowrap text-fg-2">{daysBetween(e.opened, TODAY)} days</Td>
+              <Td className="whitespace-nowrap text-fg-2">{days(daysBetween(e.opened, TODAY))}</Td>
             </Row>
           ))}
         </Table>
@@ -111,7 +111,7 @@ export function ExceptionDetail({ id }: { id: string }) {
     <Page
       title={e.trigger}
       crumbs={[{ label: "Exceptions", href: "/wireframe-v2/exceptions" }, { label: p.name, href: href.property(p.id) }, { label: e.trigger }]}
-      subtitle={`Opened ${fmtDate(e.opened)} · ${daysBetween(e.opened, TODAY)} days`}
+      subtitle={`Opened ${fmtDate(e.opened)} · ${days(daysBetween(e.opened, TODAY))}`}
       actions={<StageChip e={e} />}
     >
       <Card>
@@ -134,10 +134,10 @@ export function ExceptionDetail({ id }: { id: string }) {
       <Section n={4} title="Diagnose" state={i <= 1 ? "current" : "done"}>
         <Diagnose e={e} />
       </Section>
-      <Section n={5} title="Ask the PM" state={ask} note="Opens once you start diagnosing.">
+      <Section n={5} title="Ask the PM" state={ask} note="Opens once you start diagnosing">
         <AskPm e={e} onActNow={() => setActNow(true)} actNow={actNow} />
       </Section>
-      <Section n={6} title="Act" state={act} note="What you'll do, who owns it, by when. Opens once the PM replies.">
+      <Section n={6} title="Act" state={act} note="Opens once the PM replies">
         <Act e={e} />
       </Section>
       <Card title="Log" action={<A href="/wireframe-v2/decisions" className="text-[11px]">Decision log</A>}>
@@ -220,8 +220,7 @@ function Diagnose({ e }: { e: Exception }) {
   return (
     <div className="flex flex-col gap-4">
       {e.stage === "new" && (
-        <div className="flex items-center justify-between gap-3 rounded-md bg-[var(--wf-accent)]/[0.06] px-3 py-2.5 text-xs">
-          <span>Drill from the KPI to the source. Three clicks or fewer.</span>
+        <div>
           <Button onClick={() => act.startDiagnosis(e.id)}>Start diagnosing</Button>
         </div>
       )}
@@ -395,7 +394,7 @@ function AskPm({ e, onActNow, actNow }: { e: Exception; onActNow: () => void; ac
             disabled={!text.trim()}
             onClick={() => {
               act.sendQuestion(e.id, text.trim(), due);
-              toast(`Sent to ${m.name}`, { detail: "By email. Their reply comes back outside RE-IQ." });
+              toast(`Sent to ${m.name}`);
             }}
           >
             Send
@@ -404,7 +403,7 @@ function AskPm({ e, onActNow, actNow }: { e: Exception; onActNow: () => void; ac
             Act without asking
           </Button>
         </div>
-        <p className="text-[11px] text-fg-3">Goes by email to {m.contact.split(" · ")[1]}. The PM replies outside RE-IQ; record their answer here.</p>
+        <p className="text-[11px] text-fg-3">Sends to {m.contact.split(" · ")[1]}</p>
       </div>
     );
   }
@@ -488,7 +487,7 @@ function Act({ e }: { e: Exception }) {
   const capital = action.trim() === CAPITAL_PROJECT;
   const submit = () => {
     act.assign(e.id, { action: action.trim(), why: why.trim(), assignee: assignee.replace(" (PM)", ""), due, project: capital ? { name: name.trim() || "Capital project", type } : undefined });
-    toast(capital ? "Project created in Renovations" : "Action assigned", { detail: "Task created and written to the decision log." });
+    toast(capital ? "Project created" : "Action assigned");
   };
 
   return (
@@ -517,7 +516,6 @@ function Act({ e }: { e: Exception }) {
           <Field label="Type">
             <Select value={type} onChange={(v) => setType(v as "Interior" | "Exterior")} options={["Exterior", "Interior"]} />
           </Field>
-          <p className="text-[11px] text-fg-3 md:col-span-2">Creates a renovation project at step 1, Find the opportunity, carrying this exception and its evidence.</p>
         </div>
       )}
       <div className="flex flex-wrap items-end gap-3">
@@ -575,7 +573,6 @@ function Tracking({ e }: { e: Exception }) {
           <Button variant="secondary" onClick={() => act.closeException(e.id)}>
             Close exception
           </Button>
-          <span className="text-[11px] text-fg-3">Close once the action is done and the metric is back inside its threshold.</span>
         </div>
       ) : (
         <p className="text-xs text-fg-3">Closed.</p>

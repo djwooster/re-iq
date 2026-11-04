@@ -11,7 +11,7 @@ export function Questions() {
   const { state } = useWf();
   const rows = state.exceptions.filter((e) => e.question).sort((a, b) => b.question!.sent.localeCompare(a.question!.sent));
   return (
-    <Page title="Questions" subtitle="Everything asked of the property managers. Questions go by email; replies are recorded on the exception.">
+    <Page title="Questions">
       {rows.length ? (
         <Table columns={["Property", "Manager", "Question", "Sent", "Due", "Status"]}>
           {rows.map((e) => {
@@ -44,7 +44,7 @@ export function Tasks() {
   const gates = state.projects.filter((p) => p.status === "Active" && (p.step === 2 || (p.step === 4 && p.type === "Interior")));
   const approvals = state.approvals.filter((a) => a.status === "Waiting");
   return (
-    <Page title="Tasks" subtitle="Actions assigned from exceptions, and approvals waiting on you.">
+    <Page title="Tasks">
       <Card title="Tasks">
         <Table columns={["Task", "Property", "Owner", "Due", "Status", "From"]}>
           {state.tasks.map((t) => {
@@ -130,7 +130,6 @@ export function OwnerReport() {
   return (
     <Page
       title={`Owner report · ${CLOSE_MONTH}`}
-      subtitle="Monthly report to the owner. On-plan properties come straight here from the scorecard."
       controls
       actions={
         <>
@@ -142,7 +141,7 @@ export function OwnerReport() {
             <Button
               onClick={() => {
                 act.sendOwnerReport();
-                toast("Owner report sent", { detail: "Logged with today's date." });
+                toast("Owner report sent");
               }}
             >
               Send to owner
@@ -257,7 +256,7 @@ export function OwnerReport() {
 export function DecisionLog() {
   const { state } = useWf();
   return (
-    <Page title="Decision log" subtitle="Who decided what, when, and why. Written automatically when an action is assigned or a project passes a gate.">
+    <Page title="Decision log">
       <Table columns={["Date", "Property", "Decision", "Who", "Why", "Linked"]}>
         {state.decisions.map((d, i) => {
           const e = state.exceptions.find((x) => x.id === d.exceptionId);

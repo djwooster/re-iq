@@ -10,7 +10,6 @@ import { Card, Chart, StubTable, Tabs } from "./ui";
 type Block = { table: string; columns: string[]; rows?: string[]; highlight?: number[]; note?: string } | { chart: string };
 interface Module {
   title: string;
-  subtitle: string;
   tabs: { id: string; label: string; blocks: Block[] }[];
 }
 
@@ -21,7 +20,6 @@ const LINES = ["Gross potential rent", "Vacancy", "Loss to lease", "Concessions"
 export const MODULES: Record<string, Module> = {
   financials: {
     title: "Financials",
-    subtitle: "Is each property making the money we underwrote, and if not, why?",
     tabs: [
       { id: "t12", label: "T-12", blocks: [{ table: "T-12 · Property A", columns: MONTHS, rows: LINES }] },
       {
@@ -39,7 +37,6 @@ export const MODULES: Record<string, Module> = {
   },
   leasing: {
     title: "Leasing and revenue",
-    subtitle: "Are units full, at the right price, and paying?",
     tabs: [
       { id: "box", label: "Box score", blocks: [{ table: "Box score · by floor plan", columns: ["Floor plan", "Units", "Occupied", "Vacant", "Notice", "Pre-leased", "Leased %", "60-day exposure"], rows: ["1A", "1B", "2A", "2B", "3A"], note: "Target exposure under 8%" }] },
       { id: "funnel", label: "Leasing funnel", blocks: [{ chart: "Leads → tours → applications → approvals → move-ins" }, { table: "By source", columns: ["Source", "Leads", "Tours", "Applications", "Move-ins", "Closing ratio", "Cost per lease"], rows: ["Website", "ILS", "Referral", "Walk-in"] }] },
@@ -54,7 +51,6 @@ export const MODULES: Record<string, Module> = {
   },
   operations: {
     title: "Operations",
-    subtitle: "How well each manager runs the building.",
     tabs: [
       { id: "makeready", label: "Make-ready board", blocks: [{ table: "Vacant units", columns: ["Unit", "Property", "Days vacant", "Ready", "Scheduled move-in", "Days to turn"], rows: ["Unit 102", "Unit 106", "Unit 201", "Unit 403"], note: "Target under 7–10 days classic" }] },
       { id: "wo", label: "Work orders", blocks: [{ table: "Work orders by category", columns: ["Category", "Open", "Completed", "Aged 7+ days", "Avg completion"], rows: ["HVAC", "Plumbing", "Appliance", "Electrical", "Roof"], highlight: [0] }] },
@@ -66,7 +62,6 @@ export const MODULES: Record<string, Module> = {
   },
   capital: {
     title: "Capital and debt",
-    subtitle: "Capital spend, lender draws, and covenant cushion.",
     tabs: [
       { id: "capex", label: "Capex budget vs. actual", blocks: [{ table: "Capex by project", columns: ["Project", "Budget", "Committed", "Spent", "Remaining", "% complete", "Funding source"], rows: ["HVAC replacement · A", "Interior upgrade · B", "Roof replacement · J"] }] },
       { id: "draws", label: "Lender draws", blocks: [{ table: "Draw schedule", columns: ["Draw", "Project", "Work completed", "Lien waivers", "Retainage", "Requested", "Status"], rows: ["Draw 1 · Roof", "Draw 2 · Roof"] }] },
@@ -81,7 +76,7 @@ export function ModulePage({ id }: { id: keyof typeof MODULES }) {
   const [tab, setTab] = useState(m.tabs[0].id);
   const t = m.tabs.find((x) => x.id === tab)!;
   return (
-    <Page title={m.title} subtitle={m.subtitle} controls>
+    <Page title={m.title} controls>
       <Tabs value={tab} onChange={setTab} tabs={m.tabs} />
       {t.blocks.map((b, i) =>
         "chart" in b ? (

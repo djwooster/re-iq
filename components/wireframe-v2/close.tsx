@@ -17,7 +17,7 @@ export function Close({ initialTab }: { initialTab?: string }) {
   const r = reconSummary(state);
   const late = MANAGERS.filter((m) => managerState(m.id) !== "All received").length;
   return (
-    <Page title={`Close · ${CLOSE_MONTH}`} subtitle={`Packages due ${fmtDate(REPORT_DUE)} · checked against each other before anything reaches the owner report`}>
+    <Page title={`Close · ${CLOSE_MONTH}`} subtitle={`Packages due ${fmtDate(REPORT_DUE)}`}>
       <Tabs
         value={tab}
         onChange={setTab}
@@ -107,14 +107,13 @@ function Mapping() {
           disabled={!pending.length}
           onClick={() => {
             act.approveMapping(pending.map((l) => l.id));
-            toast("Mapping saved", { detail: "Manager 3's labels will map this way next month too." });
+            toast("Mapping saved");
           }}
         >
           Approve all
         </Button>
       }
     >
-      <p className="mb-3 text-[11px] text-fg-3">Each manager codes the GL differently. Their label on the left, the owner&apos;s chart of accounts on the right. Uncertain lines first.</p>
       <Table columns={["Manager's label", "Standard account", "Confidence", "Amount", ""]}>
         {lines.map((l) => {
           const done = l.sure || state.mapped.includes(l.id);
@@ -174,7 +173,6 @@ function Reconciliation() {
           </Row>
         ))}
       </Table>
-      <p className="text-[11px] text-fg-3">Waiting: the package hasn&apos;t arrived, or lines still need confirming in Mapping review.</p>
     </div>
   );
 }

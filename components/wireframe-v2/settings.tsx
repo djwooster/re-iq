@@ -85,7 +85,7 @@ function Thresholds() {
             <Select value={scope} onChange={setScope} options={["All properties", ...PROPERTIES.map((p) => p.name)]} />
           </Field>
         </div>
-        <Button onClick={() => toast("Thresholds saved", { detail: `${scope}. Exceptions use these from the next package.` })}>Save</Button>
+        <Button onClick={() => toast("Thresholds saved")}>Save</Button>
       </div>
       <Table columns={["KPI", "Formula", "Source report", "Target or alert"]}>
         {KPIS.map((k) => (
@@ -99,7 +99,6 @@ function Thresholds() {
           </Row>
         ))}
       </Table>
-      <p className="text-[11px] text-fg-3">Budget variance alert: ±5% and ±$2,500. Pick a property to override a target for that property only.</p>
     </div>
   );
 }

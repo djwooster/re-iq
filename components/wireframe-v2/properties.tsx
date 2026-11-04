@@ -11,7 +11,7 @@ import { A, Bar, barW, Card, Chip, Empty, RagChip, Row, Sparkline, Table, Td } f
 
 export function Properties() {
   return (
-    <Page title="Properties" subtitle="Twelve properties across four managers" controls>
+    <Page title="Properties" controls>
       <PropertyTable />
     </Page>
   );
@@ -37,7 +37,7 @@ export function Scorecard({ id }: { id: string }) {
           {p.name} <RagChip rag={p.rag} />
         </span>
       }
-      subtitle={`Property scorecard · ${managerOf(id).name}`}
+      subtitle={managerOf(id).name}
       crumbs={[{ label: "Properties", href: "/wireframe-v2/properties" }, { label: p.name }]}
       controls
     >

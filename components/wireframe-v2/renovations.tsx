@@ -26,7 +26,7 @@ export function Renovations() {
   const [tab, setTab] = useState<"projects" | "pipeline">("projects");
   const units = unitNumbers();
   return (
-    <Page title="Renovations" subtitle="Interior projects raise rent per unit. Exterior projects (roofs, paint, paving, amenities) protect the asset and its exit value.">
+    <Page title="Renovations">
       <Tabs
         value={tab}
         onChange={setTab}
@@ -281,7 +281,7 @@ function StepPanel({ p, step, live }: { p: Project; step: number; live: boolean 
               <Button
                 onClick={() => {
                   act.gate(p.id, "A", "approve");
-                  toast("Gate A approved", { detail: `Funded from ${funding.toLowerCase()}. Written to the decision log.` });
+                  toast("Gate A approved");
                 }}
               >
                 Approve and fund
@@ -416,7 +416,6 @@ function StepPanel({ p, step, live }: { p: Project; step: number; live: boolean 
             </Row>
           ))}
         </Table>
-        <p className="text-[11px] text-fg-3">Exterior work skips the pilot. Watch for disruption during peak leasing season.</p>
         {live && (
           <div>
             <Button onClick={() => act.advance(p.id, "Work started")}>Start work</Button>
