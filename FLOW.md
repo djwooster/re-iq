@@ -1,5 +1,7 @@
 # The asset manager's month
 
+This describes the `/app` demo. Our current thinking about the flow is in the wireframe; see `WIREFRAME.md`.
+
 RE-IQ is organized around the monthly close, the job an asset manager actually does: reports come
 in from the property managers, the asset manager reads the month, asks about what missed budget,
 decides what to do, and reports to the owners. Next month shows whether the fixes worked.

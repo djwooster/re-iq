@@ -1,88 +1,48 @@
 # Handoff
 
-State as of 2026-10-30. Everything in the product runs on mock data;
-`npm run dev`, `npm run build`, `npm run lint`, and `tsc --noEmit` all pass.
+State as of 2026-11-04. Everything runs on mock data; `npm run dev`, `npm run build`,
+`npm run lint`, and `tsc --noEmit` all pass.
 
-## Month-end flow (2026-10-30)
-- The product now follows the asset manager's monthly close; see `FLOW.md`. New screens: Close
-  (`/app/close`), Questions (`/app/questions`), Owner report (`/app/report`), a close strip at the
-  top of Overview, and measured outcomes on completed actions.
-- Upload-only: the four connector-fed demo properties (Cedar Hollow, Lakeline, Mesa Verde, Saguaro
-  Ridge) now come from uploads; connector sources and the Data Sources connector section are
-  commented out, not deleted.
-- New mock stories: Camelback Vista irrigation leak (Mar–Jun, fixed) and Gulch Terrace concession
-  special (Jan–May, ended), so completed actions have results to show.
+## Where we are
+- **Wireframe** (`/wireframe`, linked from the marketing nav): our current thinking about the
+  monthly flow (Close → Exceptions → Owner report). Still exploring; next step is reviewing it with
+  Brian. See `WIREFRAME.md`.
+- **Demo app** (`/app`): the earlier month-end flow in `FLOW.md`. Not changed to match the wireframe.
+- **Marketing site** (`/`): live, with the waitlist writing to Supabase. See `app/(marketing)/README.md`.
+- **Usability testing** runs on the `testing` branch's Vercel preview: `/demo?fresh=1` opens signup
+  into an empty workspace (README, "Usability testing").
+- Ingestion is upload-only; PMS connectors are commented out, not deleted (cost).
 
-## Since 2026-10-18
-- **Marketing site** (`/`, `app/(marketing)`, `components/marketing`): hero with a coded
-  "files read → ranked → NOI found" diagram, then what RE-IQ does, grow, a month-end bento,
-  ingest, reconcile, explain, who it's for, and a final early-access form. Each section's
-  illustration is a small looping component (`*-art.tsx`, paced by `use-cycle.ts`, still under
-  reduced motion) and each section ends with a CTA that deep-links into the demo via
-  `/demo?to=/app/...`. See `app/(marketing)/README.md`.
-- **Waitlist** writes to the Supabase `waitlist` table (live since 2026-10-27).
-- **Usability testing** runs on the `testing` branch's Vercel preview: `/demo?fresh=1` opens
-  signup into an empty workspace with example reports one click away (README, "Usability testing").
-- **Design system**: dark mode moved to a charcoal / warm off-white / steel teal palette with
-  softened state colors; light stays the default. File-format tag colors added. The visual bar
-  is restraint (Notion, Linear, Teenage Engineering): no glows, gradients, or decorative color.
-- **Strategy**: `STRATEGY.md` (building to be acquirable) and the matching rules in `CLAUDE.md`.
-- **Gotcha**: a long-running `npm run dev` doesn't pick up `app/globals.css` changes; restart it.
-
-## Built
-- **Overview** (`/app`): AI summary with click-through evidence and sources, data-health note,
-  role-specific headline metrics, Needs attention and Opportunities lists, insight drawer
-  with Accept / Dismiss, and a role-specific secondary panel (drivers / manager scorecard /
-  NOI trend + market exposure).
-- **Performance**: MTD/QTD/YTD/T12 selector, variance by driver and by property, NOI and
-  occupancy trends, normalized income statement.
-- **Properties**: sortable table + summary drawer. **Property detail** with tabs: Overview,
-  Renewals & rents, Vendors, Work orders, Sources.
-- **Actions**: status filters, assignee, Accept / Dismiss / Done / Reopen.
-- **Data Sources**: mock upload flow (steps → detection → mapping review → confirm), import
-  history with drawer (finish review, delete with confirm), connector cards.
-- **Settings**: theme, organization name, team + invite modal.
+## Built (demo app)
+- **Overview** (`/app`): AI summary with evidence and sources, data-health note, role-specific
+  metrics, Needs attention and Opportunities, insight drawer, and a close strip.
+- **Month-end**: Close (`/app/close`), Questions (`/app/questions`), Actions with measured
+  outcomes, Owner report (`/app/report`).
+- **Performance**: period selector, variance by driver and property, trends, income statement.
+- **Properties**: table and drawer; property detail tabs (Overview, Renewals & rents, Vendors,
+  Work orders, Sources).
+- **Data Sources**: mock upload flow (detection → mapping review → confirm) and import history.
+- **Settings**: theme, organization name, team and invite modal.
 - **Auth**: `/login`, `/signup` set a cookie; `proxy.ts` gates `/app`.
-- **Dev tools**: role switcher + reset demo data, behind `NEXT_PUBLIC_SHOW_DEV_TOOLS=true`.
+- **Dev tools**: role switcher and reset demo data, behind `NEXT_PUBLIC_SHOW_DEV_TOOLS=true`.
 
 ## Stubbed / not built
-- On `main`, signup still enters the demo org; the empty new-org experience lives on `testing`.
-- Logo upload, connector "Connect/Manage", invite email: placeholder modals/text only.
-- Upload "parsing" reads only the file name (`lib/data/mock/detect.ts`); file contents are ignored.
-- Sidebar user menu doesn't close on outside click.
-- No tests. Visual QA has not been done by the agent (user does it).
-- Everything in `TODO.md` (real parsing, Supabase, auth, connectors, email-in, Ask, write-back, marketing).
+- On `main`, signup enters the demo org; the empty new-org experience lives on `testing`.
+- Upload "parsing" reads only the file name (`lib/data/mock/detect.ts`).
+- Logo upload, invite email, and email for reminders and questions: placeholders or clipboard only.
+- No tests. The agent doesn't do visual QA; DJ does.
+- Everything in `TODO.md`.
 
-## Decisions
-- **Fixed demo clock**: `TODAY = 2026-10-18`, data through Sep 2026 (`lib/dates.ts`). Keeps
-  stories coherent and SSR/client output identical.
-- **Data layer**: all UI reads `lib/data/index.ts`; async, org-scoped functions. Mock data is
-  regenerated deterministically in memory each load; only user changes persist, in
-  localStorage (`lib/data/store.ts`). Data is fetched client-side via `useData`.
-- **Derived freshness**: an upload-fed property's "data through" = latest processed T12
-  import. Connector properties are always current.
+## Decisions that shape the code
+- **Fixed demo clock**: `lib/dates.ts` for `/app` (Oct 18, 2026); the wireframe has its own
+  (`components/wireframe-v2/seed.ts`, Dec 14, 2026).
+- **Data layer**: UI reads only `lib/data/index.ts` (async, org-scoped). Mock data regenerates
+  deterministically; user changes persist in localStorage (`lib/data/store.ts`).
 - **Insights are computed** from the same ledger as tables, so numbers agree everywhere.
 - **Variance = NOI impact**, positive is favorable; drivers sum exactly to NOI variance.
-  Added "Loss to lease" as a driver (Brookstone story would otherwise hide in "Other").
-- **Missing months**: when a property lacks a month, budget is excluded for that month too.
-- **Own theme provider** instead of next-themes (React 19 warns on next-themes' script tag);
-  inline script sets `.dark` before paint.
-- **Toolchain pins**: ESLint 9 and TypeScript 6, because eslint-config-next / typescript-eslint
-  don't support ESLint 10 or TS 7 yet.
-- **Cache Components is on** (scaffold default). Pathname hooks sit behind `<Suspense>`; the
-  property route uses `generateStaticParams`. `generateMetadata` that awaits data breaks
-  prerender, so the property page uses static metadata.
-
-## Bloat audit (nothing deleted)
-- `next-themes` (dependency): unused; replaced by `components/theme/theme-provider.tsx`.
-- `public/` (empty dir): scaffold SVGs removed; nothing references it.
-- `AGENTS.md`: auto-generated by `next dev`; duplicates Next guidance, re-created if removed.
-- `listDataSources` in `lib/data/sources.ts`: exported, never called.
-- `formatPoints` in `lib/format.ts`: unused; `PointsDelta` formats its own.
-- `ActualLine` / `BudgetLine` types and `Unit`'s unused fields: `ActualLine.import_id` is never set or read.
-- `Vendor.share` for `ven_staffbridge`: ignored; its spend is computed as the payroll overrun.
-- `Overlay.organization.logo` in `lib/data/store.ts`: stored shape for a logo that can't be uploaded yet.
-- `estimatedCashFlow` month filter in `lib/data/portfolio.ts`: redundant; months are already filtered.
-- `delay()` calls with 0ms across `lib/data/*`: only there to keep functions truly async.
-- `SESSION_COOKIE` duplicated in `proxy.ts` and `lib/data/org.ts`: proxy avoids importing the data layer.
-- `.env.example`: fine to keep; listed only because it's the sole committed env file.
+- **Missing months**: when a property lacks a month, its budget is excluded for that month too.
+- **Own theme provider** instead of next-themes (React 19 warns on its script tag).
+- **Toolchain pins**: ESLint 9 and TypeScript 6 until eslint-config-next supports newer.
+- **Cache Components is on**: pathname hooks sit behind `<Suspense>`; dynamic routes use
+  `generateStaticParams`; `generateMetadata` that awaits data breaks prerender.
+- **Gotcha**: a running `npm run dev` doesn't pick up `app/globals.css` changes; restart it.

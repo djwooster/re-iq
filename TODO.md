@@ -6,7 +6,8 @@
 - [ ] Standard design-partner contract: annual, auto-renewing, time-boxed discount, PIIA for contributors.
 - [ ] Track time to first insight for new workspaces (start with the usability sessions).
 
-## Next up (as of 2026-10-30)
+## Next up (as of 2026-11-04)
+- [ ] Review the wireframe (`/wireframe`, `WIREFRAME.md`) with Brian; collect his corrections.
 - [ ] Restart the dev server and check the hero's file-tag colors (XLS green, PDF red, CSV blue);
       the running server doesn't pick up `app/globals.css` edits.
 - [ ] Usability sessions: turn off Vercel preview protection for `testing`, run the first
@@ -20,7 +21,7 @@
 - [ ] Marketing: share image and meta (Open Graph) for links posted to LinkedIn, Slack, and email.
 
 ## Product
-- [ ] Month-end flow (`FLOW.md`): DJ walks it end to end, then refine screens and sections.
+- [ ] Decide whether `/app` moves to the wireframe's flow once Brian has reviewed it.
 - [ ] Close flow follow-ups: send reminders and questions as email, a reply link for PMs,
       questions → actions, a month picker with past closes and reports.
 - [ ] Design system pass: bring the marketing illustrations' micro-animations (fade + 8px rise,
