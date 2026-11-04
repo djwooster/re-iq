@@ -4,11 +4,11 @@ import Link from "next/link";
 import { ForceLight } from "@/components/theme/theme-provider";
 import { cn } from "@/lib/cn";
 import { PRODUCT_NAME } from "@/lib/labels";
-import { blocker, cycle } from "./derive";
-import { CLOSE_MONTH, PROPERTIES, STAGES, TODAY, daysBetween, fmtLongDate, managerOf, property, type Exception } from "./seed";
+import { blocker, monthStatus } from "./derive";
+import { CLOSE_MONTH, PROPERTIES, STAGES, STAGE_LABEL, TODAY, fmtDate, fmtLongDate, managerOf, type Exception } from "./seed";
 import { href, Page } from "./shell";
 import { isOverdue, openExceptions, useWf } from "./store";
-import { A, Bar, barW, Button, Card, Chip, RagChip, Row, Stat, StageChip, Table, Td } from "./ui";
+import { A, Bar, barW, Button, Card, Chip, RagChip, Row, Stat, Table, Td } from "./ui";
 
 export function Login() {
   return (
@@ -35,32 +35,51 @@ function Prefilled({ label, type, value }: { label: string; type: string; value:
   );
 }
 
-const STEP_TONE = { Done: "green", "In progress": "amber", "Not started": "neutral" } as const;
-
 /** Most urgent first: overdue, then by stage, oldest first. */
 export const byUrgency = (a: Exception, b: Exception) => Number(isOverdue(b)) - Number(isOverdue(a)) || STAGES.indexOf(a.stage) - STAGES.indexOf(b.stage) || a.opened.localeCompare(b.opened);
 
 export function Overview() {
   const { state } = useWf();
-  const steps = cycle(state);
-  const top = openExceptions(state).sort(byUrgency).slice(0, 5);
+  const m = monthStatus(state);
 
   return (
     <Page title="Overview" subtitle={`${fmtLongDate(TODAY)} · ${CLOSE_MONTH} close in progress`} controls>
       <section aria-label={`${CLOSE_MONTH} close`} className="flex flex-col gap-2">
         <h2 className="text-xs font-semibold">{CLOSE_MONTH} close</h2>
-        <ol className="grid grid-cols-2 gap-2 md:grid-cols-4 xl:grid-cols-7">
-          {steps.map((s, i) => (
-            <li key={s.name}>
-              <Link href={s.href} className="group flex h-full flex-col gap-1.5 rounded-md border border-fg/15 p-2.5 transition-colors hover:border-fg/40">
-                <span className="text-[10px] text-fg-3">Step {i + 1}</span>
-                <span className="text-xs font-medium text-[var(--wf-accent)] group-hover:underline">{s.name}</span>
-                <Chip tone={STEP_TONE[s.status]}>{s.status}</Chip>
-                <span className="text-[11px] leading-snug text-fg-3">{s.line}</span>
+        <div className="grid gap-2 lg:grid-cols-[1fr_2fr_1fr]">
+          <Panel title="Close" href="/wireframe-v2/close" chip={m.close.done ? <Chip tone="green">Done</Chip> : <Chip tone="amber">In progress</Chip>}>
+            <Progress value={m.close.managersIn} total={m.close.managers} label={`${m.close.managersIn} of ${m.close.managers} managers in`} />
+            <span className="text-[11px] text-fg-3">{m.close.notes.join(" · ") || "Every package in and reconciled"}</span>
+          </Panel>
+
+          <div className="flex flex-col gap-3 rounded-md border border-fg/15 p-3">
+            <span className="flex items-center justify-between">
+              <Link href="/wireframe-v2/exceptions" className="text-xs font-medium text-[var(--wf-accent)] hover:underline">
+                Exceptions
               </Link>
-            </li>
-          ))}
-        </ol>
+              <span className="flex gap-1.5">
+                {m.exceptions.overdue > 0 && <Chip tone="red">{m.exceptions.overdue} overdue</Chip>}
+                {m.exceptions.replied > 0 && <Chip tone="green">{m.exceptions.replied} replied</Chip>}
+              </span>
+            </span>
+            <ol className="flex flex-wrap items-stretch gap-1.5">
+              {m.exceptions.stages.map(({ stage, count }, i) => (
+                <li key={stage} className="flex flex-1 items-center gap-1.5">
+                  {i > 0 && <span className="text-xs text-fg-3">→</span>}
+                  <Link href={`/wireframe-v2/exceptions?status=${stage}`} className={cn("flex min-w-[88px] flex-1 flex-col gap-0.5 rounded-md px-2.5 py-2 transition-colors hover:bg-fg/[0.06]", count ? "bg-fg/[0.035]" : "")}>
+                    <span className={cn("text-lg leading-tight font-semibold", count ? "text-fg" : "text-fg-3")}>{count}</span>
+                    <span className="text-[11px] text-fg-2">{STAGE_LABEL[stage]}</span>
+                  </Link>
+                </li>
+              ))}
+            </ol>
+          </div>
+
+          <Panel title="Owner report" href="/wireframe-v2/owner-report" chip={m.report.sent ? <Chip tone="green">Sent {fmtDate(m.report.sent)}</Chip> : <Chip>Draft</Chip>}>
+            <Progress value={m.report.ready} total={m.report.total} label={`${m.report.ready} of ${m.report.total} properties ready`} />
+            <span className="text-[11px] text-fg-3">The rest are held for a late package, a break, or an open exception</span>
+          </Panel>
+        </div>
       </section>
 
       <section aria-label="Portfolio KPIs" className="grid grid-cols-2 gap-2 md:grid-cols-3 xl:grid-cols-6">
@@ -72,27 +91,33 @@ export function Overview() {
         <Stat label="DSCR" target="Covenant 1.25x" href="/wireframe-v2/capital" />
       </section>
 
-      <div className="grid gap-5 2xl:grid-cols-[minmax(0,1fr)_320px]">
-        <Card title="Properties" action={<A href="/wireframe-v2/properties" className="text-[11px]">All properties</A>}>
-          <PropertyTable />
-        </Card>
-        <Card title="Exceptions" action={<A href="/wireframe-v2/exceptions" className="text-[11px]">All exceptions</A>}>
-          <ul className="flex flex-col">
-            {top.map((e) => (
-              <li key={e.id} className="border-b border-fg/10 py-2.5 first:pt-0 last:border-b-0 last:pb-0">
-                <Link href={href.exception(e.id)} className="group flex flex-col gap-1">
-                  <span className="text-xs font-medium text-[var(--wf-accent)] group-hover:underline">{e.trigger}</span>
-                  <span className="flex flex-wrap items-center gap-2 text-[11px] text-fg-3">
-                    {property(e.property)!.name} · {daysBetween(e.opened, TODAY)}d
-                    <StageChip e={e} />
-                  </span>
-                </Link>
-              </li>
-            ))}
-          </ul>
-        </Card>
-      </div>
+      <Card title="Properties" action={<A href="/wireframe-v2/properties" className="text-[11px]">All properties</A>}>
+        <PropertyTable />
+      </Card>
     </Page>
+  );
+}
+
+function Panel({ title, href: to, chip, children }: { title: string; href: string; chip: React.ReactNode; children: React.ReactNode }) {
+  return (
+    <Link href={to} className="group flex flex-col gap-3 rounded-md border border-fg/15 p-3 transition-colors hover:border-fg/40">
+      <span className="flex items-center justify-between">
+        <span className="text-xs font-medium text-[var(--wf-accent)] group-hover:underline">{title}</span>
+        {chip}
+      </span>
+      {children}
+    </Link>
+  );
+}
+
+function Progress({ value, total, label }: { value: number; total: number; label: string }) {
+  return (
+    <span className="flex flex-col gap-1.5">
+      <span className="text-xs">{label}</span>
+      <span className="h-1.5 overflow-hidden rounded-full bg-fg/10">
+        <span className="block h-full rounded-full bg-[var(--wf-accent)]" style={{ width: `${(value / total) * 100}%` }} />
+      </span>
+    </span>
   );
 }
 

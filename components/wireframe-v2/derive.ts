@@ -1,4 +1,4 @@
-import { MANAGERS, MAPPING, MISSING, PACKAGE, PROPERTIES, RECEIVED, RECON_CHECKS, REPORT_DUE, TODAY, fmtDate, property, type CheckState, type Exception, type ManagerId, type Project } from "./seed";
+import { MANAGERS, MAPPING, MISSING, PACKAGE, PROPERTIES, RECEIVED, RECON_CHECKS, REPORT_DUE, TODAY, property, type CheckState, type Exception, type ManagerId, type Project } from "./seed";
 import { isOverdue } from "./store";
 
 /** Close status and readiness, worked out from the seed plus what's been clicked. */
@@ -61,25 +61,24 @@ export function blocker(s: Slice, propertyId: string): string | null {
 
 export const readyProperties = (s: Slice) => PROPERTIES.filter((p) => !blocker(s, p.id));
 
-export type StepStatus = "Done" | "In progress" | "Not started";
-
-/** The eight steps of the monthly cycle for the Overview strip. */
-export function cycle(s: Slice & { ownerReport: { sent?: string } }) {
+/** The top of the Overview: is the month closed, what's stuck, how close is the owner report. */
+export function monthStatus(s: Slice & { ownerReport: { sent?: string } }) {
   const c = closeSummary();
   const r = reconSummary(s);
-  const by = (stage: Exception["stage"]) => s.exceptions.filter((e) => e.stage === stage);
-  const overdue = s.exceptions.filter(isOverdue).length;
-  const replied = by("waiting").filter((e) => e.question?.reply).length;
-  const ready = readyProperties(s).length;
-  const status = (n: number): StepStatus => (n ? "In progress" : "Not started");
-  const plural = (n: number, w: string) => `${n} ${w}${n === 1 ? "" : "s"}`;
-  return [
-    { name: "PM sends package", href: "/wireframe-v2/close", status: (c.late || c.partial ? "In progress" : "Done") as StepStatus, line: `${c.inFull} managers in · ${c.partial} partial · ${c.late} late` },
-    { name: "Check and reconcile", href: "/wireframe-v2/close?tab=reconciliation", status: (r.breaks || r.waiting ? "In progress" : "Done") as StepStatus, line: `${plural(r.breaks, "break")} · ${mappingPending(s)} lines to map` },
-    { name: "Scorecard vs. plan", href: "/wireframe-v2/exceptions?status=new", status: status(by("new").length), line: `${by("new").length} new off plan · ${ready} on plan` },
-    { name: "Diagnose", href: "/wireframe-v2/exceptions?status=diagnosing", status: status(by("diagnosing").length), line: `${by("diagnosing").length} diagnosing` },
-    { name: "PM explains", href: "/wireframe-v2/questions", status: status(by("waiting").length), line: `${by("waiting").filter((e) => !e.question?.reply).length} waiting on PM · ${overdue} overdue${replied ? ` · ${replied} replied` : ""}` },
-    { name: "Act", href: "/wireframe-v2/tasks", status: status(by("assigned").length), line: `${by("assigned").length} actions assigned` },
-    { name: "Report and log", href: "/wireframe-v2/owner-report", status: (s.ownerReport.sent ? "Done" : "In progress") as StepStatus, line: s.ownerReport.sent ? `Owner report sent ${fmtDate(s.ownerReport.sent)}` : "Owner report in draft" },
-  ];
+  const managersIn = c.inFull + c.partial;
+  const by = (stage: Exception["stage"]) => s.exceptions.filter((e) => e.stage === stage).length;
+  return {
+    close: {
+      done: !c.late && !c.partial && !r.breaks && !r.waiting,
+      managersIn,
+      managers: managersIn + c.late,
+      notes: [c.partial && `${c.partial} partial`, c.late && `${c.late} late`, r.breaks && `${r.breaks} reconciliation break${r.breaks > 1 ? "s" : ""}`, mappingPending(s) && `${mappingPending(s)} lines to map`].filter(Boolean) as string[],
+    },
+    exceptions: {
+      stages: (["new", "diagnosing", "waiting", "assigned"] as const).map((stage) => ({ stage, count: by(stage) })),
+      overdue: s.exceptions.filter(isOverdue).length,
+      replied: s.exceptions.filter((e) => e.stage === "waiting" && e.question?.reply).length,
+    },
+    report: { ready: readyProperties(s).length, total: PROPERTIES.length, sent: s.ownerReport.sent },
+  };
 }
