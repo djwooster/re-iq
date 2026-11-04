@@ -132,7 +132,9 @@ export function PropertyTable() {
         return (
           <Row key={p.id} href={href.property(p.id)}>
             <Td className="font-medium whitespace-nowrap text-[var(--wf-accent)]">{p.name}</Td>
-            <Td className="whitespace-nowrap text-fg-2">{managerOf(p.id).name}</Td>
+            <Td className="whitespace-nowrap">
+              <A href={href.manager(managerOf(p.id).id)}>{managerOf(p.id).name}</A>
+            </Td>
             <Td>
               <RagChip rag={p.rag} />
             </Td>

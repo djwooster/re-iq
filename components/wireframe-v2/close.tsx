@@ -56,7 +56,7 @@ function Tracker() {
             key={m.id}
             title={
               <span className="flex items-center gap-2">
-                {m.name} <Chip tone={MANAGER_TONE[st]}>{st}</Chip>
+                <A href={href.manager(m.id)}>{m.name}</A> <Chip tone={MANAGER_TONE[st]}>{st}</Chip>
               </span>
             }
             action={

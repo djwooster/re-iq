@@ -24,7 +24,7 @@ import {
 
 /**
  * Clicks carry across screens (a question sent on one exception shows up in
- * Questions and on the Overview strip) and reset on reload.
+ * the exceptions list and on the Overview) and reset on reload.
  */
 
 export type Period = "Month" | "YTD" | "T-3" | "T-12";
@@ -75,12 +75,11 @@ function useActions(set: React.Dispatch<React.SetStateAction<State>>) {
 
       startDiagnosis: (id: string) => set((s) => ({ ...s, exceptions: ex(id, (e) => ({ stage: "diagnosing", log: [...e.log, entry("Started diagnosing")] }), s) })),
       setNature: (id: string, nature: "One-time" | "Ongoing") => set((s) => ({ ...s, exceptions: ex(id, (e) => ({ nature, log: [...e.log, entry(`Marked ${nature.toLowerCase()}`)] }), s) })),
-      sendQuestion: (id: string, text: string, due: string) =>
+      markWaiting: (id: string, text: string, due: string) =>
         set((s) => ({
           ...s,
-          exceptions: ex(id, (e) => ({ stage: "waiting", question: { text, sent: TODAY, due }, log: [...e.log, entry(`Asked ${managerOf(e.property).name} by email · due ${fmtDate(due)}`)] }), s),
+          exceptions: ex(id, (e) => ({ stage: "waiting", question: { text, sent: TODAY, due }, log: [...e.log, entry(`Waiting on ${managerOf(e.property).name} · due ${fmtDate(due)}`)] }), s),
         })),
-      remind: (id: string) => set((s) => ({ ...s, exceptions: ex(id, (e) => ({ log: [...e.log, entry(`Sent a reminder to ${managerOf(e.property).name}`)] }), s) })),
       recordReply: (id: string, text: string, file?: string) =>
         set((s) => ({
           ...s,
@@ -88,7 +87,7 @@ function useActions(set: React.Dispatch<React.SetStateAction<State>>) {
             id,
             (e) => ({
               question: e.question && { ...e.question, reply: { text, file, received: TODAY } },
-              log: [...e.log, entry(`Recorded reply from ${managerOf(e.property).name}${file ? ` · ${file}` : ""}`)],
+              log: [...e.log, entry(`Answer from ${managerOf(e.property).name}${file ? ` · ${file}` : ""}`)],
             }),
             s,
           ),

@@ -57,7 +57,7 @@ export function Settings() {
         <Table columns={["Name", "Role", "Sees"]}>
           {[
             ["You", "Asset manager", "Everything; decides and assigns"],
-            ["Analyst", "Analyst", "Everything; can draft questions and the owner report"],
+            ["Analyst", "Analyst", "Everything; can draft the owner report"],
             ["Owner", "Owner", "Owner report and decision log"],
           ].map(([n, r, s]) => (
             <Row key={n}>

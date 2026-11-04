@@ -18,7 +18,6 @@ const NAV: { group?: string; items: { href: string; label: string }[] }[] = [
     items: [
       { href: `${B}/close`, label: "Close" },
       { href: `${B}/exceptions`, label: "Exceptions" },
-      { href: `${B}/questions`, label: "Questions" },
       { href: `${B}/tasks`, label: "Tasks" },
       { href: `${B}/owner-report`, label: "Owner report" },
       { href: `${B}/decisions`, label: "Decision log" },
@@ -28,6 +27,7 @@ const NAV: { group?: string; items: { href: string; label: string }[] }[] = [
     group: "Portfolio",
     items: [
       { href: `${B}/properties`, label: "Properties" },
+      { href: `${B}/managers`, label: "Managers" },
       { href: `${B}/financials`, label: "Financials" },
       { href: `${B}/leasing`, label: "Leasing and revenue" },
       { href: `${B}/operations`, label: "Operations" },
@@ -133,6 +133,7 @@ export const href = {
   property: (id: string) => `${B}/properties/${id}`,
   unit: (propertyId: string, unit: string) => `${B}/properties/${propertyId}/units/${unit}`,
   exception: (id: string) => `${B}/exceptions/${id}`,
+  manager: (id: string) => `${B}/managers/${id}`,
   project: (id: string) => `${B}/renovations/${id}`,
   root: B,
 };

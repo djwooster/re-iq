@@ -2,41 +2,10 @@
 
 import { useToast } from "@/components/ui/toast";
 import { blocker, readyProperties } from "./derive";
-import { CLOSE_MONTH, PROPERTIES, STAGE_LABEL, fmtDate, managerOf, property, stepName } from "./seed";
+import { CLOSE_MONTH, MANAGERS, PROPERTIES, STAGE_LABEL, fmtDate, property, stepName } from "./seed";
 import { href, Page } from "./shell";
-import { isOverdue, useWf } from "./store";
+import { useWf } from "./store";
 import { A, Bar, barW, Button, Card, Chart, Chip, Empty, Row, Segmented, StageChip, Table, Td } from "./ui";
-
-export function Questions() {
-  const { state } = useWf();
-  const rows = state.exceptions.filter((e) => e.question).sort((a, b) => b.question!.sent.localeCompare(a.question!.sent));
-  return (
-    <Page title="Questions">
-      {rows.length ? (
-        <Table columns={["Property", "Manager", "Question", "Sent", "Due", "Status"]}>
-          {rows.map((e) => {
-            const q = e.question!;
-            return (
-              <Row key={e.id} href={href.exception(e.id)}>
-                <Td className="font-medium whitespace-nowrap text-[var(--wf-accent)]">{property(e.property)!.name}</Td>
-                <Td className="whitespace-nowrap text-fg-2">{managerOf(e.property).name}</Td>
-                <Td className="max-w-md">
-                  <span className="line-clamp-2">{q.text}</span>
-                  <span className="text-[11px] text-fg-3">{e.trigger}</span>
-                </Td>
-                <Td className="whitespace-nowrap text-fg-2">{fmtDate(q.sent)}</Td>
-                <Td className="whitespace-nowrap text-fg-2">{fmtDate(q.due)}</Td>
-                <Td>{q.reply ? <Chip tone="green">Answered</Chip> : isOverdue(e) ? <Chip tone="red">Overdue</Chip> : <Chip tone="amber">Waiting</Chip>}</Td>
-              </Row>
-            );
-          })}
-        </Table>
-      ) : (
-        <Empty>No questions sent yet.</Empty>
-      )}
-    </Page>
-  );
-}
 
 export function Tasks() {
   const { state, act } = useWf();
@@ -55,7 +24,7 @@ export function Tasks() {
                 <Td className="whitespace-nowrap">
                   <A href={href.property(t.property)}>{property(t.property)!.name}</A>
                 </Td>
-                <Td className="whitespace-nowrap text-fg-2">{t.owner}</Td>
+                <Td className="whitespace-nowrap text-fg-2">{t.owner.startsWith("Manager") ? <A href={href.manager(MANAGERS.find((m) => m.name === t.owner)!.id)}>{t.owner}</A> : t.owner}</Td>
                 <Td className="whitespace-nowrap text-fg-2">{fmtDate(t.due)}</Td>
                 <Td>
                   <Segmented label="" value={t.status} options={["Open", "In progress", "Done"] as const} onChange={(s) => act.setTaskStatus(t.id, s)} />

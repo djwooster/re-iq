@@ -54,7 +54,9 @@ export function Exceptions({ initialStatus }: { initialStatus?: string }) {
             <Row key={e.id} href={href.exception(e.id)}>
               <Td className="font-medium text-[var(--wf-accent)]">{e.trigger}</Td>
               <Td className="whitespace-nowrap">{property(e.property)!.name}</Td>
-              <Td className="whitespace-nowrap text-fg-2">{managerOf(e.property).name}</Td>
+              <Td className="whitespace-nowrap">
+                <A href={href.manager(managerOf(e.property).id)}>{managerOf(e.property).name}</A>
+              </Td>
               <Td className="text-fg-2">{e.source}</Td>
               <Td>
                 <StageChip e={e} />
@@ -119,7 +121,9 @@ export function ExceptionDetail({ id }: { id: string }) {
           <Meta label="Property">
             <A href={href.property(p.id)}>{p.name}</A>
           </Meta>
-          <Meta label="Manager">{m.name}</Meta>
+          <Meta label="Manager">
+            <A href={href.manager(m.id)}>{m.name}</A>
+          </Meta>
           <Meta label="Source report">{e.source}</Meta>
           <Meta label="Threshold">{e.threshold}</Meta>
           <Meta label="Actual">
@@ -134,8 +138,8 @@ export function ExceptionDetail({ id }: { id: string }) {
       <Section n={4} title="Diagnose" state={i <= 1 ? "current" : "done"}>
         <Diagnose e={e} />
       </Section>
-      <Section n={5} title="Ask the PM" state={ask} note="Opens once you start diagnosing">
-        <AskPm e={e} onActNow={() => setActNow(true)} actNow={actNow} />
+      <Section n={5} title="Waiting on PM" state={ask} note="Opens once you start diagnosing">
+        <WaitPm e={e} onActNow={() => setActNow(true)} actNow={actNow} />
       </Section>
       <Section n={6} title="Act" state={act} note="Opens once the PM replies">
         <Act e={e} />
@@ -365,45 +369,38 @@ function NatureToggle({ e }: { e: Exception }) {
   );
 }
 
-// ---- Step 5: ask the PM ----
+// ---- Step 5: waiting on the PM (the conversation happens by phone or email) ----
 
-function AskPm({ e, onActNow, actNow }: { e: Exception; onActNow: () => void; actNow: boolean }) {
+function WaitPm({ e, onActNow, actNow }: { e: Exception; onActNow: () => void; actNow: boolean }) {
   const { act } = useWf();
-  const toast = useToast();
   const m = managerOf(e.property);
-  const [text, setText] = useState("");
+  const [note, setNote] = useState("");
   const [due, setDue] = useState("2026-12-18");
-  const [reply, setReply] = useState("");
+  const [answer, setAnswer] = useState("");
   const [file, setFile] = useState<string>();
   const q = e.question;
 
   if (!q) {
-    if (at(e) >= 3 || actNow) return <p className="text-xs text-fg-3">Not asked. Acting without a question to {m.name}.</p>;
+    if (at(e) >= 3 || actNow) return <p className="text-xs text-fg-3">Not waiting on {m.name}.</p>;
     return (
       <div className="flex flex-col gap-3">
-        <Field label={`Question to ${m.name}`}>
-          <TextArea value={text} onChange={(ev) => setText(ev.target.value)} placeholder={`What would explain "${e.trigger.toLowerCase()}" at ${property(e.property)!.name}?`} />
+        <Field label={`What you asked ${m.name} (optional)`}>
+          <TextArea rows={2} value={note} onChange={(ev) => setNote(ev.target.value)} placeholder="e.g. Called the regional manager; they'll send a fix plan" />
         </Field>
         <div className="flex flex-wrap items-end gap-3">
           <div className="w-40">
-            <Field label="Due">
+            <Field label="Expect an answer by">
               <Input type="date" value={due} onChange={(ev) => setDue(ev.target.value)} />
             </Field>
           </div>
-          <Button
-            disabled={!text.trim()}
-            onClick={() => {
-              act.sendQuestion(e.id, text.trim(), due);
-              toast(`Sent to ${m.name}`);
-            }}
-          >
-            Send
-          </Button>
+          <Button onClick={() => act.markWaiting(e.id, note.trim(), due)}>Mark waiting on PM</Button>
           <Button variant="secondary" onClick={onActNow}>
-            Act without asking
+            Act without the PM
           </Button>
         </div>
-        <p className="text-[11px] text-fg-3">Sends to {m.contact.split(" · ")[1]}</p>
+        <p className="text-[11px] text-fg-3">
+          <A href={href.manager(m.id)}>{m.name}</A> · {m.contact}
+        </p>
       </div>
     );
   }
@@ -413,16 +410,16 @@ function AskPm({ e, onActNow, actNow }: { e: Exception; onActNow: () => void; ac
       <div className="rounded-md bg-fg/[0.03] px-3 py-2.5">
         <div className="mb-1.5 flex flex-wrap items-center gap-2 text-[11px] text-fg-3">
           <span>
-            Sent {fmtDate(q.sent)} by email to {m.name}
+            Waiting on <A href={href.manager(m.id)}>{m.name}</A> since {fmtDate(q.sent)}
           </span>
-          {!q.reply && (isOverdue(e) ? <Chip tone="red">Overdue · due {fmtDate(q.due)}</Chip> : <Chip tone="amber">Waiting on PM · due {fmtDate(q.due)}</Chip>)}
+          {!q.reply && (isOverdue(e) ? <Chip tone="red">Overdue · due {fmtDate(q.due)}</Chip> : <Chip tone="amber">Due {fmtDate(q.due)}</Chip>)}
           {q.reply && <Chip tone="green">Answered {fmtDate(q.reply.received)}</Chip>}
         </div>
-        <p className="text-xs">{q.text}</p>
+        {q.text ? <p className="text-xs">{q.text}</p> : <p className="text-xs text-fg-3">No note</p>}
       </div>
       {q.reply ? (
         <div className="rounded-md border border-fg/15 px-3 py-2.5">
-          <span className="mb-1.5 block text-[11px] text-fg-3">Reply from {m.name}</span>
+          <span className="mb-1.5 block text-[11px] text-fg-3">{m.name}&apos;s answer</span>
           <p className="text-xs">{q.reply.text}</p>
           {q.reply.file && (
             <span className="mt-2 inline-block">
@@ -434,8 +431,8 @@ function AskPm({ e, onActNow, actNow }: { e: Exception; onActNow: () => void; ac
         </div>
       ) : (
         <div className="flex flex-col gap-3 border-t border-fg/10 pt-3">
-          <Field label="Record reply">
-            <TextArea value={reply} onChange={(ev) => setReply(ev.target.value)} placeholder="Paste the PM's answer, including their fix plan" />
+          <Field label="Their answer">
+            <TextArea rows={2} value={answer} onChange={(ev) => setAnswer(ev.target.value)} placeholder="What they said, including any fix plan" />
           </Field>
           <div className="flex flex-wrap items-center gap-2">
             {file ? (
@@ -447,20 +444,9 @@ function AskPm({ e, onActNow, actNow }: { e: Exception; onActNow: () => void; ac
                 Attach file
               </Button>
             )}
-            <Button disabled={!reply.trim() && !file} onClick={() => act.recordReply(e.id, reply.trim() || "See attached.", file)}>
-              Save reply
+            <Button disabled={!answer.trim() && !file} onClick={() => act.recordReply(e.id, answer.trim() || "See attached.", file)}>
+              Save answer
             </Button>
-            <span className="ml-auto">
-              <Button
-                variant="secondary"
-                onClick={() => {
-                  act.remind(e.id);
-                  toast(`Reminder sent to ${m.name}`);
-                }}
-              >
-                Send reminder
-              </Button>
-            </span>
           </div>
         </div>
       )}

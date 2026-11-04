@@ -52,6 +52,38 @@ export const managerOf = (propertyId: string) => manager(property(propertyId)!.m
 export const PACKAGE = ["P&L", "T-12", "Rent roll", "Box score", "AR aging", "Capex", "Renovation tracker", "GL"] as const;
 export const REPORT_DUE = "2026-12-12";
 
+/** Earlier closes, oldest first. November comes from RECEIVED below. */
+export const PACKAGE_HISTORY: Record<string, { month: string; status: "On time" | "Late" | "Partial"; received: string }[]> = {
+  m1: [
+    { month: "June", status: "On time", received: "Jul 9" },
+    { month: "July", status: "On time", received: "Aug 11" },
+    { month: "August", status: "On time", received: "Sep 10" },
+    { month: "September", status: "On time", received: "Oct 9" },
+    { month: "October", status: "On time", received: "Nov 10" },
+  ],
+  m2: [
+    { month: "June", status: "On time", received: "Jul 12" },
+    { month: "July", status: "On time", received: "Aug 12" },
+    { month: "August", status: "Late", received: "Sep 16" },
+    { month: "September", status: "On time", received: "Oct 11" },
+    { month: "October", status: "On time", received: "Nov 12" },
+  ],
+  m3: [
+    { month: "June", status: "On time", received: "Jul 11" },
+    { month: "July", status: "Partial", received: "Aug 12" },
+    { month: "August", status: "On time", received: "Sep 12" },
+    { month: "September", status: "Late", received: "Oct 15" },
+    { month: "October", status: "On time", received: "Nov 12" },
+  ],
+  m4: [
+    { month: "June", status: "On time", received: "Jul 10" },
+    { month: "July", status: "Late", received: "Aug 18" },
+    { month: "August", status: "On time", received: "Sep 12" },
+    { month: "September", status: "Late", received: "Oct 17" },
+    { month: "October", status: "Late", received: "Nov 19" },
+  ],
+};
+
 /** When each manager's package arrived. Null: nothing yet. */
 export const RECEIVED: Record<ManagerId, string | null> = { m1: "2026-12-09", m2: "2026-12-11", m3: "2026-12-12", m4: null };
 /** Reports missing from a package that otherwise arrived. */
@@ -275,8 +307,8 @@ export const EXCEPTIONS: Exception[] = [
     log: [
       { date: "2026-12-02", who: RE_IQ, text: "Flagged from AR aging: delinquency over 3% of rent" },
       { date: "2026-12-03", who: ME, text: "Diagnosed: ongoing, concentrated in the 61–90 day bucket" },
-      { date: "2026-12-03", who: ME, text: "Asked Manager 2 · due Dec 10" },
-      { date: "2026-12-11", who: RE_IQ, text: "Question overdue" },
+      { date: "2026-12-03", who: ME, text: "Waiting on Manager 2 · due Dec 10" },
+      { date: "2026-12-11", who: RE_IQ, text: "Overdue" },
     ],
   },
   {
@@ -304,7 +336,7 @@ export const EXCEPTIONS: Exception[] = [
     log: [
       { date: "2026-12-08", who: RE_IQ, text: "Flagged from Make-ready: days to turn rising" },
       { date: "2026-12-10", who: ME, text: "Diagnosed: ongoing" },
-      { date: "2026-12-11", who: ME, text: "Asked Manager 4 · due Dec 18" },
+      { date: "2026-12-11", who: ME, text: "Waiting on Manager 4 · due Dec 18" },
     ],
   },
   {
@@ -333,8 +365,8 @@ export const EXCEPTIONS: Exception[] = [
     },
     log: [
       { date: "2026-11-14", who: RE_IQ, text: "Flagged from Rent roll: loss to lease over 5%" },
-      { date: "2026-11-15", who: ME, text: "Asked Manager 3 · due Nov 22" },
-      { date: "2026-11-20", who: ME, text: "Recorded reply from Manager 3" },
+      { date: "2026-11-15", who: ME, text: "Waiting on Manager 3 · due Nov 22" },
+      { date: "2026-11-20", who: ME, text: "Answer from Manager 3" },
       { date: "2026-12-01", who: ME, text: "Action: Raise renewal offers toward market" },
       { date: "2026-12-01", who: ME, text: "Assigned to Manager 3 · due Jan 15" },
     ],
@@ -371,8 +403,8 @@ export const EXCEPTIONS: Exception[] = [
     log: [
       { date: "2026-11-12", who: RE_IQ, text: "Flagged from Budget variance: repairs over budget 3 months running" },
       { date: "2026-11-12", who: ME, text: "Diagnosed: ongoing, HVAC repairs on Buildings 2 and 3" },
-      { date: "2026-11-13", who: ME, text: "Asked Manager 1 · due Nov 20" },
-      { date: "2026-11-18", who: ME, text: "Recorded reply from Manager 1 · Rooftop unit replacement bid.pdf" },
+      { date: "2026-11-13", who: ME, text: "Waiting on Manager 1 · due Nov 20" },
+      { date: "2026-11-18", who: ME, text: "Answer from Manager 1 · Rooftop unit replacement bid.pdf" },
       { date: "2026-11-20", who: ME, text: "Action: Start a capital project" },
       { date: "2026-11-20", who: ME, text: "Created project: HVAC replacement · assigned to You · due Jan 8" },
     ],
