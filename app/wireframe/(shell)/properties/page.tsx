@@ -1,5 +1,5 @@
-import { PropertiesScreen } from "@/components/wireframe/screens";
+import { Properties } from "@/components/wireframe-v2/properties";
 
 export default function Page() {
-  return <PropertiesScreen />;
+  return <Properties />;
 }

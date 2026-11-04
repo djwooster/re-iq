@@ -55,7 +55,7 @@ export function ManagerPage({ id }: { id: string }) {
   const m = MANAGERS.find((x) => x.id === id);
   if (!m) {
     return (
-      <Page title="Manager not found" crumbs={[{ label: "Managers", href: "/wireframe-v2/managers" }]}>
+      <Page title="Manager not found" crumbs={[{ label: "Managers", href: "/wireframe/managers" }]}>
         <Empty>This manager doesn&apos;t exist.</Empty>
       </Page>
     );
@@ -71,7 +71,7 @@ export function ManagerPage({ id }: { id: string }) {
     <Page
       title={m.name}
       subtitle={m.contact}
-      crumbs={[{ label: "Managers", href: "/wireframe-v2/managers" }, { label: m.name }]}
+      crumbs={[{ label: "Managers", href: "/wireframe/managers" }, { label: m.name }]}
       actions={
         <span className="flex items-center gap-2 text-[11px] text-fg-3">
           <span className="num hidden md:inline">re-iq.app/upload/{m.token}</span>
@@ -182,7 +182,7 @@ export function ManagerPage({ id }: { id: string }) {
           {approvals.length ? (
             <Table columns={["Approval", "Property", "Submitted", "Status"]}>
               {approvals.map((a) => (
-                <Row key={a.id} href={a.projectId ? href.project(a.projectId) : "/wireframe-v2/tasks"}>
+                <Row key={a.id} href={a.projectId ? href.project(a.projectId) : "/wireframe/tasks"}>
                   <Td>{a.title}</Td>
                   <Td className="whitespace-nowrap">{property(a.property)!.name}</Td>
                   <Td className="whitespace-nowrap text-fg-2">{fmtDate(a.submitted)}</Td>

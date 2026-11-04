@@ -78,7 +78,7 @@ export function ExceptionDetail({ id }: { id: string }) {
   const e = state.exceptions.find((x) => x.id === id);
   if (!e) {
     return (
-      <Page title="Exception not found" crumbs={[{ label: "Exceptions", href: "/wireframe-v2/exceptions" }]}>
+      <Page title="Exception not found" crumbs={[{ label: "Exceptions", href: "/wireframe/exceptions" }]}>
         <Empty>This exception doesn&apos;t exist.</Empty>
       </Page>
     );
@@ -92,7 +92,7 @@ export function ExceptionDetail({ id }: { id: string }) {
   return (
     <Page
       title={e.trigger}
-      crumbs={[{ label: "Exceptions", href: "/wireframe-v2/exceptions" }, { label: p.name, href: href.property(p.id) }, { label: e.trigger }]}
+      crumbs={[{ label: "Exceptions", href: "/wireframe/exceptions" }, { label: p.name, href: href.property(p.id) }, { label: e.trigger }]}
       subtitle={`Opened ${fmtDate(e.opened)} · ${days(daysBetween(e.opened, TODAY))}`}
       actions={<StageChip e={e} />}
     >
@@ -124,7 +124,7 @@ export function ExceptionDetail({ id }: { id: string }) {
       <Section n={6} title="Act" state={act} note="Opens once the PM replies">
         <Act e={e} />
       </Section>
-      <Card title="Log" action={<A href="/wireframe-v2/decisions" className="text-[11px]">Decision log</A>}>
+      <Card title="Log" action={<A href="/wireframe/decisions" className="text-[11px]">Decision log</A>}>
         <Log entries={e.log} />
       </Card>
     </Page>

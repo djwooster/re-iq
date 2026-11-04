@@ -91,7 +91,7 @@ export function ProjectPage({ id }: { id: string }) {
   const [view, setView] = useState<number>();
   if (!p) {
     return (
-      <Page title="Project not found" crumbs={[{ label: "Renovations", href: "/wireframe-v2/renovations" }]}>
+      <Page title="Project not found" crumbs={[{ label: "Renovations", href: "/wireframe/renovations" }]}>
         <Empty>This project doesn&apos;t exist.</Empty>
       </Page>
     );
@@ -103,7 +103,7 @@ export function ProjectPage({ id }: { id: string }) {
     <Page
       title={`${property(p.property)!.name} · ${p.name}`}
       subtitle={`${p.type} project`}
-      crumbs={[{ label: "Renovations", href: "/wireframe-v2/renovations" }, { label: p.name }]}
+      crumbs={[{ label: "Renovations", href: "/wireframe/renovations" }, { label: p.name }]}
       actions={<Chip tone={tone}>{label}</Chip>}
     >
       <Progress p={p} view={step} onView={setView} />
@@ -127,7 +127,7 @@ export function ProjectPage({ id }: { id: string }) {
           <StepPanel p={p} step={step} live={step === p.step && p.status === "Active"} />
         </div>
       </Card>
-      <Card title="Log" action={<A href="/wireframe-v2/decisions" className="text-[11px]">Decision log</A>}>
+      <Card title="Log" action={<A href="/wireframe/decisions" className="text-[11px]">Decision log</A>}>
         <Log entries={p.log} />
       </Card>
     </Page>
@@ -547,7 +547,7 @@ function StepPanel({ p, step, live }: { p: Project; step: number; live: boolean 
           <Button variant="secondary" onClick={() => act.projectDecision(p.id, "Refinance or sell")}>
             Refinance or sell
           </Button>
-          <A href="/wireframe-v2/capital" className="text-[11px]">
+          <A href="/wireframe/capital" className="text-[11px]">
             Valuation / hold-sell
           </A>
         </div>

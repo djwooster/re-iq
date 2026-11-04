@@ -20,7 +20,7 @@ export function Login() {
         </Link>
         <Prefilled label="Email" type="email" value="am@ownerfirm.com" />
         <Prefilled label="Password" type="password" value="wireframe-demo" />
-        <Button href="/wireframe-v2/overview">Sign in</Button>
+        <Button href="/wireframe/overview">Sign in</Button>
       </div>
     </div>
   );
@@ -47,14 +47,14 @@ export function Overview() {
       <section aria-label={`${CLOSE_MONTH} close`} className="flex flex-col gap-2">
         <h2 className="text-[15px] font-semibold text-fg">{CLOSE_MONTH} close</h2>
         <div className="grid gap-2 lg:grid-cols-[1fr_2fr_1fr]">
-          <Panel title="Close" href="/wireframe-v2/close" chip={m.close.done ? <Chip tone="green">Closed</Chip> : null}>
+          <Panel title="Close" href="/wireframe/close" chip={m.close.done ? <Chip tone="green">Closed</Chip> : null}>
             <Progress value={m.close.managersIn} total={m.close.managers} label={`${m.close.managersIn} of ${m.close.managers} managers in`} />
             <span className="text-[11px] text-fg-3">{m.close.notes.join(" · ") || "Every package in and reconciled"}</span>
           </Panel>
 
           <div className="flex flex-col gap-3 rounded-md border border-fg/15 p-3">
             <span className="flex items-center justify-between">
-              <Link href="/wireframe-v2/exceptions" className="text-xs font-medium text-[var(--wf-accent)] hover:underline">
+              <Link href="/wireframe/exceptions" className="text-xs font-medium text-[var(--wf-accent)] hover:underline">
                 Exceptions
               </Link>
               <span className="flex gap-1.5">
@@ -66,7 +66,7 @@ export function Overview() {
               {m.exceptions.stages.map(({ stage, count }, i) => (
                 <li key={stage} className="flex flex-1 items-center gap-1.5">
                   {i > 0 && <span className="text-xs text-fg-3">→</span>}
-                  <Link href={`/wireframe-v2/exceptions?status=${stage}`} className={cn("flex min-w-[88px] flex-1 flex-col gap-0.5 rounded-md px-2.5 py-2 transition-colors hover:bg-fg/[0.06]", count ? "bg-fg/[0.035]" : "")}>
+                  <Link href={`/wireframe/exceptions?status=${stage}`} className={cn("flex min-w-[88px] flex-1 flex-col gap-0.5 rounded-md px-2.5 py-2 transition-colors hover:bg-fg/[0.06]", count ? "bg-fg/[0.035]" : "")}>
                     <span className={cn("text-lg leading-tight font-semibold", count ? "text-fg" : "text-fg-3")}>{count}</span>
                     <span className="text-[11px] text-fg-2">{STAGE_LABEL[stage]}</span>
                   </Link>
@@ -75,22 +75,22 @@ export function Overview() {
             </ol>
           </div>
 
-          <Panel title="Owner report" href="/wireframe-v2/owner-report" chip={m.report.sent ? <Chip tone="green">Sent {fmtDate(m.report.sent)}</Chip> : <Chip>Draft</Chip>}>
+          <Panel title="Owner report" href="/wireframe/owner-report" chip={m.report.sent ? <Chip tone="green">Sent {fmtDate(m.report.sent)}</Chip> : <Chip>Draft</Chip>}>
             <Progress value={m.report.ready} total={m.report.total} label={`${m.report.ready} of ${m.report.total} properties ready`} />
           </Panel>
         </div>
       </section>
 
       <section aria-label="Portfolio KPIs" className="grid grid-cols-2 gap-2 md:grid-cols-3 xl:grid-cols-6">
-        <Stat label="NOI vs. budget" target="Alert below budget by 3%+" href="/wireframe-v2/financials" />
-        <Stat label="Physical occupancy" target="Target 93–96%" href="/wireframe-v2/leasing" />
-        <Stat label="Economic occupancy" target="Within 5 points of physical" href="/wireframe-v2/leasing" />
-        <Stat label="Leased % / 60-day exposure" target="Exposure under 8%" href="/wireframe-v2/leasing" />
-        <Stat label="Collection rate" target="Target 97%+" href="/wireframe-v2/operations" />
-        <Stat label="DSCR" target="Covenant 1.25x" href="/wireframe-v2/capital" />
+        <Stat label="NOI vs. budget" target="Alert below budget by 3%+" href="/wireframe/financials" />
+        <Stat label="Physical occupancy" target="Target 93–96%" href="/wireframe/leasing" />
+        <Stat label="Economic occupancy" target="Within 5 points of physical" href="/wireframe/leasing" />
+        <Stat label="Leased % / 60-day exposure" target="Exposure under 8%" href="/wireframe/leasing" />
+        <Stat label="Collection rate" target="Target 97%+" href="/wireframe/operations" />
+        <Stat label="DSCR" target="Covenant 1.25x" href="/wireframe/capital" />
       </section>
 
-      <Card title="Properties" action={<A href="/wireframe-v2/properties" className="text-[11px]">All properties</A>}>
+      <Card title="Properties" action={<A href="/wireframe/properties" className="text-[11px]">All properties</A>}>
         <PropertyTable />
       </Card>
     </Page>

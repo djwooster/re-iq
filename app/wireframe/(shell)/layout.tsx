@@ -1,10 +1,5 @@
-import { ToastProvider } from "@/components/ui/toast";
-import { WireframeShell } from "@/components/wireframe/shell";
+import { Shell } from "@/components/wireframe-v2/shell";
 
-export default function WireframeShellLayout({ children }: { children: React.ReactNode }) {
-  return (
-    <ToastProvider>
-      <WireframeShell>{children}</WireframeShell>
-    </ToastProvider>
-  );
+export default function ShellLayout({ children }: { children: React.ReactNode }) {
+  return <Shell>{children}</Shell>;
 }

@@ -38,7 +38,7 @@ export function Scorecard({ id }: { id: string }) {
         </span>
       }
       subtitle={managerOf(id).name}
-      crumbs={[{ label: "Properties", href: "/wireframe-v2/properties" }, { label: p.name }]}
+      crumbs={[{ label: "Properties", href: "/wireframe/properties" }, { label: p.name }]}
       controls
     >
       <section aria-label="KPIs" className="grid grid-cols-2 gap-2 md:grid-cols-4 xl:grid-cols-7">
@@ -56,10 +56,10 @@ export function Scorecard({ id }: { id: string }) {
       </section>
 
       <div className="grid gap-5 md:grid-cols-2">
-        <Card title="Open exceptions" action={<A href="/wireframe-v2/exceptions" className="text-[11px]">All exceptions</A>}>
+        <Card title="Open exceptions" action={<A href="/wireframe/exceptions" className="text-[11px]">All exceptions</A>}>
           {exceptions.length ? exceptions.map((e) => <ExceptionLink key={e.id} e={e} />) : <Empty>Nothing off plan.</Empty>}
         </Card>
-        <Card title="Renovation projects" action={<A href="/wireframe-v2/renovations" className="text-[11px]">Renovations</A>}>
+        <Card title="Renovation projects" action={<A href="/wireframe/renovations" className="text-[11px]">Renovations</A>}>
           {projects.length ? (
             projects.map((x) => (
               <Link key={x.id} href={href.project(x.id)} className="group flex items-center justify-between gap-2 border-b border-fg/10 py-2 last:border-b-0">
@@ -127,7 +127,7 @@ export function Unit({ propertyId, unit }: { propertyId: string; unit: string })
     <Page
       title={`Unit ${unit}`}
       subtitle={`${p.name} · ${managerOf(propertyId).name}`}
-      crumbs={[{ label: "Properties", href: "/wireframe-v2/properties" }, { label: p.name, href: href.property(propertyId) }, { label: `Unit ${unit}` }]}
+      crumbs={[{ label: "Properties", href: "/wireframe/properties" }, { label: p.name, href: href.property(propertyId) }, { label: `Unit ${unit}` }]}
       actions={<Chip tone={renovated ? "blue" : "neutral"}>{status}</Chip>}
     >
       {flagged.length > 0 && (
@@ -226,7 +226,7 @@ function Item({ label, children }: { label: string; children: React.ReactNode })
 
 function NotFound() {
   return (
-    <Page title="Not found" crumbs={[{ label: "Properties", href: "/wireframe-v2/properties" }]}>
+    <Page title="Not found" crumbs={[{ label: "Properties", href: "/wireframe/properties" }]}>
       <Empty>This property doesn&apos;t exist.</Empty>
     </Page>
   );

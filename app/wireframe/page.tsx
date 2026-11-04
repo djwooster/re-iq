@@ -1,5 +1,5 @@
-import { LoginScreen } from "@/components/wireframe/screens";
+import { Login } from "@/components/wireframe-v2/overview";
 
-export default function WireframeLogin() {
-  return <LoginScreen />;
+export default function Page() {
+  return <Login />;
 }

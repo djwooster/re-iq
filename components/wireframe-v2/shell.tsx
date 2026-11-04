@@ -9,7 +9,7 @@ import { ORG } from "./seed";
 import { useWf, type Compare, type Period } from "./store";
 import { Segmented } from "./ui";
 
-const B = "/wireframe-v2";
+const B = "/wireframe";
 
 const NAV: { group?: string; items: { href: string; label: string }[] }[] = [
   { items: [{ href: `${B}/overview`, label: "Overview" }] },
