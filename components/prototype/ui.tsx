@@ -182,7 +182,7 @@ export function Dl({ items, className }: { items: { label: string; value: React.
   );
 }
 
-export function Button({ onClick, href, variant = "primary", disabled, icon, children }: { onClick?: () => void; href?: string; variant?: "primary" | "secondary" | "ghost"; disabled?: boolean; icon?: React.ReactNode; children: React.ReactNode }) {
+export function Button({ onClick, href, variant = "primary", disabled, icon, children }: { onClick?: () => void; href?: string; variant?: "primary" | "secondary" | "ghost" | "danger-ghost"; disabled?: boolean; icon?: React.ReactNode; children: React.ReactNode }) {
   if (href) {
     const cls = cn(
       "inline-flex shrink-0 items-center justify-center gap-1.5 rounded-md border px-3 py-1.5 text-xs font-medium whitespace-nowrap transition-[background-color,border-color,opacity] duration-150",

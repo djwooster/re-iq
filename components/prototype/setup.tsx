@@ -353,7 +353,7 @@ function FilesDrawer({ id, onClose }: { id: string | null; onClose: () => void }
         <>
           {p && (
             <Button
-              variant="ghost"
+              variant="danger-ghost"
               onClick={() => {
                 act.setDraft((x) => ({ ...x, properties: x.properties.filter((q) => q.id !== p.id) }));
                 onClose();
