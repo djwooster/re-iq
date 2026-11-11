@@ -23,6 +23,10 @@
   --data-soft: rgb(14 116 144 / 0.14);
   /* Properties are marked in this blue across the app: Shepherd Fairey's poster blue, deepened to read at 10px. */
   --property: #4f7d8c;
+  /* Illustration colors for explainer moments (setup's how-it-works cards). Not for data or state. */
+  --spot-coral: #e2603f;
+  --spot-sun: #d99a00;
+  --spot-violet: #7357e8;
   --file-xls: #1d6f42;
   --file-pdf: #c2352b;
   --file-csv: #2f5f9e;
@@ -55,6 +59,9 @@
   --data: #6c9bad;
   --data-soft: rgb(34 77 95 / 0.6);
   --property: #8fb2bd;
+  --spot-coral: #f08a6f;
+  --spot-sun: #f0c04a;
+  --spot-violet: #a08cff;
   --file-xls: #3f8f62;
   --file-pdf: #c9554b;
   --file-csv: #4f7fbf;
@@ -82,6 +89,9 @@
   --color-data: var(--data);
   --color-data-soft: var(--data-soft);
   --color-property: var(--property);
+  --color-spot-coral: var(--spot-coral);
+  --color-spot-sun: var(--spot-sun);
+  --color-spot-violet: var(--spot-violet);
   --color-file-xls: var(--file-xls);
   --color-file-pdf: var(--file-pdf);
   --color-file-csv: var(--file-csv);

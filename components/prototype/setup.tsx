@@ -707,9 +707,9 @@ function PropertyChip({ label, others, onMove, onNew }: { label: string; others:
 // ---- Step 3: upload links ----
 
 const HOW = [
-  { icon: Mail, text: "Each company gets an email from RE-IQ with its own private link." },
-  { icon: UploadCloud, text: "Every month, they upload the package there. No login, no template." },
-  { icon: LayoutGrid, text: "The reports land in this workspace, sorted by property." },
+  { icon: Mail, tone: "bg-spot-coral/12 text-spot-coral", text: "Each company gets an email from RE-IQ with its own private link." },
+  { icon: UploadCloud, tone: "bg-spot-sun/15 text-spot-sun", text: "Every month, they upload the package there. No login, no template." },
+  { icon: LayoutGrid, tone: "bg-spot-violet/12 text-spot-violet", text: "The reports land in this workspace, sorted by property." },
 ];
 
 function Links() {
@@ -736,9 +736,11 @@ function Links() {
       </div>
 
       <ol className="grid gap-3 sm:grid-cols-3">
-        {HOW.map(({ icon: Icon, text }) => (
+        {HOW.map(({ icon: Icon, tone, text }) => (
           <li key={text} className="flex flex-col gap-3 rounded-lg border border-border bg-surface p-4">
-            <Icon className="size-4 text-fg-2" strokeWidth={1.75} />
+            <span className={cn("flex size-10 items-center justify-center rounded-lg", tone)}>
+              <Icon className="size-5" strokeWidth={1.75} />
+            </span>
             <span className="text-xs leading-relaxed text-fg">{text}</span>
           </li>
         ))}
