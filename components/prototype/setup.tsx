@@ -227,14 +227,14 @@ function Properties() {
             <table className="w-full text-xs">
               <thead>
                 <tr className="border-b border-border">
-                  <th className="eyebrow h-8 px-4 text-left font-normal">Property</th>
-                  <th className="eyebrow h-8 px-2 text-right font-normal">Units</th>
+                  <th className="text-xs font-medium text-fg-2 h-8 px-4 text-left">Property</th>
+                  <th className="text-xs font-medium text-fg-2 h-8 px-2 text-right">Units</th>
                   {PACKAGE.map((k) => (
-                    <th key={k} className="eyebrow h-8 px-2 text-center font-normal whitespace-nowrap">
+                    <th key={k} className="text-xs font-medium text-fg-2 h-8 px-2 text-center whitespace-nowrap">
                       {SHORT[k] ?? k}
                     </th>
                   ))}
-                  <th className="eyebrow h-8 px-2 text-right font-normal">Files</th>
+                  <th className="text-xs font-medium text-fg-2 h-8 px-2 text-right">Files</th>
                   <th className="w-10" aria-label="Actions" />
                 </tr>
               </thead>

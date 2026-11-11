@@ -85,7 +85,7 @@ export function Table({ columns, children, className, bare }: { columns: Column[
         <thead>
           <tr className="border-b border-border">
             {columns.map((c, i) => (
-              <th key={`${colLabel(c)}-${i}`} scope="col" className={cn("eyebrow h-8 px-3 font-normal whitespace-nowrap first:pl-4 last:pr-4", typeof c !== "string" && c.num && "text-right")}>
+              <th key={`${colLabel(c)}-${i}`} scope="col" className={cn("text-xs font-medium text-fg-2 h-8 px-3 whitespace-nowrap first:pl-4 last:pr-4", typeof c !== "string" && c.num && "text-right")}>
                 {colLabel(c)}
               </th>
             ))}
