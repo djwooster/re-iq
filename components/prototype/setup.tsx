@@ -913,7 +913,7 @@ function Review() {
       )}
 
       <div className="mt-2 flex items-center justify-between border-t border-border pt-5">
-        <Link href={`${B}/managers`} className="text-xs text-fg-2 hover:text-fg">
+        <Link href={`${B}/links`} className="text-xs text-fg-2 hover:text-fg">
           Back
         </Link>
         <span className="flex items-center gap-3">
