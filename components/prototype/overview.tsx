@@ -80,7 +80,7 @@ export function Login() {
 
 const WINDOWS = [16, 26, 36, 46].flatMap((y) => [16, 25, 34].map((x) => ({ x, y })));
 const LOOP = 3;
-const HAND = { x1: "49", y1: "47", x2: "49", stroke: "currentColor", strokeWidth: 1.5, strokeLinecap: "round", style: { transformOrigin: "49px 47px", transformBox: "view-box" } } as const;
+const HAND = { x1: "49", y1: "47", x2: "49", stroke: "currentColor", strokeWidth: 1.5, strokeLinecap: "round" } as const;
 
 /** A building whose windows light up fast while a clock hand sweeps: a month's reports, done quickly. */
 function Timesaver() {
@@ -106,8 +106,13 @@ function Timesaver() {
       {[0, 90, 180, 270].map((deg) => (
         <line key={deg} x1="49" y1="36.5" x2="49" y2="38.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" transform={`rotate(${deg} 49 47)`} />
       ))}
-      <motion.line {...HAND} y2="42" initial={{ rotate: -60 }} animate={still ? undefined : { rotate: 300 }} transition={{ duration: LOOP * 12, ease: "linear", repeat: Infinity }} />
-      <motion.line {...HAND} y2="38.5" animate={still ? undefined : { rotate: 360 }} transition={{ duration: LOOP, ease: "linear", repeat: Infinity }} />
+      {/* SVG's own rotate pivots on the clock's center; Motion's transform origin doesn't. */}
+      <line {...HAND} y2="42" transform="rotate(-60 49 47)">
+        {!still && <animateTransform attributeName="transform" type="rotate" from="-60 49 47" to="300 49 47" dur={`${LOOP * 12}s`} repeatCount="indefinite" />}
+      </line>
+      <line {...HAND} y2="38.5">
+        {!still && <animateTransform attributeName="transform" type="rotate" from="0 49 47" to="360 49 47" dur={`${LOOP}s`} repeatCount="indefinite" />}
+      </line>
       <circle cx="49" cy="47" r="1.25" fill="currentColor" />
     </svg>
   );
