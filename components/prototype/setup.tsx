@@ -139,18 +139,20 @@ function sampleReports(id: string, name: string): Upload[] {
   }));
 }
 
+const filled = (id: string): Draft["properties"][number] => ({ id, name: DEFAULT_NAMES.properties[id], reports: sampleReports(id, DEFAULT_NAMES.properties[id]) });
+
 function Properties() {
   const { state, act } = useWf();
   const d = state.draft;
   const set = act.setDraft;
   const nextId = ALL_PROPERTY_IDS.find((id) => !d.properties.some((p) => p.id === id));
 
-  // Start with one empty property so the form is never blank.
+  // Start filled in (three properties with their reports) so a demo clicks straight through.
   useEffect(() => {
-    set((x) => (x.properties.length ? x : { ...x, properties: [{ id: ALL_PROPERTY_IDS[0], name: "", reports: [] }] }));
+    set((x) => (x.properties.length ? x : { ...x, properties: ALL_PROPERTY_IDS.slice(0, 3).map(filled) }));
   }, [set]);
 
-  const add = () => nextId && set((x) => ({ ...x, properties: [...x.properties, { id: nextId, name: "", reports: [] }] }));
+  const add = () => nextId && set((x) => ({ ...x, properties: [...x.properties, filled(nextId)] }));
   const sample = () =>
     set((x) => ({
       ...x,
@@ -220,7 +222,7 @@ function PropertyCard({ n, p, canRemove }: { n: number; p: DraftProperty; canRem
       <div className="flex items-end gap-3">
         <label className="flex flex-1 flex-col gap-1.5">
           <span className="text-[11px] font-medium text-fg-2">Property name</span>
-          <Input value={p.name} onChange={(e) => update((q) => ({ ...q, name: e.target.value }))} placeholder={n === 0 ? "As it appears on your owner reports" : ""} autoFocus={n > 0 && !p.name} />
+          <Input value={p.name} onChange={(e) => update((q) => ({ ...q, name: e.target.value }))} placeholder={n === 0 ? "As it appears on your owner reports" : ""} />
         </label>
         <span className="num mb-2 text-[11px] whitespace-nowrap text-fg-3">{rentRoll ? `${profile(p.id).units} units · from rent roll` : "Units from rent roll"}</span>
         {canRemove && (
@@ -429,7 +431,7 @@ function Review() {
           {lines.length > 0 && (
             <div className="flex flex-col gap-2">
               <h2 className="text-[13px] font-semibold">Confirm the lines we couldn&apos;t place</h2>
-              <p className="text-xs text-fg-2">{mname("m3")} uses labels we haven&apos;t seen before. Your choice is remembered, so next month maps on its own.</p>
+              <p className="text-xs text-fg-2">{mname("m3")} uses labels we haven&apos;t seen before. Our best guess is filled in; confirm now or later from Close. Your choice is remembered, so next month maps on its own.</p>
               <div className="overflow-hidden rounded-lg border border-border bg-surface">
                 {lines.map((l) => {
                   const confirmed = ok.includes(l.id);
@@ -482,12 +484,7 @@ function Review() {
           Back
         </Link>
         <span className="flex items-center gap-3">
-          {done && ok.length < lines.length && (
-            <button type="button" onClick={finish} className="text-xs text-fg-3 hover:text-fg">
-              Do this later
-            </button>
-          )}
-          <Button disabled={!done || ok.length < lines.length} onClick={finish}>
+          <Button disabled={!done} onClick={finish}>
             Open dashboard
           </Button>
         </span>

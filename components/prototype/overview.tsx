@@ -24,10 +24,11 @@ export function Login() {
   const router = useRouter();
   const { state, act, hydrated } = useWf();
   const [mode, setMode] = useState<"signup" | "signin">("signup");
-  const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
-  const [org, setOrg] = useState("");
-  const [password, setPassword] = useState("");
+  // Filled in so a demo clicks straight through.
+  const [name, setName] = useState("Sam Taylor");
+  const [email, setEmail] = useState("sam@ownerfirm.com");
+  const [org, setOrg] = useState("Owner firm");
+  const [password, setPassword] = useState("prototype-demo");
   const signup = mode === "signup";
   const valid = /.+@.+\..+/.test(email) && password.length >= 8 && (!signup || (name.trim() && org.trim()));
   const field = (label: string, input: React.ReactNode) => (
