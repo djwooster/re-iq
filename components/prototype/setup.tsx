@@ -126,8 +126,8 @@ let seq = 0;
 const uid = () => `u${Date.now().toString(36)}${(seq++).toString(36)}`;
 
 /** The reports a property's manager sent for the month, as sample files. */
-function sampleReports(id: string, name: string): Upload[] {
-  if (!RECEIVED[managerOfId(id).id]) return [];
+function sampleReports(id: string, name: string, all = false): Upload[] {
+  if (!all && !RECEIVED[managerOfId(id).id]) return [];
   const slug = name.replace(/[^A-Za-z0-9]+/g, "_");
   return PACKAGE.filter((r) => !MISSING[id]?.includes(r)).map((r, n) => ({
     id: uid(),
@@ -202,7 +202,6 @@ function Properties() {
         <div className={cn("flex items-center gap-3", empty && "flex-col gap-2")}>
           <UploadCloud className={cn(empty ? "size-5" : "size-4", isDragActive ? "text-fg" : "text-fg-3")} strokeWidth={1.5} />
           <span className="text-xs">{isDragActive ? "Drop to add" : empty ? "Drop all of this month's reports here" : "Drop more reports"}</span>
-          {empty && <span className="text-xs text-fg-3">P&amp;L, T-12, rent roll, box score, AR aging, capex, renovation tracker, GL · Excel, CSV, or PDF · any file names</span>}
           <span className={cn("flex items-center gap-2", empty && "mt-2")}>
             <Button variant="secondary" onClick={choose}>
               Choose files
@@ -213,9 +212,7 @@ function Properties() {
       </div>
 
       {empty && (
-        <div className="flex items-center gap-3 text-xs text-fg-3">
-          Or add one property at a time {addButton}
-        </div>
+        <div>{addButton}</div>
       )}
 
       {!empty && (
@@ -268,10 +265,7 @@ function Properties() {
               </motion.tbody>
             </table>
           </div>
-          <div className="flex flex-wrap items-center justify-between gap-3">
-            {addButton}
-            <p className="text-xs text-fg-3">Missing reports can come later. Each manager gets an upload link in the next step.</p>
-          </div>
+          <div>{addButton}</div>
         </div>
       )}
 
@@ -318,7 +312,6 @@ function FilesDrawer({ id, onClose }: { id: string | null; onClose: () => void }
     if (p && !p.name.trim() && !p.reports.length) act.setDraft((x) => ({ ...x, properties: x.properties.filter((q) => q.id !== p.id) }));
     onClose();
   };
-  const missing = p ? PACKAGE.filter((k) => !p.reports.some((r) => r.kind === k)) : [];
   const names = d.properties.map((q) => q.name || "Unnamed property");
 
   return (
@@ -380,7 +373,6 @@ function FilesDrawer({ id, onClose }: { id: string | null; onClose: () => void }
             ))}
           </ul>
         )}
-        {p && missing.length > 0 && <p className="text-xs text-fg-3">Not added: {missing.join(", ")}.</p>}
         {p && (
           <div {...getRootProps()} className={cn("flex items-center justify-center gap-3 rounded-md border border-dashed px-4 py-4 text-xs transition-colors", isDragActive ? "border-fg-3 bg-fg/[0.035]" : "border-border-strong/70")}>
             <input {...getInputProps()} aria-label={`Add reports for ${p.name || "this property"}`} />
@@ -389,6 +381,15 @@ function FilesDrawer({ id, onClose }: { id: string | null; onClose: () => void }
             <button type="button" onClick={open} className="rounded-md border border-border bg-surface px-2.5 py-1 text-xs font-medium hover:border-border-strong">
               Choose files
             </button>
+            {!p.reports.length && (
+              <button
+                type="button"
+                onClick={() => act.setDraft((x) => ({ ...x, properties: x.properties.map((q) => (q.id === p.id ? { ...q, name: q.name.trim() || DEFAULT_NAMES.properties[q.id], reports: sampleReports(q.id, q.name.trim() || DEFAULT_NAMES.properties[q.id], true) } : q)) }))}
+                className="rounded-md bg-inverted px-2.5 py-1 text-xs font-medium text-inverted-fg hover:opacity-90"
+              >
+                Use sample reports
+              </button>
+            )}
           </div>
         )}
       </div>
@@ -451,10 +452,7 @@ function Managers() {
       </div>
       <label className="flex items-start gap-2.5 text-xs">
         <input type="checkbox" checked={invite} onChange={(e) => setInvite(e.target.checked)} className="mt-0.5 accent-[var(--text-primary)]" />
-        <span>
-          Email each manager their upload link
-          <span className="block text-xs text-fg-3">One message from {PRODUCT_NAME} with the link and the reports you expect each month.</span>
-        </span>
+        <span>Email each manager their upload link</span>
       </label>
       <Footer
         back="properties"
