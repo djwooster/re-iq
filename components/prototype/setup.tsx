@@ -200,13 +200,13 @@ function Properties() {
   const [picked, setPicked] = useState<string[]>([]);
   // The total sits outside the table but lines up under the Units column.
   const unitsTh = useRef<HTMLTableCellElement>(null);
-  const [unitsRight, setUnitsRight] = useState(0);
+  const [unitsEnd, setUnitsEnd] = useState(0);
   const tableShown = d.properties.length > 0 || (d.unassigned?.length ?? 0) > 0;
   useLayoutEffect(() => {
     const th = unitsTh.current;
     const table = th?.closest("table");
     if (!th || !table) return;
-    const measure = () => setUnitsRight(table.offsetWidth - th.offsetLeft - th.offsetWidth);
+    const measure = () => setUnitsEnd(th.offsetLeft + th.offsetWidth);
     measure();
     const ro = new ResizeObserver(measure);
     ro.observe(table);
@@ -357,10 +357,10 @@ function Properties() {
               </motion.tbody>
             </table>
           </div>
-          <div className="relative flex h-10 items-center rounded-lg border border-border bg-surface px-4 text-xs font-medium">
+          {/* Ends 8px past the Units column so the number lands where the column's numbers do (they sit 8px in from the cell edge). */}
+          <div className="relative flex h-10 items-center rounded-lg border border-border bg-surface px-4 text-xs font-medium" style={{ width: unitsEnd ? unitsEnd + 10 : undefined }}>
             <span>Total units</span>
-            {/* 8px is the Units cell's own right padding. */}
-            <span className="num absolute" style={{ right: unitsRight + 8 }}>{fmt.int(d.properties.filter((p) => p.reports.some((r) => r.kind === "Rent roll")).reduce((s, p) => s + profile(p.id).units, 0))}</span>
+            <span className="num absolute right-4">{fmt.int(d.properties.filter((p) => p.reports.some((r) => r.kind === "Rent roll")).reduce((s, p) => s + profile(p.id).units, 0))}</span>
           </div>
           <div>{addButton}</div>
         </div>
