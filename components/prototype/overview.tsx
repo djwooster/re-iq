@@ -40,7 +40,7 @@ export function Login() {
   return (
     <div className="flex min-h-screen flex-col items-center justify-center bg-bg px-4 py-10">
       <div className="flex w-full max-w-[360px] flex-col gap-6">
-        <h1 className="self-center text-center text-[32px] leading-tight font-semibold tracking-[-0.03em] text-fg sm:text-[44px] sm:whitespace-nowrap">Let&apos;s save you some time.</h1>
+        <h1 className="mb-6 self-center text-center text-[32px] leading-tight font-semibold tracking-[-0.03em] text-fg sm:text-[44px] sm:whitespace-nowrap">Let&apos;s save you some time.</h1>
         <form
           className="flex flex-col gap-4 rounded-lg border border-border bg-surface p-5"
           onSubmit={(e) => {
@@ -54,7 +54,7 @@ export function Login() {
           }}
         >
           <div>
-            <h1 className="text-[15px] font-semibold">{signup ? "Create your workspace" : "Sign in"}</h1>
+            <h1 className="text-[15px] font-semibold">{signup ? "Create your account" : "Sign in"}</h1>
             <p className="mt-0.5 text-xs text-fg-3">{signup ? "Then add your properties and last month's reports. Most portfolios are set up in about ten minutes." : "Use your work email."}</p>
           </div>
           {signup && field("Your name", <Input autoComplete="name" value={name} onChange={(e) => setName(e.target.value)} />)}
@@ -62,11 +62,11 @@ export function Login() {
           {signup && field("Firm", <Input autoComplete="organization" value={org} onChange={(e) => setOrg(e.target.value)} placeholder="As your owners know it" />)}
           {field(signup ? "Password · 8 characters or more" : "Password", <Input type="password" autoComplete={signup ? "new-password" : "current-password"} value={password} onChange={(e) => setPassword(e.target.value)} />)}
           <button type="submit" disabled={!valid || !hydrated} className="h-8 rounded-md bg-inverted text-xs font-medium text-inverted-fg transition-opacity hover:opacity-90 disabled:opacity-50">
-            {signup ? "Create workspace" : "Sign in"}
+            {signup ? "Create account" : "Sign in"}
           </button>
         </form>
         <p className="text-center text-xs text-fg-3">
-          {signup ? "Already have a workspace? " : `New to ${PRODUCT_NAME}? `}
+          {signup ? "Already have an account? " : `New to ${PRODUCT_NAME}? `}
           <button type="button" onClick={() => setMode(signup ? "signin" : "signup")} className="font-medium text-fg underline decoration-fg/20 underline-offset-[3px] hover:decoration-fg/60">
             {signup ? "Sign in" : "Create one"}
           </button>
