@@ -632,7 +632,14 @@ function Managers() {
   const unsent = active.filter((m) => ready(m) && !m.sent);
   return (
     <>
-      <Heading title="Who sends you these reports?">Matched from your reports. Check each company and the email its reports come from.</Heading>
+      <div className="flex items-end justify-between gap-4">
+        <Heading title="Who sends you these reports?">Matched from your reports. Check each company and the email its reports come from.</Heading>
+        {unsent.length > 1 && (
+          <Button variant="secondary" icon={<Send className="size-3" />} onClick={() => send(unsent.map((m) => m.id))}>
+            Send all {unsent.length} links
+          </Button>
+        )}
+      </div>
       <div className="flex flex-col gap-3">
         {d.managers.map((m) => {
           const token = tokenOf(m.id);
@@ -685,15 +692,10 @@ function Managers() {
           );
         })}
       </div>
-      <div className="flex flex-wrap items-center justify-between gap-3">
+      <div>
         <Button variant="secondary" icon={<Plus className="size-3.5" />} onClick={() => add()}>
           Add a management company
         </Button>
-        {unsent.length > 1 && (
-          <Button variant="secondary" icon={<Send className="size-3" />} onClick={() => send(unsent.map((m) => m.id))}>
-            Send all {unsent.length} links
-          </Button>
-        )}
       </div>
       <Footer back="properties" next="review" disabled={!active.length || !active.every((m) => m.name.trim() && isEmail(m.email))} />
     </>
