@@ -100,7 +100,7 @@ export function TrendChart<T extends { month: string }>({
             tickFormatter={(m: string) => formatMonth(m, "tiny")}
             tickLine={false}
             axisLine={false}
-            tick={{ fill: "var(--text-muted)", fontSize: 10, fontFamily: "var(--font-geist-mono)" }}
+            tick={{ fill: "var(--text-muted)", fontSize: 10, fontFamily: "var(--font-geist-sans)" }}
             interval="preserveStartEnd"
             minTickGap={16}
             dy={6}
@@ -111,7 +111,7 @@ export function TrendChart<T extends { month: string }>({
             axisLine={false}
             width={52}
             domain={domain ?? ["auto", "auto"]}
-            tick={{ fill: "var(--text-muted)", fontSize: 10, fontFamily: "var(--font-geist-mono)" }}
+            tick={{ fill: "var(--text-muted)", fontSize: 10, fontFamily: "var(--font-geist-sans)" }}
             tickCount={4}
           />
           <Tooltip

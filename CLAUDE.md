@@ -58,8 +58,8 @@ write-back, or AI calls. See `README.md`, `HANDOFF.md`, `TODO.md`.
 - Light is the default theme. Neutral UI; green/red/amber only for state; the one accent (`--data`, steel
   teal in dark) only for data viz and RE-IQ's AI moments. No glows, gradients, or decorative color.
   Hierarchy via opacity and scale.
-- Geist Sans for UI; Geist Mono with tabular numbers (`num`, `eyebrow` utilities) for metrics,
-  table numbers, file names, eyebrow labels. 11–12px body, 13–14px headings.
+- Geist Sans everywhere, no monospace (DJ's call, 2026-11-11). `num` gives tabular numbers for
+  metrics and table columns; `eyebrow` is small uppercase labels. 11–12px body, 13–14px headings.
 - Cards: surface, 1px border, rounded-lg, no shadow. Only modals/drawers get shadows.
 - Motion: fade + 8px rise, 0.3s ease-out, 0.05s stagger. No springs or bounce.
 - Primitives live in `components/ui`; reuse them before adding new ones.

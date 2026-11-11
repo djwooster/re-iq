@@ -16,7 +16,7 @@ const STROKE: Record<Series["style"], { stroke: string; dash?: string; width: nu
   muted: { stroke: "var(--border-strong)", width: 2 },
 };
 
-const TICK = { fill: "var(--text-muted)", fontSize: 10, fontFamily: "var(--font-geist-mono)" };
+const TICK = { fill: "var(--text-muted)", fontSize: 10, fontFamily: "var(--font-geist-sans)" };
 
 export function Legend({ series, threshold }: { series: Series[]; threshold?: string }) {
   return (
@@ -127,7 +127,7 @@ export function Bars({ data, format, highlight, height = 180 }: { data: { label:
         <BarChart data={data} layout="vertical" margin={{ top: 0, right: 48, bottom: 0, left: 0 }}>
           <XAxis type="number" hide />
           <YAxis type="category" dataKey="label" tickLine={false} axisLine={false} width={96} tick={{ ...TICK, fontFamily: "var(--font-geist-sans)", fontSize: 11 }} />
-          <Bar dataKey="value" radius={[0, 3, 3, 0]} barSize={14} label={{ position: "right", formatter: (v: unknown) => format(Number(v)), fill: "var(--text-secondary)", fontSize: 10, fontFamily: "var(--font-geist-mono)" }} animationDuration={500}>
+          <Bar dataKey="value" radius={[0, 3, 3, 0]} barSize={14} label={{ position: "right", formatter: (v: unknown) => format(Number(v)), fill: "var(--text-secondary)", fontSize: 10, fontFamily: "var(--font-geist-sans)" }} animationDuration={500}>
             {data.map((d) => (
               <Cell key={d.label} fill={highlight === undefined || d.label === highlight ? "var(--data)" : "var(--data-soft)"} />
             ))}

@@ -88,7 +88,7 @@
   --color-backdrop: var(--backdrop);
   --shadow-overlay: var(--overlay-shadow);
   --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --font-mono: var(--font-geist-sans);
   --text-2xs: 10px;
   --text-2xs--line-height: 14px;
 }
@@ -136,13 +136,14 @@
   }
 }
 
+/* Numbers: Geist Sans with tabular figures so columns line up. */
 @utility num {
-  font-family: var(--font-geist-mono), ui-monospace, monospace;
+  font-family: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
   font-variant-numeric: tabular-nums;
 }
 
 @utility eyebrow {
-  font-family: var(--font-geist-mono), ui-monospace, monospace;
+  font-family: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
   font-size: 10px;
   line-height: 14px;
   letter-spacing: 0.08em;
