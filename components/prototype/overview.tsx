@@ -3,6 +3,7 @@
 import { ArrowRight } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { motion, useReducedMotion } from "motion/react";
 import { useState } from "react";
 import { Input } from "@/components/ui/controls";
 import { cn } from "@/lib/cn";
@@ -40,6 +41,7 @@ export function Login() {
   return (
     <div className="flex min-h-screen flex-col items-center justify-center bg-bg px-4 py-10">
       <div className="flex w-full max-w-[360px] flex-col gap-6">
+        <Timesaver />
         <h1 className="mb-6 self-center text-center text-[32px] leading-tight font-semibold tracking-[-0.03em] text-fg sm:text-[44px] sm:whitespace-nowrap">Let&apos;s save you some time.</h1>
         <form
           className="flex flex-col gap-4 rounded-lg border border-border bg-surface p-5"
@@ -73,6 +75,47 @@ export function Login() {
         </p>
       </div>
     </div>
+  );
+}
+
+const WINDOWS = [16, 26, 36, 46].flatMap((y) => [16, 25, 34].map((x) => ({ x, y })));
+const LOOP = 3;
+
+/** A building whose windows light up fast while a clock hand sweeps: a month's reports, done quickly. */
+function Timesaver() {
+  const still = useReducedMotion();
+  return (
+    <svg viewBox="0 0 64 64" className="size-14 self-center text-fg" aria-hidden>
+      <rect x="10" y="8" width="36" height="50" rx="2" fill="none" stroke="currentColor" strokeWidth="1.5" />
+      {WINDOWS.map((w, i) => (
+        <motion.rect
+          key={i}
+          x={w.x}
+          y={w.y}
+          width="6"
+          height="6"
+          rx="1"
+          fill="currentColor"
+          initial={{ opacity: still ? 1 : 0.12 }}
+          animate={still ? undefined : { opacity: [0.12, 1, 1, 0.12] }}
+          transition={{ duration: LOOP, times: [0, 0.08, 0.85, 1], delay: i * 0.08, repeat: Infinity, ease: "easeOut" }}
+        />
+      ))}
+      <circle cx="50" cy="48" r="10" fill="var(--bg)" stroke="currentColor" strokeWidth="1.5" />
+      <motion.line
+        x1="50"
+        y1="48"
+        x2="50"
+        y2="41.5"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+        style={{ transformOrigin: "50px 48px", transformBox: "view-box" }}
+        animate={still ? undefined : { rotate: 360 }}
+        transition={{ duration: LOOP, ease: "linear", repeat: Infinity }}
+      />
+      <circle cx="50" cy="48" r="1.25" fill="currentColor" />
+    </svg>
   );
 }
 
