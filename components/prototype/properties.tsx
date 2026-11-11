@@ -5,7 +5,7 @@ import { useState } from "react";
 import { cn } from "@/lib/cn";
 import { TrendChart } from "./chart";
 import { ExceptionLink } from "./exceptions";
-import { fmt, noiVs, scorecard } from "./metrics";
+import { fmt, scorecard } from "./metrics";
 import { EXPENSE_LINES, LAST, MONTHS, MONTH_LONG, REVENUE_LINES, month, periodTotal, profile, reported, unit, unitNumbers, type Occupancy, type UnitStatus } from "./numbers";
 import { PropertyTable } from "./overview";
 import { fmtLongDate, managerOf, property, projectStage } from "./seed";
@@ -43,9 +43,10 @@ export function Scorecard({ id }: { id: string }) {
   const projects = state.projects.filter((x) => x.property === id);
   const pr = profile(id);
   const late = !reported(id, LAST);
-  const n = noiVs(id, state.period, state.compare);
-  const a = periodTotal(id, state.period);
-  const b = periodTotal(id, state.period, state.compare);
+  // "Month" means the latest month this property reported.
+  const monthly = state.period === "Month";
+  const a = monthly ? month(id, pr.through) : periodTotal(id, state.period);
+  const b = monthly ? month(id, pr.through, state.compare) : periodTotal(id, state.period, state.compare);
   const units = unitNumbers(id).map((u) => unit(id, u));
   const perFloor = pr.units / pr.floors;
   const colors = view === "Occupancy" ? OCC_COLOR : RENO_COLOR;
@@ -89,7 +90,7 @@ export function Scorecard({ id }: { id: string }) {
           />
         </Card>
         <Card title={`Income statement · ${state.period === "Month" ? MONTH_LONG[pr.through] : state.period}`} flush>
-          {a && b && n ? (
+          {a && b ? (
             <Table bare columns={["", { label: "Actual", num: true }, { label: state.compare, num: true }, { label: "Variance", num: true }]}>
               {[...REVENUE_LINES, "Effective gross income", ...EXPENSE_LINES, "Net operating income"].map((l) => {
                 const total = l === "Effective gross income" || l === "Net operating income";

@@ -9,8 +9,8 @@ import { cn } from "@/lib/cn";
 import { PRODUCT_NAME } from "@/lib/labels";
 import { TrendChart } from "./chart";
 import { blocker, monthStatus } from "./derive";
-import { fmt, noiTrend, noiVs, portfolioKpis, portfolioNoi, reporting } from "./metrics";
-import { LAST, kpis, profile, reported } from "./numbers";
+import { fmt, noiTrend, noiVs, portfolioKpis, portfolioNoi, reporting, type Compare } from "./metrics";
+import { LAST, kpis, month, profile, reported } from "./numbers";
 import { CLOSE_MONTH, PROPERTIES, STAGES, STAGE_LABEL, TODAY, fmtDate, fmtLongDate, managerOf, projectStage, property, type Exception } from "./seed";
 import { href, Page } from "./shell";
 import { isOverdue, openExceptions, useWf } from "./store";
@@ -216,6 +216,14 @@ function Panel({ title, to, chip, children }: { title: string; to: string; chip:
   );
 }
 
+/** NOI for the last month a property reported, against the comparison. */
+function latestNoi(id: string, compare: Compare) {
+  const m = profile(id).through;
+  const a = month(id, m).noi;
+  const b = month(id, m, compare).noi;
+  return { actual: a, plan: b, variance: a - b, pct: a / b - 1 };
+}
+
 /** All twelve properties, shared by Overview and Properties. */
 export function PropertyTable({ bare }: { bare?: boolean }) {
   const { state } = useWf();
@@ -241,8 +249,8 @@ export function PropertyTable({ bare }: { bare?: boolean }) {
         const open = openExceptions(state, p.id).length;
         const project = state.projects.find((x) => x.property === p.id && x.status === "Active");
         const block = blocker(state, p.id);
-        const n = noiVs(p.id, state.period, state.compare);
         const late = !reported(p.id, LAST);
+        const n = late && state.period === "Month" ? latestNoi(p.id, state.compare) : noiVs(p.id, state.period, state.compare);
         const k = kpis(p.id);
         return (
           <Row key={p.id} href={href.property(p.id)}>
@@ -261,7 +269,7 @@ export function PropertyTable({ bare }: { bare?: boolean }) {
             <Td num>{n ? fmt.usd(n.actual) : "–"}</Td>
             <Td num>
               {n && <Delta value={n.pct} format={fmt.signedPct} />}
-              {late && <span className="ml-1.5 text-[10px] text-fg-3">thru Oct</span>}
+              {late && state.period === "Month" && <span className="ml-1.5 text-[10px] text-fg-3">Oct</span>}
             </Td>
             <Td num>{fmt.pct(k.occupancy)}</Td>
             <Td num>{fmt.pct(k.leased)}</Td>

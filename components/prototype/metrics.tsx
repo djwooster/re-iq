@@ -84,12 +84,15 @@ export function noiTrend(compare: Compare) {
 export function scorecard(id: string) {
   const k = kpis(id);
   const d = debt(id);
-  const n = noiVs(id, "Month", "Budget");
+  // The latest month this property reported, which is October for a late package.
+  const last = month(id, profile(id).through);
+  const plan = month(id, profile(id).through, "Budget");
+  const n = { actual: last.noi, pct: last.noi / plan.noi - 1 };
   const st = (bad: boolean, near = false): Status => (bad ? "breach" : near ? "watch" : "ok");
   const s = (pick: Parameters<typeof series>[1]) => series(id, pick);
   return [
-    { kpi: "Net operating income", value: n ? fmt.usd(n.actual) : "–", sub: n && <SubDelta v={n.pct} />, status: st(!!n && n.pct < -0.03), trend: s((x) => x.noi) },
-    { kpi: "Effective gross income", value: fmt.usd(periodTotal(id, "Month")!.egi), status: st(false), trend: s((_, m) => month(id, m).egi) },
+    { kpi: "Net operating income", value: fmt.usd(n.actual), sub: <SubDelta v={n.pct} />, status: st(n.pct < -0.03), trend: s((x) => x.noi) },
+    { kpi: "Effective gross income", value: fmt.usd(last.egi), status: st(false), trend: s((_, m) => month(id, m).egi) },
     { kpi: "Physical occupancy", value: fmt.pct(k.occupancy), status: st(k.occupancy < 0.93, k.occupancy > 0.965), trend: s((x) => x.occupancy) },
     { kpi: "Economic occupancy", value: fmt.pct(k.economic), sub: <span className="text-fg-3">{fmt.pts(k.economic - k.occupancy)} vs. physical</span>, status: st(k.occupancy - k.economic > 0.05), trend: s((x) => x.economic) },
     { kpi: "Leased % / 60-day exposure", value: `${fmt.pct(k.leased)} / ${fmt.pct(k.exposure)}`, status: st(k.exposure > 0.08), trend: s((x) => x.leased) },
