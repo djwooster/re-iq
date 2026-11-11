@@ -45,8 +45,8 @@ export interface Draft {
   properties: { id: string; name: string; reports: Upload[]; manager?: string }[];
   /** Files RE-IQ couldn't match to a property. */
   unassigned?: Upload[];
-  /** Seeded companies keep their seed id (m1–m4); ones the user adds get a new id. `sent` is when their upload link was emailed. */
-  managers: { id: string; name: string; email: string; properties: string[]; sent?: string }[];
+  /** Seeded companies keep their seed id (m1–m4); ones the user adds get a new id. */
+  managers: { id: string; name: string; email: string; properties: string[] }[];
   reviewed: boolean;
 }
 
