@@ -341,19 +341,11 @@ function Properties() {
                   );
                 })}
               </motion.tbody>
-              <tfoot>
-                <tr aria-hidden className="border-t border-border">
-                  <td colSpan={PACKAGE.length + 5} className="h-2 bg-bg p-0" />
-                </tr>
-                <tr className="border-t border-border bg-fg/[0.02] font-medium">
-                  <td colSpan={3} className="h-10 px-4 whitespace-nowrap">
-                    Total
-                  </td>
-                  <td className="num px-2 text-right">{fmt.int(d.properties.filter((p) => p.reports.some((r) => r.kind === "Rent roll")).reduce((s, p) => s + profile(p.id).units, 0))}</td>
-                  <td colSpan={PACKAGE.length + 1} />
-                </tr>
-              </tfoot>
             </table>
+          </div>
+          <div className="flex h-10 items-center justify-between rounded-lg border border-border bg-surface px-4 text-xs font-medium">
+            <span>Total units</span>
+            <span className="num">{fmt.int(d.properties.filter((p) => p.reports.some((r) => r.kind === "Rent roll")).reduce((s, p) => s + profile(p.id).units, 0))}</span>
           </div>
           <div>{addButton}</div>
         </div>
