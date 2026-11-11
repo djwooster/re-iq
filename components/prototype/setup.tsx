@@ -354,6 +354,7 @@ function FilesDrawer({ id, onClose }: { id: string | null; onClose: () => void }
           {p && (
             <Button
               variant="danger-ghost"
+              icon={<Trash2 className="size-3.5" />}
               onClick={() => {
                 act.setDraft((x) => ({ ...x, properties: x.properties.filter((q) => q.id !== p.id) }));
                 onClose();
@@ -362,7 +363,9 @@ function FilesDrawer({ id, onClose }: { id: string | null; onClose: () => void }
               Delete property
             </Button>
           )}
-          <Button onClick={close}>Done</Button>
+          <Button icon={<Check className="size-3.5" />} onClick={close}>
+            Save
+          </Button>
         </>
       }
     >
