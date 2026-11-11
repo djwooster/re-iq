@@ -278,9 +278,15 @@ function Properties() {
                 })}
               </motion.tbody>
               <tfoot>
+                <tr aria-hidden className="border-t border-border">
+                  <td colSpan={PACKAGE.length + 4} className="h-2 bg-bg p-0" />
+                </tr>
                 <tr className="border-t border-border bg-fg/[0.02] font-medium">
                   <td className="h-10 px-4 whitespace-nowrap">
-                    {d.properties.length} {d.properties.length === 1 ? "property" : "properties"}
+                    Total{" "}
+                    <span className="font-normal text-fg-3">
+                      · {d.properties.length} {d.properties.length === 1 ? "property" : "properties"}
+                    </span>
                   </td>
                   <td className="num px-2 text-right">{fmt.int(d.properties.filter((p) => p.reports.some((r) => r.kind === "Rent roll")).reduce((s, p) => s + profile(p.id).units, 0))}</td>
                   {PACKAGE.map((k) => (
