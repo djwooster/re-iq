@@ -80,12 +80,13 @@ export function Login() {
 
 const WINDOWS = [16, 26, 36, 46].flatMap((y) => [16, 25, 34].map((x) => ({ x, y })));
 const LOOP = 3;
+const HAND = { x1: "49", y1: "47", x2: "49", stroke: "currentColor", strokeWidth: 1.5, strokeLinecap: "round", style: { transformOrigin: "49px 47px", transformBox: "view-box" } } as const;
 
 /** A building whose windows light up fast while a clock hand sweeps: a month's reports, done quickly. */
 function Timesaver() {
   const still = useReducedMotion();
   return (
-    <svg viewBox="0 0 64 64" className="size-14 self-center text-fg" aria-hidden>
+    <svg viewBox="0 0 64 64" className="size-16 self-center text-fg" aria-hidden>
       <rect x="10" y="8" width="36" height="50" rx="2" fill="none" stroke="currentColor" strokeWidth="1.5" />
       {WINDOWS.map((w, i) => (
         <motion.rect
@@ -101,20 +102,13 @@ function Timesaver() {
           transition={{ duration: LOOP, times: [0, 0.08, 0.85, 1], delay: i * 0.08, repeat: Infinity, ease: "easeOut" }}
         />
       ))}
-      <circle cx="50" cy="48" r="10" fill="var(--bg)" stroke="currentColor" strokeWidth="1.5" />
-      <motion.line
-        x1="50"
-        y1="48"
-        x2="50"
-        y2="41.5"
-        stroke="currentColor"
-        strokeWidth="1.5"
-        strokeLinecap="round"
-        style={{ transformOrigin: "50px 48px", transformBox: "view-box" }}
-        animate={still ? undefined : { rotate: 360 }}
-        transition={{ duration: LOOP, ease: "linear", repeat: Infinity }}
-      />
-      <circle cx="50" cy="48" r="1.25" fill="currentColor" />
+      <circle cx="49" cy="47" r="13" fill="var(--bg)" stroke="currentColor" strokeWidth="1.5" />
+      {[0, 90, 180, 270].map((deg) => (
+        <line key={deg} x1="49" y1="36.5" x2="49" y2="38.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" transform={`rotate(${deg} 49 47)`} />
+      ))}
+      <motion.line {...HAND} y2="42" initial={{ rotate: -60 }} animate={still ? undefined : { rotate: 300 }} transition={{ duration: LOOP * 12, ease: "linear", repeat: Infinity }} />
+      <motion.line {...HAND} y2="38.5" animate={still ? undefined : { rotate: 360 }} transition={{ duration: LOOP, ease: "linear", repeat: Infinity }} />
+      <circle cx="49" cy="47" r="1.25" fill="currentColor" />
     </svg>
   );
 }
