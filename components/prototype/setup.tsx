@@ -1,6 +1,6 @@
 "use client";
 
-import { Check, Copy, FileSpreadsheet, FileText, UploadCloud, X } from "lucide-react";
+import { Check, Copy, FileSpreadsheet, FileText, Plus, UploadCloud, X } from "lucide-react";
 import { motion, useReducedMotion } from "motion/react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -172,6 +172,18 @@ function Properties() {
       unassigned: [{ id: uid(), property: "", name: "Scan_0412.pdf", kind: "Other", size: 2_310_000 }],
     }));
 
+  const nextId = ALL_PROPERTY_IDS.find((x) => !d.properties.some((p) => p.id === x));
+  const addOne = () => {
+    if (!nextId) return;
+    set((x) => ({ ...x, properties: [...x.properties, { id: nextId, name: "", reports: [] }] }));
+    setOpen(nextId);
+  };
+  const addButton = (
+    <Button variant="secondary" icon={<Plus className="size-3" />} onClick={addOne} disabled={!nextId}>
+      Add a property
+    </Button>
+  );
+
   const reports = d.properties.reduce((s, p) => s + p.reports.length, 0);
   const loose = d.unassigned ?? [];
   const empty = !d.properties.length && !loose.length;
@@ -199,6 +211,12 @@ function Properties() {
           </span>
         </div>
       </div>
+
+      {empty && (
+        <div className="flex items-center gap-3 text-xs text-fg-3">
+          Or add one property at a time {addButton}
+        </div>
+      )}
 
       {!empty && (
         <div className="flex flex-col gap-2">
@@ -250,7 +268,10 @@ function Properties() {
               </motion.tbody>
             </table>
           </div>
-          <p className="text-xs text-fg-3">Missing reports can come later. Each manager gets an upload link in the next step.</p>
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            {addButton}
+            <p className="text-xs text-fg-3">Missing reports can come later. Each manager gets an upload link in the next step.</p>
+          </div>
         </div>
       )}
 
@@ -292,19 +313,24 @@ function FilesDrawer({ id, onClose }: { id: string | null; onClose: () => void }
       };
     });
   const removeFile = (fileId: string) => act.setDraft((x) => ({ ...x, properties: x.properties.map((q) => ({ ...q, reports: q.reports.filter((u) => u.id !== fileId) })), unassigned: (x.unassigned ?? []).filter((u) => u.id !== fileId) }));
+  // Closing a property that was added and left untouched drops it again.
+  const close = () => {
+    if (p && !p.name.trim() && !p.reports.length) act.setDraft((x) => ({ ...x, properties: x.properties.filter((q) => q.id !== p.id) }));
+    onClose();
+  };
   const missing = p ? PACKAGE.filter((k) => !p.reports.some((r) => r.kind === k)) : [];
   const names = d.properties.map((q) => q.name || "Unnamed property");
 
   return (
     <Drawer
       open={!!id && (id === "unassigned" || !!p)}
-      onClose={onClose}
+      onClose={close}
       width={520}
       eyebrow={id === "unassigned" ? "Files" : "Property"}
       title={id === "unassigned" ? "Files we couldn't match" : p?.name || "Unnamed property"}
       footer={
         <>
-          {p && d.properties.length > 1 && (
+          {p && (
             <Button
               variant="ghost"
               onClick={() => {
@@ -315,7 +341,7 @@ function FilesDrawer({ id, onClose }: { id: string | null; onClose: () => void }
               Remove property
             </Button>
           )}
-          <Button onClick={onClose}>Done</Button>
+          <Button onClick={close}>Done</Button>
         </>
       }
     >
@@ -323,7 +349,7 @@ function FilesDrawer({ id, onClose }: { id: string | null; onClose: () => void }
         {p && (
           <label className="flex flex-col gap-1.5">
             <span className="text-xs font-medium text-fg-2">Property name</span>
-            <Input value={p.name} onChange={(e) => act.setDraft((x) => ({ ...x, properties: x.properties.map((q) => (q.id === p.id ? { ...q, name: e.target.value } : q)) }))} />
+            <Input value={p.name} autoFocus={!p.name} placeholder="As it appears on your owner reports" onChange={(e) => act.setDraft((x) => ({ ...x, properties: x.properties.map((q) => (q.id === p.id ? { ...q, name: e.target.value } : q)) }))} />
           </label>
         )}
         {id === "unassigned" && <p className="text-xs text-fg-2">Pick the property each file belongs to, or remove it.</p>}
