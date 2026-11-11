@@ -267,7 +267,7 @@ function Properties() {
                           }}
                           aria-label={`Delete ${p.name || "property"}`}
                           title="Delete property"
-                          className="rounded-md p-1.5 text-fg-3 opacity-0 transition-[opacity,color,background-color] group-hover:opacity-100 hover:bg-fg/[0.06] hover:text-unfavorable focus-visible:opacity-100"
+                          className="rounded-md p-1.5 text-fg-3 transition-colors hover:bg-fg/[0.06] hover:text-unfavorable"
                         >
                           <Trash2 className="size-3.5" />
                         </button>
