@@ -255,7 +255,7 @@ function Properties() {
                       <td className="num px-2 text-right text-fg-2">{rentRoll ? profile(p.id).units : "–"}</td>
                       {PACKAGE.map((k) => (
                         <td key={k} className="px-2 text-center">
-                          {p.reports.some((r) => r.kind === k) ? <Check className="mx-auto size-3.5 text-favorable" aria-label="Added" /> : <span className="text-fg-3" aria-label="Missing">–</span>}
+                          {p.reports.some((r) => r.kind === k) ? <Check className="mx-auto size-3.5 text-favorable" aria-label="Added" /> : <X className="mx-auto size-3.5 text-unfavorable/60" aria-label="Missing" />}
                         </td>
                       ))}
                       <td className="num px-2 text-right whitespace-nowrap">{p.reports.length || <span className="text-fg-3">0</span>}</td>
