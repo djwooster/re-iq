@@ -657,6 +657,16 @@ export const SCORECARD = KPIS.slice(0, 14);
 
 export const fmtDate = (iso: string) => new Date(`${iso}T12:00:00Z`).toLocaleDateString("en-US", { month: "short", day: "numeric", timeZone: "UTC" });
 export const fmtLongDate = (iso: string) => new Date(`${iso}T12:00:00Z`).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric", timeZone: "UTC" });
+/** A real moment (not the demo clock) as "today", "yesterday" or a short date. For things the user just did. */
+export const fmtWhen = (iso: string) => {
+  const d = new Date(iso);
+  const now = new Date();
+  const day = (x: Date) => new Date(x.getFullYear(), x.getMonth(), x.getDate()).getTime();
+  const ago = Math.round((day(now) - day(d)) / 86_400_000);
+  if (ago === 0) return "today";
+  if (ago === 1) return "yesterday";
+  return d.toLocaleDateString("en-US", { month: "short", day: "numeric", ...(d.getFullYear() !== now.getFullYear() && { year: "numeric" }) });
+};
 export const daysBetween = (from: string, to: string) => Math.round((Date.parse(to) - Date.parse(from)) / 86_400_000);
 
 export const days = (n: number) => `${n} day${n === 1 ? "" : "s"}`;

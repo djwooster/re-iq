@@ -15,7 +15,7 @@ import { PRODUCT_NAME } from "@/lib/labels";
 import { GL_LINES, uploadUrl, useCopyLink } from "./close";
 import { fmt } from "./metrics";
 import { profile } from "./numbers";
-import { ALL_PROPERTY_IDS, CHART_OF_ACCOUNTS, CLOSE_MONTH, DEFAULT_NAMES, EXCEPTIONS, MANAGERS, MAPPING, MISSING, PACKAGE, RECEIVED, TODAY, detectKind, fmtDate, guessProperty, managerOfId, type ManagerId, type ReportKind, type Upload } from "./seed";
+import { ALL_PROPERTY_IDS, CHART_OF_ACCOUNTS, CLOSE_MONTH, DEFAULT_NAMES, EXCEPTIONS, MANAGERS, MAPPING, MISSING, PACKAGE, RECEIVED, detectKind, fmtWhen, guessProperty, managerOfId, type ManagerId, type ReportKind, type Upload } from "./seed";
 import { STEPS, type StepId } from "./setup-steps";
 import { useWf, type Draft } from "./store";
 import { Button, Select } from "./ui";
@@ -623,7 +623,7 @@ function Managers() {
     }));
   };
   const send = (ids: string[]) => {
-    act.setDraft((x) => ({ ...x, managers: x.managers.map((m) => (ids.includes(m.id) ? { ...m, sent: TODAY } : m)) }));
+    act.setDraft((x) => ({ ...x, managers: x.managers.map((m) => (ids.includes(m.id) ? { ...m, sent: new Date().toISOString() } : m)) }));
     const sent = d.managers.filter((m) => ids.includes(m.id));
     toast(sent.length === 1 ? `Upload link sent to ${sent[0].name}` : `Upload links sent to ${sent.length} companies`, { detail: sent.length === 1 ? sent[0].email : undefined });
   };
@@ -669,7 +669,7 @@ function Managers() {
                   </button>
                   {m.sent ? (
                       <span className="flex items-center gap-2 text-xs text-fg-2">
-                        <Check className="size-3 text-favorable" /> Sent {fmtDate(m.sent)}
+                        <Check className="size-3 text-favorable" /> Sent {fmtWhen(m.sent)}
                         <button type="button" onClick={() => send([m.id])} className="font-medium text-fg hover:underline">
                           Resend
                         </button>
