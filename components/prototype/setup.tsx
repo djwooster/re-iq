@@ -37,8 +37,8 @@ export function Setup({ step }: { step: StepId }) {
   const furthest = [2, 1, 0].find(reachable) ?? 0;
   return (
     <div className="flex min-h-screen flex-col bg-bg text-fg">
-      <header className="flex h-12 items-center justify-between border-b border-border px-5">
-        <Link href="/prototype" className="num text-[13px] font-semibold tracking-[0.06em]">
+      <header className="grid h-12 grid-cols-[1fr_auto_1fr] items-center border-b border-border px-5">
+        <Link href="/prototype" className="num justify-self-start text-[13px] font-semibold tracking-[0.06em]">
           {PRODUCT_NAME}
         </Link>
         <ol className="hidden items-center gap-1 md:flex" aria-label="Setup steps">
@@ -59,9 +59,7 @@ export function Setup({ step }: { step: StepId }) {
             );
           })}
         </ol>
-        <Link href="/prototype" className="text-xs text-fg-3 hover:text-fg">
-          Save and exit
-        </Link>
+        <span aria-hidden />
       </header>
       <motion.main key={step} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3, ease: "easeOut" }} className="mx-auto flex w-full max-w-[760px] flex-1 flex-col gap-6 px-5 py-10">
         {!hydrated ? null : !reachable(i) ? (
@@ -103,6 +101,9 @@ function Footer({ back, next, disabled, label = "Continue", onNext, hint }: { ba
       )}
       <span className="flex items-center gap-3">
         {hint && <span className="num text-xs text-fg-3">{hint}</span>}
+        <Button variant="secondary" href="/prototype">
+          Save and exit
+        </Button>
         <Button
           disabled={disabled}
           onClick={() => {

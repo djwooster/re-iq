@@ -32,7 +32,7 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(function Button
       aria-busy={loading || undefined}
       className={cn(
         "relative inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 whitespace-nowrap rounded-md font-medium transition-[background-color,border-color,opacity,color] duration-150 ease-out disabled:cursor-not-allowed disabled:opacity-50",
-        size === "sm" ? "px-3 py-1.5 text-xs" : "px-2 py-1 text-[11px]",
+        size === "sm" ? "min-w-[100px] px-3 py-1.5 text-[13px]" : "px-2 py-1 text-[11px]",
         VARIANTS[variant],
         className,
       )}
