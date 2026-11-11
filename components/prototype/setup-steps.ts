@@ -1,8 +1,7 @@
 /** Setup steps, outside the client component so the route can list them at build time. */
 export const STEPS = [
-  { id: "portfolio", label: "Properties" },
+  { id: "properties", label: "Properties and reports" },
   { id: "managers", label: "Managers" },
-  { id: "upload", label: "November packages" },
-  { id: "mapping", label: "Review mapping" },
+  { id: "review", label: "Review" },
 ] as const;
 export type StepId = (typeof STEPS)[number]["id"];

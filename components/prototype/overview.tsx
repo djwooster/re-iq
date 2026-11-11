@@ -48,9 +48,9 @@ export function Login() {
             e.preventDefault();
             if (signup) {
               act.signUp({ name: name.trim(), email: email.trim() }, org.trim());
-              router.push("/prototype/setup/portfolio");
+              router.push("/prototype/setup/properties");
             } else {
-              router.push(state.setupDone ? "/prototype/overview" : "/prototype/setup/portfolio");
+              router.push(state.setupDone ? "/prototype/overview" : "/prototype/setup/properties");
             }
           }}
         >

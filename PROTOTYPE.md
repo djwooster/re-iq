@@ -12,13 +12,15 @@ Dec 14, 2026, the November close.
 1. `/prototype`: create a workspace (name, work email, firm, password), or sign in. A new
    workspace has no data: every app page sends you to setup until it's finished, and signing in
    before then resumes setup.
-2. `/prototype/setup/portfolio`: firm name; import a property list (simulated); rename properties.
-3. `/prototype/setup/managers`: management companies found in the list, reports emails, upload links,
-   optional email invite.
-4. `/prototype/setup/upload`: drop November packages (simulated): files by manager, a missing report,
-   one manager not in yet, then reading, mapping, reconciliation, and threshold checks.
-5. `/prototype/setup/mapping`: confirm the three GL labels nobody can guess; land on the Overview.
+2. `/prototype/setup/properties`: one card per property: property name and that property's
+   reports (drop several at once; each gets a detected type you can change). "Add another
+   property" adds a card; "Fill in the sample portfolio" fills all twelve.
+3. `/prototype/setup/managers`: the management companies behind those properties, reports emails,
+   upload links, optional email invite.
+4. `/prototype/setup/review`: reading, mapping, reconciliation, and threshold checks, then the GL
+   labels to confirm; "Open dashboard" lands on the Overview.
 
+The dashboard always shows the twelve-property sample portfolio; setup only renames it.
 Names entered in setup appear everywhere, including seeded logs, tasks, and approvals.
 State persists in the browser (`localStorage`, key `reiq-prototype-v1`); the user menu's
 "Start over" resets it.
@@ -39,7 +41,10 @@ State persists in the browser (`localStorage`, key `reiq-prototype-v1`); the use
 
 ## Not real
 
-- Parsing: dropping files (or "Use the sample files") always runs the sample packages.
+From here on the prototype stays lightweight: a hi-fi wireframe with hard-coded content, not new state or data wiring.
+
+
+- Parsing: dropped files are listed with a type guessed from the name; nothing reads their contents.
 - Emails, reminders, exports, and copied links only show a toast.
 - Mapping choices made in setup aren't remembered per label; only "approved" is.
 - Several module tabs (GL detail, AP aging, funnel, work orders, inspections) use plausible

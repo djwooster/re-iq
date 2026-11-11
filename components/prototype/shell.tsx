@@ -162,7 +162,7 @@ export function Shell({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   // No workspace data exists until setup finishes, so send unfinished accounts there.
   useEffect(() => {
-    if (hydrated && !state.setupDone) router.replace("/prototype/setup/portfolio");
+    if (hydrated && !state.setupDone) router.replace("/prototype/setup/properties");
   }, [hydrated, state.setupDone, router]);
   if (!hydrated || !state.setupDone) return null;
   return (

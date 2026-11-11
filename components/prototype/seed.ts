@@ -57,14 +57,49 @@ export const PROPERTIES: Property[] = [
 
 export const property = (id: string) => PROPERTIES.find((p) => p.id === id);
 
+const ALL_PROPERTIES = [...PROPERTIES];
+const ALL_MANAGERS = [...MANAGERS];
+export const ALL_PROPERTY_IDS = ALL_PROPERTIES.map((p) => p.id);
+export const managerOfId = (propertyId: string) => ALL_MANAGERS.find((m) => m.id === ALL_PROPERTIES.find((p) => p.id === propertyId)!.manager)!;
+
 /**
- * Renames properties and managers in place. The seed is module state, so
- * every screen picks the names up on its next render; the store calls this
- * when setup finishes and when saved state loads.
+ * Sets which properties the workspace has and what they're called, in place.
+ * The seed is module state, so every screen picks this up on its next render;
+ * the store calls it when setup finishes and when saved state loads. Managers
+ * without a property in the workspace drop out with them.
  */
-export function applyNames(names: Names) {
-  for (const p of PROPERTIES) p.name = names.properties[p.id] ?? p.name;
-  for (const m of MANAGERS) Object.assign(m, names.managers[m.id]);
+export function applyWorkspace(names: Names, ids: string[] = []) {
+  const keep = ids.length ? ids : ALL_PROPERTY_IDS;
+  PROPERTIES.splice(0, PROPERTIES.length, ...ALL_PROPERTIES.filter((p) => keep.includes(p.id)));
+  MANAGERS.splice(0, MANAGERS.length, ...ALL_MANAGERS.filter((m) => PROPERTIES.some((p) => p.manager === m.id)));
+  for (const p of ALL_PROPERTIES) p.name = names.properties[p.id] ?? p.name;
+  for (const m of ALL_MANAGERS) Object.assign(m, names.managers[m.id]);
+}
+
+// ---- Reports added during setup ----
+
+export type ReportKind = (typeof PACKAGE)[number] | "Other";
+
+export interface Upload {
+  id: string;
+  property: string;
+  name: string;
+  kind: ReportKind;
+  size: number;
+}
+
+/** A first guess at what a file is, from its name. The user can change it. */
+export function detectKind(file: string): ReportKind {
+  const f = file.toLowerCase();
+  if (/rent ?roll|\brr\b/.test(f)) return "Rent roll";
+  if (/t-?12|twelve|trailing/.test(f)) return "T-12";
+  if (/p ?& ?l|pnl|income|profit|operating statement/.test(f)) return "P&L";
+  if (/box/.test(f)) return "Box score";
+  if (/aging|delinq|receivable|\bar\b/.test(f)) return "AR aging";
+  if (/reno|interior|unit upgrade/.test(f)) return "Renovation tracker";
+  if (/capex|capital/.test(f)) return "Capex";
+  if (/\bgl\b|ledger|general/.test(f)) return "GL";
+  return "Other";
 }
 export const manager = (id: string) => MANAGERS.find((m) => m.id === id)!;
 export const managerOf = (propertyId: string) => manager(property(propertyId)!.manager);

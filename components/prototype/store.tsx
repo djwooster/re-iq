@@ -4,10 +4,8 @@ import { createContext, useContext, useEffect, useMemo, useRef, useState } from 
 import {
   APPROVALS,
   DEFAULT_NAMES,
-  MANAGERS,
   ORG,
-  PROPERTIES,
-  applyNames,
+  applyWorkspace,
   DECISIONS,
   EXCEPTIONS,
   ME,
@@ -27,6 +25,7 @@ import {
   type Task,
   type TaskStatus,
   type Names,
+  type Upload,
 } from "./seed";
 
 /**
@@ -41,9 +40,10 @@ export type Compare = "Budget" | "Prior year" | "Underwriting";
 /** What the user enters during setup before the workspace exists. */
 export interface Draft {
   org: string;
-  properties: { id: string; name: string; units: number }[];
+  /** Each property's id is a slot in the seed (a–l), in the order they're added. */
+  properties: { id: string; name: string; reports: Upload[] }[];
   managers: { id: ManagerId; name: string; email: string; properties: string[] }[];
-  uploaded: boolean;
+  reviewed: boolean;
 }
 
 interface State {
@@ -51,6 +51,9 @@ interface State {
   user: { name: string; email: string };
   /** False until setup finishes; the workspace has no data before then. */
   setupDone: boolean;
+  /** Properties in the workspace. Empty means all of them (the demo). */
+  included: string[];
+  uploads: Upload[];
   names: Names;
   draft: Draft;
   exceptions: Exception[];
@@ -64,12 +67,14 @@ interface State {
   compare: Compare;
 }
 
-const emptyDraft = (): Draft => ({ org: "", properties: [], managers: [], uploaded: false });
+const emptyDraft = (): Draft => ({ org: "", properties: [], managers: [], reviewed: false });
 
 const initial = (): State => ({
   org: ORG,
   user: { name: "Asset manager", email: "am@ownerfirm.com" },
   setupDone: false,
+  included: [],
+  uploads: [],
   names: DEFAULT_NAMES,
   draft: emptyDraft(),
   exceptions: EXCEPTIONS,
@@ -214,13 +219,21 @@ function useActions(set: React.Dispatch<React.SetStateAction<State>>) {
             properties: { ...DEFAULT_NAMES.properties, ...Object.fromEntries(d.properties.map((p) => [p.id, p.name.trim() || DEFAULT_NAMES.properties[p.id]])) },
             managers: { ...DEFAULT_NAMES.managers, ...Object.fromEntries(d.managers.map((m) => [m.id, { name: m.name.trim() || DEFAULT_NAMES.managers[m.id].name, email: m.email.trim() }])) },
           };
-          return { ...renamed(initial(), names), org: d.org.trim() || ORG, names, draft: s.draft, user: s.user, setupDone: true };
+          // The dashboard always shows the sample portfolio; setup only renames it.
+          return {
+            ...renamed(initial(), names, []),
+            org: d.org.trim() || ORG,
+            names,
+            draft: s.draft,
+            user: s.user,
+            setupDone: true,
+          };
         }),
       reset: () => {
         try {
           localStorage.removeItem(KEY);
         } catch {}
-        applyNames(DEFAULT_NAMES);
+        applyWorkspace(DEFAULT_NAMES);
         set(initial());
       },
       approveMapping: (ids: string[]) => set((s) => ({ ...s, mapped: [...new Set([...s.mapped, ...ids])] })),
@@ -232,17 +245,17 @@ function useActions(set: React.Dispatch<React.SetStateAction<State>>) {
 type Actions = ReturnType<typeof useActions>;
 const Ctx = createContext<{ state: State; act: Actions; hydrated: boolean } | null>(null);
 
-const KEY = "reiq-prototype-v1";
+const KEY = "reiq-prototype-v2";
 
 /**
  * The seed's text names managers and properties by their default names
  * ("Waiting on Manager 2"). After setup renames them, rewrite that text so
  * logs, tasks, and approvals say the new names too.
  */
-function renamed(s: State, names: Names): State {
-  applyNames(names);
-  const mgr = new Map(MANAGERS.map((m, i) => [`Manager ${i + 1}`, names.managers[m.id].name]));
-  const prop = new Map(PROPERTIES.map((p) => [DEFAULT_NAMES.properties[p.id], names.properties[p.id]]));
+function renamed(s: State, names: Names, included: string[]): State {
+  applyWorkspace(names, included);
+  const mgr = new Map(Object.entries(DEFAULT_NAMES.managers).map(([id, m]) => [m.name, names.managers[id as ManagerId].name]));
+  const prop = new Map(Object.entries(DEFAULT_NAMES.properties).map(([id, n]) => [n, names.properties[id]]));
   const json = JSON.stringify(s)
     .replace(/Manager [1-4]\b/g, (x) => JSON.stringify(mgr.get(x) ?? x).slice(1, -1))
     .replace(/Property [A-L]\b/g, (x) => JSON.stringify(prop.get(x) ?? x).slice(1, -1));
@@ -262,7 +275,7 @@ export function WfStore({ children }: { children: React.ReactNode }) {
       const raw = localStorage.getItem(KEY);
       if (raw) {
         const saved = JSON.parse(raw) as State;
-        applyNames(saved.names);
+        applyWorkspace(saved.names, saved.included);
         // eslint-disable-next-line react-hooks/set-state-in-effect -- one-time hydration from storage
         set(saved);
       }
