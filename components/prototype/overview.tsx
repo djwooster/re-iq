@@ -78,42 +78,45 @@ export function Login() {
   );
 }
 
-const WINDOWS = [16, 26, 36, 46].flatMap((y) => [16, 25, 34].map((x) => ({ x, y })));
+// Drawn on a 96px grid at 1:1 with 2px strokes on whole pixels, so it renders crisp.
+const WINDOWS = [24, 39, 54, 69].flatMap((y) => [24, 37, 50].map((x) => ({ x, y })));
 const LOOP = 3;
-const HAND = { x1: "49", y1: "47", x2: "49", stroke: "currentColor", strokeWidth: 1.5, strokeLinecap: "round" } as const;
+const C = { x: 73, y: 70, r: 19 };
+const HAND = { x1: C.x, y1: C.y, x2: C.x, stroke: "currentColor", strokeWidth: 2, strokeLinecap: "round" } as const;
+const turn = (from: number) => `${from} ${C.x} ${C.y}`;
 
 /** A building whose windows light up fast while a clock hand sweeps: a month's reports, done quickly. */
 function Timesaver() {
   const still = useReducedMotion();
   return (
-    <svg viewBox="0 0 64 64" className="-mb-3 size-24 self-center text-fg" aria-hidden>
-      <rect x="10" y="8" width="36" height="50" rx="2" fill="none" stroke="currentColor" strokeWidth="1.5" />
+    <svg viewBox="0 0 96 96" width="96" height="96" className="-mb-3 self-center text-fg" aria-hidden>
+      <rect x="15" y="12" width="54" height="76" rx="3" fill="none" stroke="currentColor" strokeWidth="2" />
       {WINDOWS.map((w, i) => (
         <motion.rect
           key={i}
           x={w.x}
           y={w.y}
-          width="6"
-          height="6"
-          rx="1"
+          width="9"
+          height="9"
+          rx="1.5"
           fill="currentColor"
           initial={{ opacity: still ? 1 : 0.12 }}
           animate={still ? undefined : { opacity: [0.12, 1, 1, 0.12] }}
           transition={{ duration: LOOP, times: [0, 0.08, 0.85, 1], delay: i * 0.08, repeat: Infinity, ease: "easeOut" }}
         />
       ))}
-      <circle cx="49" cy="47" r="13" fill="var(--bg)" stroke="currentColor" strokeWidth="1.5" />
+      <circle cx={C.x} cy={C.y} r={C.r} fill="var(--bg)" stroke="currentColor" strokeWidth="2" />
       {[0, 90, 180, 270].map((deg) => (
-        <line key={deg} x1="49" y1="36.5" x2="49" y2="38.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" transform={`rotate(${deg} 49 47)`} />
+        <line key={deg} x1={C.x} y1={C.y - C.r + 4} x2={C.x} y2={C.y - C.r + 7} stroke="currentColor" strokeWidth="2" strokeLinecap="round" transform={`rotate(${turn(deg)})`} />
       ))}
       {/* SVG's own rotate pivots on the clock's center; Motion's transform origin doesn't. */}
-      <line {...HAND} y2="42" transform="rotate(-60 49 47)">
-        {!still && <animateTransform attributeName="transform" type="rotate" from="-60 49 47" to="300 49 47" dur={`${LOOP * 12}s`} repeatCount="indefinite" />}
+      <line {...HAND} y2={C.y - 8} transform={`rotate(${turn(-60)})`}>
+        {!still && <animateTransform attributeName="transform" type="rotate" from={turn(-60)} to={turn(300)} dur={`${LOOP * 12}s`} repeatCount="indefinite" />}
       </line>
-      <line {...HAND} y2="38.5">
-        {!still && <animateTransform attributeName="transform" type="rotate" from="0 49 47" to="360 49 47" dur={`${LOOP}s`} repeatCount="indefinite" />}
+      <line {...HAND} y2={C.y - 13}>
+        {!still && <animateTransform attributeName="transform" type="rotate" from={turn(0)} to={turn(360)} dur={`${LOOP}s`} repeatCount="indefinite" />}
       </line>
-      <circle cx="49" cy="47" r="1.25" fill="currentColor" />
+      <circle cx={C.x} cy={C.y} r="2" fill="currentColor" />
     </svg>
   );
 }
