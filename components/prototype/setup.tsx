@@ -1,6 +1,6 @@
 "use client";
 
-import { Check, Copy, FileSpreadsheet, FileText, Plus, Trash2, UploadCloud, X } from "lucide-react";
+import { Building2, Check, Copy, FileSpreadsheet, FileText, Plus, Trash2, UploadCloud, X } from "lucide-react";
 import { motion, useReducedMotion } from "motion/react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -347,6 +347,7 @@ function FilesDrawer({ id, onClose }: { id: string | null; onClose: () => void }
       onClose={close}
       width={520}
       eyebrow={id === "unassigned" ? "Files" : "Property"}
+      icon={id === "unassigned" ? undefined : <Building2 className="size-4" strokeWidth={1.75} />}
       title={id === "unassigned" ? "Files we couldn't match" : p?.name || "Unnamed property"}
       footer={
         <>
