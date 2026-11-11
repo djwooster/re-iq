@@ -86,7 +86,7 @@ const HAND = { x1: "49", y1: "47", x2: "49", stroke: "currentColor", strokeWidth
 function Timesaver() {
   const still = useReducedMotion();
   return (
-    <svg viewBox="0 0 64 64" className="size-16 self-center text-fg" aria-hidden>
+    <svg viewBox="0 0 64 64" className="-mb-3 size-24 self-center text-fg" aria-hidden>
       <rect x="10" y="8" width="36" height="50" rx="2" fill="none" stroke="currentColor" strokeWidth="1.5" />
       {WINDOWS.map((w, i) => (
         <motion.rect
