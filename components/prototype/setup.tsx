@@ -1,12 +1,13 @@
 "use client";
 
-import { Check, Copy, FileSpreadsheet, FileText, Plus, UploadCloud, X } from "lucide-react";
-import { AnimatePresence, motion, useReducedMotion } from "motion/react";
+import { Check, Copy, FileSpreadsheet, FileText, UploadCloud, X } from "lucide-react";
+import { motion, useReducedMotion } from "motion/react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useDropzone } from "react-dropzone";
 import { Input } from "@/components/ui/controls";
+import { Drawer } from "@/components/ui/overlay";
 import { useToast } from "@/components/ui/toast";
 import { cn } from "@/lib/cn";
 import { formatFileSize } from "@/lib/format";
@@ -14,7 +15,7 @@ import { PRODUCT_NAME } from "@/lib/labels";
 import { GL_LINES, uploadUrl, useCopyLink } from "./close";
 import { fmt } from "./metrics";
 import { profile } from "./numbers";
-import { ALL_PROPERTY_IDS, CHART_OF_ACCOUNTS, CLOSE_MONTH, DEFAULT_NAMES, EXCEPTIONS, MANAGERS, MAPPING, MISSING, PACKAGE, RECEIVED, detectKind, managerOfId, type ManagerId, type ReportKind, type Upload } from "./seed";
+import { ALL_PROPERTY_IDS, CHART_OF_ACCOUNTS, CLOSE_MONTH, DEFAULT_NAMES, EXCEPTIONS, MANAGERS, MAPPING, MISSING, PACKAGE, RECEIVED, detectKind, guessProperty, managerOfId, type ManagerId, type ReportKind, type Upload } from "./seed";
 import { STEPS, type StepId } from "./setup-steps";
 import { useWf, type Draft } from "./store";
 import { Button, Chip, Select } from "./ui";
@@ -26,8 +27,6 @@ import { Button, Chip, Select } from "./ui";
  */
 
 const B = "/prototype/setup";
-const EASE = [0.16, 1, 0.3, 1] as const;
-const MAX = ALL_PROPERTY_IDS.length;
 
 export function Setup({ step }: { step: StepId }) {
   const i = STEPS.findIndex((s) => s.id === step);
@@ -133,152 +132,241 @@ function sampleReports(id: string, name: string): Upload[] {
   return PACKAGE.filter((r) => !MISSING[id]?.includes(r)).map((r, n) => ({
     id: uid(),
     property: id,
-    name: `${slug}_${r.replace(/[^A-Za-z0-9]+/g, "")}_Nov2026.${r === "GL" || r === "Capex" ? "csv" : r === "Renovation tracker" ? "pdf" : "xlsx"}`,
+    name: `${slug}_${r.replace(/(^|\s)(\w)/g, (_, sp, c: string) => c.toUpperCase()).replace(/[^A-Za-z0-9]+/g, "")}_Nov2026.${r === "GL" || r === "Capex" ? "csv" : r === "Renovation tracker" ? "pdf" : "xlsx"}`,
     kind: r,
     size: 38_000 + ((id.charCodeAt(0) * 97 + n * 7919) % 900_000),
   }));
 }
 
-const blank = (id: string): Draft["properties"][number] => ({ id, name: "", reports: [] });
+/** Puts dropped files with a property (matching names first, then new rows) and a report type. */
+function sort(d: Draft, files: { name: string; size: number }[]): Draft {
+  const properties = d.properties.map((p) => ({ ...p, reports: [...p.reports] }));
+  const unassigned = [...(d.unassigned ?? [])];
+  for (const f of files) {
+    const guess = guessProperty(f.name);
+    let p = guess ? properties.find((x) => x.name.toLowerCase() === guess.toLowerCase()) : undefined;
+    if (!p && guess) {
+      const id = ALL_PROPERTY_IDS.find((x) => !properties.some((y) => y.id === x));
+      if (id) properties.push((p = { id, name: guess, reports: [] }));
+    }
+    const upload = { id: uid(), property: p?.id ?? "", name: f.name, kind: detectKind(f.name), size: f.size };
+    if (p) p.reports.push(upload);
+    else unassigned.push(upload);
+  }
+  return { ...d, properties, unassigned };
+}
+
+const SHORT: Record<string, string> = { "Renovation tracker": "Reno tracker" };
 
 function Properties() {
   const { state, act } = useWf();
   const d = state.draft;
   const set = act.setDraft;
-  const nextId = ALL_PROPERTY_IDS.find((id) => !d.properties.some((p) => p.id === id));
-
-  // Start with one blank property; "Fill with sample reports" fills the form in one click.
-  useEffect(() => {
-    set((x) => (x.properties.length ? x : { ...x, properties: [blank(ALL_PROPERTY_IDS[0])] }));
-  }, [set]);
-
-  const add = () => nextId && set((x) => ({ ...x, properties: [...x.properties, blank(nextId)] }));
+  const [open, setOpen] = useState<string | null>(null);
+  const { getRootProps, getInputProps, isDragActive, open: choose } = useDropzone({ onDrop: (files) => set((x) => sort(x, files)), noClick: true, multiple: true });
   const sample = () =>
     set((x) => ({
       ...x,
       managers: [],
-      properties: ALL_PROPERTY_IDS.map((id) => {
-        const name = x.properties.find((p) => p.id === id)?.name.trim() || DEFAULT_NAMES.properties[id];
-        return { id, name, reports: sampleReports(id, name) };
-      }),
+      properties: ALL_PROPERTY_IDS.map((id) => ({ id, name: DEFAULT_NAMES.properties[id], reports: sampleReports(id, DEFAULT_NAMES.properties[id]) })),
+      unassigned: [{ id: uid(), property: "", name: "Scan_0412.pdf", kind: "Other", size: 2_310_000 }],
     }));
 
   const reports = d.properties.reduce((s, p) => s + p.reports.length, 0);
-  const named = d.properties.every((p) => p.name.trim());
-  const hasReports = d.properties.some((p) => p.reports.length);
-  const first = state.user.name.trim().split(" ")[0];
+  const loose = d.unassigned ?? [];
+  const empty = !d.properties.length && !loose.length;
 
   return (
     <>
-      <Heading title={first && state.user.name !== "Asset manager" ? `Welcome, ${first}. Add your properties.` : "Add your properties"}>
-        For each property, add the reports your manager sent for {CLOSE_MONTH}: P&amp;L, T-12, rent roll, box score, AR aging, capex, renovation tracker, GL. Any format, any file names. {PRODUCT_NAME} reads each one and works out what it is.
+      <Heading title={`Add ${CLOSE_MONTH}'s reports`}>
+        Drop everything your managers sent for {CLOSE_MONTH}, for every property, in one go. {PRODUCT_NAME} sorts each file by property and report type. Check the table and fix anything it got wrong.
       </Heading>
 
-      <div className="flex items-center justify-between gap-3 rounded-lg border border-dashed border-border px-4 py-3">
-        <span className="text-xs text-fg-2">Trying it out? Fill the form with twelve sample properties and their {CLOSE_MONTH} reports.</span>
-        <Button variant="secondary" icon={<UploadCloud className="size-3" />} onClick={sample}>
-          Fill with sample reports
-        </Button>
+      <div
+        {...getRootProps()}
+        className={cn("flex flex-col items-center justify-center gap-1 rounded-lg border border-dashed text-center transition-colors duration-200", empty ? "px-6 py-12" : "px-4 py-4", isDragActive ? "border-fg-3 bg-fg/[0.035]" : "border-border-strong/70")}
+      >
+        <input {...getInputProps()} aria-label="Add reports" />
+        <div className={cn("flex items-center gap-3", empty && "flex-col gap-2")}>
+          <UploadCloud className={cn(empty ? "size-5" : "size-4", isDragActive ? "text-fg" : "text-fg-3")} strokeWidth={1.5} />
+          <span className="text-xs">{isDragActive ? "Drop to add" : empty ? "Drop all of this month's reports here" : "Drop more reports"}</span>
+          {empty && <span className="text-xs text-fg-3">P&amp;L, T-12, rent roll, box score, AR aging, capex, renovation tracker, GL · Excel, CSV, or PDF · any file names</span>}
+          <span className={cn("flex items-center gap-2", empty && "mt-2")}>
+            <Button variant="secondary" onClick={choose}>
+              Choose files
+            </Button>
+            {empty && <Button onClick={sample}>Fill with sample reports</Button>}
+          </span>
+        </div>
       </div>
 
-      <div className="flex flex-col gap-3">
-        <AnimatePresence initial={false}>
-          {d.properties.map((p, n) => (
-            <motion.div key={p.id} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} transition={{ duration: 0.3, ease: EASE }}>
-              <PropertyCard n={n} p={p} canRemove={d.properties.length > 1} />
-            </motion.div>
-          ))}
-        </AnimatePresence>
-      </div>
-
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <Button variant="secondary" icon={<Plus className="size-3" />} onClick={add} disabled={!nextId}>
-          Add another property
-        </Button>
-        {!nextId && <span className="text-xs text-fg-3">Up to {MAX} properties in this prototype</span>}
-      </div>
+      {!empty && (
+        <div className="flex flex-col gap-2">
+          {loose.length > 0 && (
+            <button type="button" onClick={() => setOpen("unassigned")} className="flex items-center justify-between gap-3 rounded-lg border border-warning/40 bg-warning/[0.06] px-4 py-2.5 text-left text-xs transition-colors hover:border-warning/70">
+              <span>
+                {loose.length} {loose.length === 1 ? "file" : "files"} we couldn&apos;t match to a property
+              </span>
+              <span className="text-fg-2">Assign →</span>
+            </button>
+          )}
+          <div className="overflow-x-auto rounded-lg border border-border bg-surface">
+            <table className="w-full text-xs">
+              <thead>
+                <tr className="border-b border-border">
+                  <th className="eyebrow h-8 px-4 text-left font-normal">Property</th>
+                  <th className="eyebrow h-8 px-2 text-right font-normal">Units</th>
+                  {PACKAGE.map((k) => (
+                    <th key={k} className="eyebrow h-8 px-2 text-center font-normal whitespace-nowrap">
+                      {SHORT[k] ?? k}
+                    </th>
+                  ))}
+                  <th className="eyebrow h-8 px-4 text-right font-normal">Files</th>
+                </tr>
+              </thead>
+              <motion.tbody initial="hidden" animate="show" variants={{ show: { transition: { staggerChildren: 0.03 } } }}>
+                {d.properties.map((p) => {
+                  const rentRoll = p.reports.some((r) => r.kind === "Rent roll");
+                  return (
+                    <motion.tr
+                      key={p.id}
+                      variants={{ hidden: { opacity: 0, y: 4 }, show: { opacity: 1, y: 0, transition: { duration: 0.25, ease: "easeOut" } } }}
+                      onClick={() => setOpen(p.id)}
+                      onKeyDown={(e) => (e.key === "Enter" || e.key === " ") && (e.preventDefault(), setOpen(p.id))}
+                      tabIndex={0}
+                      className="cursor-pointer border-b border-border/70 transition-colors last:border-b-0 hover:bg-fg/[0.025] focus-visible:bg-fg/[0.04] focus-visible:outline-none"
+                    >
+                      <td className="h-10 px-4 font-medium whitespace-nowrap">{p.name || <span className="text-fg-3">Unnamed property</span>}</td>
+                      <td className="num px-2 text-right text-fg-2">{rentRoll ? profile(p.id).units : "–"}</td>
+                      {PACKAGE.map((k) => (
+                        <td key={k} className="px-2 text-center">
+                          {p.reports.some((r) => r.kind === k) ? <Check className="mx-auto size-3.5 text-favorable" aria-label="Added" /> : <span className="text-fg-3" aria-label="Missing">–</span>}
+                        </td>
+                      ))}
+                      <td className="num px-4 text-right whitespace-nowrap">{p.reports.length ? p.reports.length : <span className="text-fg-3">Waiting on manager</span>}</td>
+                    </motion.tr>
+                  );
+                })}
+              </motion.tbody>
+            </table>
+          </div>
+          <p className="text-xs text-fg-3">Missing reports can come later. Each manager gets an upload link in the next step.</p>
+        </div>
+      )}
 
       <Footer
         next="managers"
-        disabled={!named || !hasReports}
-        hint={`${d.properties.length} ${d.properties.length === 1 ? "property" : "properties"} · ${reports} ${reports === 1 ? "report" : "reports"}`}
+        disabled={!d.properties.length || !d.properties.every((p) => p.name.trim()) || !reports}
+        hint={empty ? undefined : `${d.properties.length} ${d.properties.length === 1 ? "property" : "properties"} · ${reports} ${reports === 1 ? "report" : "reports"}`}
         onNext={() => set((x) => ({ ...x, managers: managersFor(x, x.managers) }))}
       />
+
+      <FilesDrawer id={open} onClose={() => setOpen(null)} />
     </>
   );
 }
 
-type DraftProperty = Draft["properties"][number];
+const UNASSIGNED = "Not matched";
 
-function PropertyCard({ n, p, canRemove }: { n: number; p: DraftProperty; canRemove: boolean }) {
-  const { act } = useWf();
-  const update = (fn: (q: DraftProperty) => DraftProperty) => act.setDraft((x) => ({ ...x, properties: x.properties.map((q) => (q.id === p.id ? fn(q) : q)) }));
-  const remove = () => act.setDraft((x) => ({ ...x, properties: x.properties.filter((q) => q.id !== p.id) }));
-  const addFiles = (files: File[]) => update((q) => ({ ...q, reports: [...q.reports, ...files.map((f) => ({ id: uid(), property: p.id, name: f.name, kind: detectKind(f.name), size: f.size }))] }));
-  const { getRootProps, getInputProps, isDragActive, open } = useDropzone({ onDrop: addFiles, noClick: true, multiple: true });
-  const rentRoll = p.reports.some((r) => r.kind === "Rent roll");
-  const missing = PACKAGE.filter((k) => !p.reports.some((r) => r.kind === k));
+/** One property's files (or the unmatched ones): rename, retype, move, remove, add. */
+function FilesDrawer({ id, onClose }: { id: string | null; onClose: () => void }) {
+  const { state, act } = useWf();
+  const d = state.draft;
+  const p = d.properties.find((x) => x.id === id);
+  const files = id === "unassigned" ? (d.unassigned ?? []) : (p?.reports ?? []);
+  const { getRootProps, getInputProps, isDragActive, open } = useDropzone({
+    onDrop: (fs) => p && act.setDraft((x) => ({ ...x, properties: x.properties.map((q) => (q.id === p.id ? { ...q, reports: [...q.reports, ...fs.map((f) => ({ id: uid(), property: p.id, name: f.name, kind: detectKind(f.name), size: f.size }))] } : q)) })),
+    noClick: true,
+    multiple: true,
+  });
+
+  const updateFile = (fileId: string, patch: Partial<Upload>) =>
+    act.setDraft((x) => {
+      const all = [...x.properties.flatMap((q) => q.reports), ...(x.unassigned ?? [])];
+      const file = { ...all.find((f) => f.id === fileId)!, ...patch };
+      const strip = (us: Upload[]) => us.filter((u) => u.id !== fileId);
+      return {
+        ...x,
+        properties: x.properties.map((q) => ({ ...q, reports: q.id === file.property ? [...strip(q.reports), file] : strip(q.reports) })),
+        unassigned: file.property ? strip(x.unassigned ?? []) : [...strip(x.unassigned ?? []), file],
+      };
+    });
+  const removeFile = (fileId: string) => act.setDraft((x) => ({ ...x, properties: x.properties.map((q) => ({ ...q, reports: q.reports.filter((u) => u.id !== fileId) })), unassigned: (x.unassigned ?? []).filter((u) => u.id !== fileId) }));
+  const missing = p ? PACKAGE.filter((k) => !p.reports.some((r) => r.kind === k)) : [];
+  const names = d.properties.map((q) => q.name || "Unnamed property");
 
   return (
-    <div className="flex flex-col gap-3 rounded-lg border border-border bg-surface p-4">
-      <div className="flex items-end gap-3">
-        <label className="flex flex-1 flex-col gap-1.5">
-          <span className="text-xs font-medium text-fg-2">Property name</span>
-          <Input value={p.name} onChange={(e) => update((q) => ({ ...q, name: e.target.value }))} placeholder={n === 0 ? "As it appears on your owner reports" : ""} />
-        </label>
-        <span className="num mb-2 text-xs whitespace-nowrap text-fg-3">{rentRoll ? `${profile(p.id).units} units · from rent roll` : "Units from rent roll"}</span>
-        {canRemove && (
-          <button type="button" onClick={remove} aria-label={`Remove ${p.name || "property"}`} className="mb-1.5 rounded-md p-1 text-fg-3 transition-colors hover:bg-fg/[0.05] hover:text-fg">
-            <X className="size-3.5" />
-          </button>
+    <Drawer
+      open={!!id && (id === "unassigned" || !!p)}
+      onClose={onClose}
+      width={520}
+      eyebrow={id === "unassigned" ? "Files" : "Property"}
+      title={id === "unassigned" ? "Files we couldn't match" : p?.name || "Unnamed property"}
+      footer={
+        <>
+          {p && d.properties.length > 1 && (
+            <Button
+              variant="ghost"
+              onClick={() => {
+                act.setDraft((x) => ({ ...x, properties: x.properties.filter((q) => q.id !== p.id), unassigned: [...(x.unassigned ?? []), ...p.reports.map((r) => ({ ...r, property: "" }))] }));
+                onClose();
+              }}
+            >
+              Remove property
+            </Button>
+          )}
+          <Button onClick={onClose}>Done</Button>
+        </>
+      }
+    >
+      <div className="flex flex-col gap-4 p-4">
+        {p && (
+          <label className="flex flex-col gap-1.5">
+            <span className="text-xs font-medium text-fg-2">Property name</span>
+            <Input value={p.name} onChange={(e) => act.setDraft((x) => ({ ...x, properties: x.properties.map((q) => (q.id === p.id ? { ...q, name: e.target.value } : q)) }))} />
+          </label>
         )}
-      </div>
-
-      {p.reports.length > 0 && (
-        <ul className="flex flex-col rounded-md border border-border bg-bg">
-          <AnimatePresence initial={false}>
-            {p.reports.map((r) => (
-              <motion.li key={r.id} initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} exit={{ opacity: 0, height: 0 }} transition={{ duration: 0.25, ease: "easeOut" }} className="overflow-hidden border-b border-border/70 last:border-b-0">
-                <div className="flex items-center gap-2.5 px-3 py-1.5">
+        {id === "unassigned" && <p className="text-xs text-fg-2">Pick the property each file belongs to, or remove it.</p>}
+        {files.length > 0 && (
+          <ul className="flex flex-col rounded-md border border-border">
+            {files.map((r) => (
+              <li key={r.id} className="flex flex-col gap-2 border-b border-border/70 px-3 py-2.5 last:border-b-0">
+                <div className="flex items-center gap-2.5">
                   {/\.pdf$/i.test(r.name) ? <FileText className="size-3.5 shrink-0 text-file-pdf" /> : <FileSpreadsheet className={cn("size-3.5 shrink-0", /\.csv$/i.test(r.name) ? "text-file-csv" : "text-file-xls")} />}
-                  <span className="num min-w-0 flex-1 truncate text-xs" title={r.name}>
+                  <span className="min-w-0 flex-1 truncate text-xs" title={r.name}>
                     {r.name}
                   </span>
-                  <span className="num hidden text-[11px] text-fg-3 sm:inline">{formatFileSize(r.size)}</span>
-                  <div className="w-40 shrink-0">
-                    <Select
-                      label={`Report type for ${r.name}`}
-                      value={r.kind === "Other" ? "Not sure yet" : r.kind}
-                      onChange={(v) => update((q) => ({ ...q, reports: q.reports.map((x) => (x.id === r.id ? { ...x, kind: (v === "Not sure yet" ? "Other" : v) as ReportKind } : x)) }))}
-                      options={[...PACKAGE, "Not sure yet"]}
-                    />
-                  </div>
-                  <button type="button" onClick={() => update((q) => ({ ...q, reports: q.reports.filter((x) => x.id !== r.id) }))} aria-label={`Remove ${r.name}`} className="rounded p-0.5 text-fg-3 hover:text-fg">
+                  <span className="num text-xs text-fg-3">{formatFileSize(r.size)}</span>
+                  <button type="button" onClick={() => removeFile(r.id)} aria-label={`Remove ${r.name}`} className="rounded p-0.5 text-fg-3 hover:text-fg">
                     <X className="size-3" />
                   </button>
                 </div>
-              </motion.li>
+                <div className="grid grid-cols-2 gap-2 pl-6">
+                  <Select label={`Report type for ${r.name}`} value={r.kind === "Other" ? "Not sure yet" : r.kind} onChange={(v) => updateFile(r.id, { kind: (v === "Not sure yet" ? "Other" : v) as ReportKind })} options={[...PACKAGE, "Not sure yet"]} />
+                  <Select
+                    label={`Property for ${r.name}`}
+                    value={r.property ? (d.properties.find((q) => q.id === r.property)?.name || "Unnamed property") : UNASSIGNED}
+                    onChange={(v) => updateFile(r.id, { property: v === UNASSIGNED ? "" : d.properties[names.indexOf(v)].id })}
+                    options={[...names, UNASSIGNED]}
+                  />
+                </div>
+              </li>
             ))}
-          </AnimatePresence>
-        </ul>
-      )}
-
-      <div {...getRootProps()} className={cn("flex flex-wrap items-center justify-center gap-x-3 gap-y-1 rounded-md border border-dashed px-4 text-center transition-colors duration-200", p.reports.length ? "py-3" : "py-6", isDragActive ? "border-fg-3 bg-fg/[0.035]" : "border-border-strong/70")}>
-        <input {...getInputProps()} aria-label={`Add reports for ${p.name || "this property"}`} />
-        <UploadCloud className={cn("size-4", isDragActive ? "text-fg" : "text-fg-3")} strokeWidth={1.5} />
-        <span className="text-xs">{isDragActive ? "Drop to add" : p.reports.length ? "Drop more reports" : "Drop this property's reports here"}</span>
-        <button type="button" onClick={open} className="rounded-md border border-border bg-surface px-2.5 py-1 text-xs font-medium transition-colors hover:border-border-strong">
-          Choose files
-        </button>
-        {!p.reports.length && (
-          <button type="button" onClick={() => update((q) => ({ ...q, name: q.name.trim() || DEFAULT_NAMES.properties[q.id], reports: sampleReports(q.id, q.name.trim() || DEFAULT_NAMES.properties[q.id]) }))} className="text-xs text-fg-3 underline decoration-fg/20 underline-offset-[3px] hover:text-fg">
-            Use sample reports
-          </button>
+          </ul>
+        )}
+        {p && missing.length > 0 && <p className="text-xs text-fg-3">Not added: {missing.join(", ")}.</p>}
+        {p && (
+          <div {...getRootProps()} className={cn("flex items-center justify-center gap-3 rounded-md border border-dashed px-4 py-4 text-xs transition-colors", isDragActive ? "border-fg-3 bg-fg/[0.035]" : "border-border-strong/70")}>
+            <input {...getInputProps()} aria-label={`Add reports for ${p.name || "this property"}`} />
+            <UploadCloud className="size-4 text-fg-3" strokeWidth={1.5} />
+            {isDragActive ? "Drop to add" : "Drop files for this property"}
+            <button type="button" onClick={open} className="rounded-md border border-border bg-surface px-2.5 py-1 text-xs font-medium hover:border-border-strong">
+              Choose files
+            </button>
+          </div>
         )}
       </div>
-
-      {p.reports.length > 0 && missing.length > 0 && <p className="text-xs text-fg-3">Not added: {missing.join(", ")}. Add them now, or the manager can send them with their upload link.</p>}
-    </div>
+    </Drawer>
   );
 }
 

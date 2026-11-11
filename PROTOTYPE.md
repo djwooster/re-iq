@@ -12,9 +12,11 @@ Dec 14, 2026, the November close.
 1. `/prototype`: create a workspace (name, work email, firm, password), or sign in. A new
    workspace has no data: every app page sends you to setup until it's finished, and signing in
    before then resumes setup.
-2. `/prototype/setup/properties`: one card per property: property name and that property's
-   reports (drop several at once; each gets a detected type you can change). "Add another
-   property" adds a card; "Fill in the sample portfolio" fills all twelve.
+2. `/prototype/setup/properties`: one drop for every report, all properties at once. RE-IQ guesses
+   each file's property and report type from its name (`guessProperty`, `detectKind` in `seed.ts`)
+   and shows a checklist table: a row per property, a column per report. Click a row to rename the
+   property and retype, move, remove, or add files; unmatched files get their own list. Starts
+   blank; "Fill with sample reports" fills twelve properties and one unmatched scan.
 3. `/prototype/setup/managers`: the management companies behind those properties, reports emails,
    upload links, optional email invite.
 4. `/prototype/setup/review`: reading, mapping, reconciliation, and threshold checks, then the GL

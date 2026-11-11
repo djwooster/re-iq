@@ -42,6 +42,8 @@ export interface Draft {
   org: string;
   /** Each property's id is a slot in the seed (a–l), in the order they're added. */
   properties: { id: string; name: string; reports: Upload[] }[];
+  /** Files RE-IQ couldn't match to a property. */
+  unassigned?: Upload[];
   managers: { id: ManagerId; name: string; email: string; properties: string[] }[];
   reviewed: boolean;
 }
