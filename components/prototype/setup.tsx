@@ -359,12 +359,14 @@ function Properties() {
               </motion.tbody>
             </table>
           </div>
-          {/* Ends 8px past the Units column so the number lands where the column's numbers do (they sit 8px in from the cell edge). */}
-          <div className="relative flex h-10 items-center rounded-lg border border-border bg-surface px-4 text-xs font-medium" style={{ width: unitsEnd ? unitsEnd + 10 : undefined }}>
-            <span>Total units</span>
-            <span className="num absolute right-4">{fmt.int(d.properties.filter((p) => p.reports.some((r) => r.kind === "Rent roll")).reduce((s, p) => s + profile(p.id).units, 0))}</span>
+          <div className="flex items-start justify-between gap-3">
+            {/* Ends 8px past the Units column so the number lands where the column's numbers do (they sit 8px in from the cell edge). */}
+            <div className="relative flex h-10 items-center rounded-lg border border-border bg-surface px-4 text-xs font-medium" style={{ width: unitsEnd ? unitsEnd + 10 : undefined }}>
+              <span>Total units</span>
+              <span className="num absolute right-4">{fmt.int(d.properties.filter((p) => p.reports.some((r) => r.kind === "Rent roll")).reduce((s, p) => s + profile(p.id).units, 0))}</span>
+            </div>
+            {addButton}
           </div>
-          <div>{addButton}</div>
         </div>
       )}
 
