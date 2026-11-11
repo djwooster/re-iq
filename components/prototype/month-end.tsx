@@ -30,11 +30,11 @@ export function Tasks() {
                   <A href={href.property(t.property)}>{property(t.property)!.name}</A>
                 </Td>
                 <Td className="whitespace-nowrap text-fg-2">{MANAGERS.some((m) => m.name === t.owner) ? <A href={href.manager(MANAGERS.find((m) => m.name === t.owner)!.id)}>{t.owner}</A> : t.owner}</Td>
-                <Td className="num text-[11px] whitespace-nowrap text-fg-2">{fmtDate(t.due)}</Td>
+                <Td className="num text-xs whitespace-nowrap text-fg-2">{fmtDate(t.due)}</Td>
                 <Td>
                   <Segmented label="" value={t.status} options={["Open", "In progress", "Done"] as const} onChange={(s) => act.setTaskStatus(t.id, s)} />
                 </Td>
-                <Td className="text-[11px]">{e && <A href={href.exception(e.id)}>{e.trigger}</A>}</Td>
+                <Td className="text-xs">{e && <A href={href.exception(e.id)}>{e.trigger}</A>}</Td>
               </Row>
             );
           })}
@@ -55,7 +55,7 @@ export function Tasks() {
                 <Td className="whitespace-nowrap">{property(p.property)!.name}</Td>
                 <Td className="text-fg-2">Renovations</Td>
                 <Td className="text-fg-2">{projectStage(p)}</Td>
-                <Td className="text-right text-[11px] text-fg-3">Decide on the project →</Td>
+                <Td className="text-right text-xs text-fg-3">Decide on the project →</Td>
               </Row>
             ))}
             {approvals.map((a) => (
@@ -66,7 +66,7 @@ export function Tasks() {
                 </Td>
                 <Td className="whitespace-nowrap">{property(a.property)!.name}</Td>
                 <Td className="whitespace-nowrap text-fg-2">{a.from}</Td>
-                <Td className="num text-[11px] whitespace-nowrap text-fg-2">{fmtDate(a.submitted)}</Td>
+                <Td className="num text-xs whitespace-nowrap text-fg-2">{fmtDate(a.submitted)}</Td>
                 <Td className="text-right whitespace-nowrap">
                   <span className="inline-flex gap-1.5">
                     <Button
@@ -137,7 +137,7 @@ export function OwnerReport() {
       <Card title="Properties in this report">
         <div className="flex flex-col gap-3 text-xs">
           <div className="flex flex-wrap items-center gap-2">
-            <span className="w-28 text-[11px] text-fg-3">Ready</span>
+            <span className="w-28 text-xs text-fg-3">Ready</span>
             {ready.map((p) => (
               <Chip key={p.id} tone="green">
                 {p.name}
@@ -145,11 +145,11 @@ export function OwnerReport() {
             ))}
           </div>
           <div className="flex flex-wrap items-start gap-2">
-            <span className="w-28 text-[11px] text-fg-3">Explained below</span>
+            <span className="w-28 text-xs text-fg-3">Explained below</span>
             <span className="flex flex-1 flex-wrap gap-x-4 gap-y-1">
               {held.map((p) => (
                 <span key={p.id} className="text-fg-2">
-                  <A href={href.property(p.id)}>{p.name}</A> <span className="text-[11px] text-fg-3">· {blocker(state, p.id)}</span>
+                  <A href={href.property(p.id)}>{p.name}</A> <span className="text-xs text-fg-3">· {blocker(state, p.id)}</span>
                 </span>
               ))}
             </span>
@@ -166,7 +166,7 @@ export function OwnerReport() {
               <Row key={p.id}>
                 <Td className="whitespace-nowrap">
                   {p.name}
-                  {profile(p.id).through < 11 && <span className="ml-1.5 text-[10px] text-fg-3">through October</span>}
+                  {profile(p.id).through < 11 && <span className="ml-1.5 text-[11px] text-fg-3">through October</span>}
                 </Td>
                 <Td num>{t ? fmt.usd(t.egi) : "–"}</Td>
                 <Td num>{t ? fmt.usd(t.opex) : "–"}</Td>
@@ -271,12 +271,12 @@ export function DecisionLog() {
           const p = state.projects.find((x) => x.id === d.projectId);
           return (
             <Row key={i}>
-              <Td className="num text-[11px] whitespace-nowrap text-fg-2">{fmtDate(d.date)}</Td>
+              <Td className="num text-xs whitespace-nowrap text-fg-2">{fmtDate(d.date)}</Td>
               <Td className="whitespace-nowrap">{property(d.property)!.name}</Td>
               <Td className="font-medium">{d.decision}</Td>
               <Td className="whitespace-nowrap text-fg-2">{d.who}</Td>
               <Td className="max-w-sm text-fg-2">{d.why}</Td>
-              <Td className="text-[11px]">
+              <Td className="text-xs">
                 <span className="flex flex-col gap-0.5">
                   {e && <A href={href.exception(e.id)}>Exception</A>}
                   {p && <A href={href.project(p.id)}>Project: {p.name}</A>}

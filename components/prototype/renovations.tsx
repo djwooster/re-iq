@@ -89,16 +89,16 @@ export function Renovations() {
             const cards = c === 0 ? SELECTED : Object.keys(PILOT).filter((u) => PILOT[u] === col);
             return (
               <div key={col} className="flex flex-col gap-2 rounded-lg bg-fg/[0.035] p-2.5">
-                <span className="flex items-center justify-between text-[11px] font-medium text-fg-2">
+                <span className="flex items-center justify-between text-xs font-medium text-fg-2">
                   {col} <span className="text-fg-3">{cards.length}</span>
                 </span>
                 {cards.map((u) => (
                   <Link key={u} href={href.unit("b", u)} className="rounded-md border border-border bg-bg px-2.5 py-2 text-xs transition-colors hover:border-border-strong">
                     <span className="flex items-center justify-between">
                       <span className="font-medium">Unit {u}</span>
-                      <span className="num text-[10px] text-fg-3">{unit("b", u).plan.name}</span>
+                      <span className="num text-[11px] text-fg-3">{unit("b", u).plan.name}</span>
                     </span>
-                    <span className="block text-[11px] text-fg-3">{property("b")!.name} · Interior upgrade</span>
+                    <span className="block text-xs text-fg-3">{property("b")!.name} · Interior upgrade</span>
                   </Link>
                 ))}
               </div>
@@ -136,7 +136,7 @@ export function ProjectPage({ id }: { id: string }) {
       <Progress p={p} view={step} onView={setView} />
       {exception && (
         <div className="flex flex-wrap items-center gap-2 rounded-md bg-fg/[0.035] px-3 py-2 text-xs">
-          <span className="text-[11px] text-fg-3">Linked exception</span>
+          <span className="text-xs text-fg-3">Linked exception</span>
           <A href={href.exception(exception.id)}>{exception.trigger}</A>
           <StageChip e={exception} />
         </div>
@@ -154,7 +154,7 @@ export function ProjectPage({ id }: { id: string }) {
           <StepPanel p={p} step={step} live={step === p.step && p.status === "Active"} />
         </div>
       </Card>
-      <Card title="Log" action={<A href="/prototype/decisions" className="text-[11px]">Decision log</A>}>
+      <Card title="Log" action={<A href="/prototype/decisions" className="text-xs">Decision log</A>}>
         <Log entries={p.log} />
       </Card>
     </Page>
@@ -181,11 +181,11 @@ function Progress({ p, view, onView }: { p: Project; view: number; onView: (n: n
               )}
             >
               <span className={cn("h-1 rounded-full", done ? "bg-fg/70" : current ? "bg-warning" : "bg-fg/10")} />
-              <span className="text-[10px] text-fg-3">Step {n}</span>
+              <span className="text-[11px] text-fg-3">Step {n}</span>
               <span className="text-xs font-medium">{stepName(p.type, n)}</span>
             </button>
             {gate && (
-              <span className={cn("flex items-center rounded px-1 text-[10px] font-medium [writing-mode:vertical-rl]", n < p.step ? "text-favorable" : n === p.step ? "text-warning" : "text-fg-3")} title={`${gate} after step ${n}`}>
+              <span className={cn("flex items-center rounded px-1 text-[11px] font-medium [writing-mode:vertical-rl]", n < p.step ? "text-favorable" : n === p.step ? "text-warning" : "text-fg-3")} title={`${gate} after step ${n}`}>
                 {gate}
               </span>
             )}
@@ -199,9 +199,9 @@ function Progress({ p, view, onView }: { p: Project; view: number; onView: (n: n
 function Metric({ label, formula, value, tone }: { label: string; formula?: string; value: React.ReactNode; tone?: "favorable" | "unfavorable" }) {
   return (
     <div className="flex flex-col gap-1.5 rounded-lg border border-border bg-bg p-3">
-      <span className="text-[11px] font-medium text-fg-2">{label}</span>
+      <span className="text-xs font-medium text-fg-2">{label}</span>
       <span className={cn("num text-base", tone === "favorable" && "text-favorable", tone === "unfavorable" && "text-unfavorable")}>{value}</span>
-      {formula && <span className="text-[10px] text-fg-3">{formula}</span>}
+      {formula && <span className="text-[11px] text-fg-3">{formula}</span>}
     </div>
   );
 }
@@ -230,7 +230,7 @@ function StepPanel({ p, step, live }: { p: Project; step: number; live: boolean 
     return (
       <div className="flex flex-col gap-4">
         <div className="flex flex-col gap-2">
-          <span className="text-[11px] text-fg-3">What triggered it</span>
+          <span className="text-xs text-fg-3">What triggered it</span>
           <div className="flex flex-wrap gap-1.5">
             {["Linked exception", "Loss to lease", "Rent comps", "Inspection", "Repeat work orders"].map((t) => (
               <Chip key={t} tone={p.triggers.includes(t) ? "blue" : "neutral"}>
@@ -242,7 +242,7 @@ function StepPanel({ p, step, live }: { p: Project; step: number; live: boolean 
         </div>
         {exception && (
           <div className="rounded-md bg-fg/[0.035] px-3 py-2.5 text-xs">
-            <span className="text-[11px] text-fg-3">Evidence carried from the exception</span>
+            <span className="text-xs text-fg-3">Evidence carried from the exception</span>
             <p className="mt-1">{exception.drill.map((d) => d.label).join(" → ")}</p>
             {exception.question?.reply && <p className="mt-1 text-fg-2">PM: “{exception.question.reply.text}”</p>}
           </div>
@@ -292,11 +292,11 @@ function StepPanel({ p, step, live }: { p: Project; step: number; live: boolean 
           <Empty>Add scope and contractor pricing to underwrite this project.</Empty>
         )}
         <div className="w-56">
-          <span className="mb-1.5 block text-[11px] font-medium text-fg-2">Funding source</span>
+          <span className="mb-1.5 block text-xs font-medium text-fg-2">Funding source</span>
           <Select value={funding} onChange={setFunding} options={["Reserves", "Loan holdback", "Equity"]} />
         </div>
         <Gate title="Gate A" rule="Return on cost clears hurdle (15%+)">
-          <div className="grid max-w-sm grid-cols-2 gap-3 text-[11px] text-fg-3">
+          <div className="grid max-w-sm grid-cols-2 gap-3 text-xs text-fg-3">
             <span className="flex flex-col gap-1">
               Return on cost <span className={cn("num text-sm", uw && (roc(uw) >= 0.15 ? "text-favorable" : "text-unfavorable"))}>{uw ? fmt.pct(roc(uw)) : "Not underwritten"}</span>
             </span>
@@ -339,7 +339,7 @@ function StepPanel({ p, step, live }: { p: Project; step: number; live: boolean 
     const low = [0, 1, 2].reduce((best, c) => (total(c) < total(best) && c !== 2 ? c : best), 0);
     return (
       <div className="flex flex-col gap-3">
-        <span className="text-[11px] text-fg-3">Bid leveling{interior ? " · per unit" : ""}</span>
+        <span className="text-xs text-fg-3">Bid leveling{interior ? " · per unit" : ""}</span>
         <Table columns={["Line item", { label: "Contractor 1", num: true }, { label: "Contractor 2", num: true }, { label: "Contractor 3", num: true }]}>
           {lines.map((l, i) => (
             <Row key={l}>
@@ -356,7 +356,7 @@ function StepPanel({ p, step, live }: { p: Project; step: number; live: boolean 
             {[0, 1, 2].map((c) => (
               <Td key={c} num className="font-medium">
                 {fmt.usd(total(c))}
-                {c === low && <span className="ml-1.5 text-[10px] font-normal text-favorable">Lowest complete</span>}
+                {c === low && <span className="ml-1.5 text-[11px] font-normal text-favorable">Lowest complete</span>}
               </Td>
             ))}
           </Row>
@@ -387,10 +387,10 @@ function StepPanel({ p, step, live }: { p: Project; step: number; live: boolean 
     return (
       <div className="flex flex-col gap-4">
         <div className="flex flex-col gap-2">
-          <span className="text-[11px] text-fg-3">Pilot units · 5–10 units</span>
+          <span className="text-xs text-fg-3">Pilot units · 5–10 units</span>
           <div className="flex flex-wrap gap-1.5">
             {pilot.map((u) => (
-              <Link key={u} href={href.unit(p.property, u)} className="rounded-md border border-border bg-bg px-2 py-1 text-[11px] font-medium hover:border-border-strong">
+              <Link key={u} href={href.unit(p.property, u)} className="rounded-md border border-border bg-bg px-2 py-1 text-xs font-medium hover:border-border-strong">
                 Unit {u} <span className="font-normal text-fg-3">· {PILOT[u].replace("Renovated ", "")}</span>
               </Link>
             ))}
@@ -471,7 +471,7 @@ function StepPanel({ p, step, live }: { p: Project; step: number; live: boolean 
       <div className="flex flex-col gap-4">
         <div className="flex flex-col gap-2 rounded-lg border border-border bg-bg p-3">
           <span className="text-xs font-medium">Units offline vs. occupancy and DSCR covenant</span>
-          <div className="grid gap-3 text-[11px] text-fg-3 md:grid-cols-3">
+          <div className="grid gap-3 text-xs text-fg-3 md:grid-cols-3">
             <span className="flex flex-col gap-1">
               Physical occupancy · target 93–96% <span className="num text-sm text-fg">{fmt.pct(kpis(p.property).occupancy)}</span>
             </span>
@@ -493,12 +493,12 @@ function StepPanel({ p, step, live }: { p: Project; step: number; live: boolean 
             <div className="grid gap-2 md:grid-cols-6">
               {["Not started", "Demo", "In progress", "Punch list", "Ready", "Leased"].map((col, c) => (
                 <div key={col} className="flex flex-col gap-1.5 rounded-lg bg-fg/[0.035] p-2">
-                  <span className="text-[11px] font-medium text-fg-2">{col}</span>
+                  <span className="text-xs font-medium text-fg-2">{col}</span>
                   {unitNumbers(p.property)
                     .filter((_, i) => i % 6 === c)
                     .slice(0, 3)
                     .map((u) => (
-                      <Link key={u} href={href.unit(p.property, u)} className="rounded-md border border-border bg-bg px-2 py-1.5 text-[11px] font-medium hover:border-border-strong">
+                      <Link key={u} href={href.unit(p.property, u)} className="rounded-md border border-border bg-bg px-2 py-1.5 text-xs font-medium hover:border-border-strong">
                         Unit {u}
                       </Link>
                     ))}
@@ -589,7 +589,7 @@ function StepPanel({ p, step, live }: { p: Project; step: number; live: boolean 
           <Button variant="secondary" onClick={() => act.projectDecision(p.id, "Refinance or sell")}>
             Refinance or sell
           </Button>
-          <A href="/prototype/capital" className="text-[11px]">
+          <A href="/prototype/capital" className="text-xs">
             Valuation / hold-sell
           </A>
         </div>
@@ -601,8 +601,8 @@ function StepPanel({ p, step, live }: { p: Project; step: number; live: boolean 
 function Compare({ label, a, b, va, vb, flag }: { label: string; a: string; b: string; va: string; vb: string; flag?: boolean }) {
   return (
     <div className="flex flex-col gap-2 rounded-lg border border-border bg-bg p-3">
-      <span className="text-[11px] font-medium text-fg-2">{label}</span>
-      <span className="grid grid-cols-[84px_1fr] items-center gap-x-2 gap-y-1 text-[11px] text-fg-3">
+      <span className="text-xs font-medium text-fg-2">{label}</span>
+      <span className="grid grid-cols-[84px_1fr] items-center gap-x-2 gap-y-1 text-xs text-fg-3">
         {a} <span className={cn("num text-sm", flag ? "text-unfavorable" : "text-fg")}>{va}</span>
         {b} <span className="num text-sm text-fg-2">{vb}</span>
       </span>
@@ -621,7 +621,7 @@ function Gantt() {
   const span = 18;
   return (
     <div className="flex flex-col gap-2 rounded-lg border border-border bg-bg p-3">
-      <div className="ml-24 flex justify-between text-[10px] text-fg-3">
+      <div className="ml-24 flex justify-between text-[11px] text-fg-3">
         {["Sep", "Oct", "Nov", "Dec", "Spring 2027"].map((m) => (
           <span key={m} className="num">
             {m}
@@ -630,14 +630,14 @@ function Gantt() {
       </div>
       {GANTT.map((g) => (
         <div key={g.label} className="flex items-center gap-2">
-          <span className="w-22 shrink-0 text-[11px] text-fg-2">{g.label}</span>
+          <span className="w-22 shrink-0 text-xs text-fg-2">{g.label}</span>
           <div className="relative h-4 flex-1 rounded-sm bg-fg/[0.04]">
             <span className="absolute inset-y-0 rounded-sm bg-data-soft" style={{ left: `${(g.start / span) * 100}%`, width: `${(g.weeks / span) * 100}%` }} />
             <span className="absolute inset-y-0 rounded-sm bg-data" style={{ left: `${(g.start / span) * 100}%`, width: `${(g.done / span) * 100}%` }} />
           </div>
         </div>
       ))}
-      <span className="text-[10px] text-fg-3">Filled: complete · Light: scheduled</span>
+      <span className="text-[11px] text-fg-3">Filled: complete · Light: scheduled</span>
     </div>
   );
 }

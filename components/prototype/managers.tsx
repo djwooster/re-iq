@@ -36,7 +36,7 @@ export function Managers() {
             <Row key={m.id} href={href.manager(m.id)}>
               <Td className="font-medium whitespace-nowrap">
                 {m.name}
-                <span className="block text-[11px] font-normal text-fg-3">{m.email}</span>
+                <span className="block text-xs font-normal text-fg-3">{m.email}</span>
               </Td>
               <Td className="text-fg-2">{propsOf(m.id).map((p) => p.name).join(", ")}</Td>
               <Td num className="text-fg-2">
@@ -83,7 +83,7 @@ export function ManagerPage({ id }: { id: string }) {
       subtitle={`${m.email} · ${props.length} properties · ${props.reduce((s, p) => s + profile(p.id).units, 0).toLocaleString("en-US")} units`}
       crumbs={[{ label: "Managers", href: "/prototype/managers" }, { label: m.name }]}
       actions={
-        <span className="flex items-center gap-2 text-[11px] text-fg-3">
+        <span className="flex items-center gap-2 text-xs text-fg-3">
           <span className="num hidden md:inline">{uploadUrl(m.token)}</span>
           <Button variant="secondary" icon={<Copy className="size-3" />} onClick={() => copy(m.token)}>
             Copy upload link
@@ -99,7 +99,7 @@ export function ManagerPage({ id }: { id: string }) {
                 <Td className="whitespace-nowrap">{property(e.property)!.name}</Td>
                 <Td>
                   <span className="font-medium">{e.trigger}</span>
-                  {e.question?.text && <span className="block text-[11px] text-fg-3">{e.question.text}</span>}
+                  {e.question?.text && <span className="block text-xs text-fg-3">{e.question.text}</span>}
                 </Td>
                 <Td className="whitespace-nowrap text-fg-2">
                   {fmtDate(e.question!.sent)} · {days(daysBetween(e.question!.sent, TODAY))}

@@ -33,7 +33,7 @@ export function Login() {
   const valid = /.+@.+\..+/.test(email) && password.length >= 8 && (!signup || (name.trim() && org.trim()));
   const field = (label: string, input: React.ReactNode) => (
     <label className="flex flex-col gap-1.5">
-      <span className="text-[11px] font-medium text-fg-2">{label}</span>
+      <span className="text-xs font-medium text-fg-2">{label}</span>
       {input}
     </label>
   );
@@ -102,7 +102,7 @@ export function Overview() {
       <section aria-label={`${CLOSE_MONTH} close`} className="grid gap-3 lg:grid-cols-[1fr_2fr_1fr]">
         <Panel title="Close" to="/prototype/close" chip={m.close.done ? <Chip tone="green">Closed</Chip> : <Chip tone="amber">In progress</Chip>}>
           <Meter value={m.close.managersIn} total={m.close.managers} label={`${m.close.managersIn} of ${m.close.managers} managers in`} />
-          <span className="text-[11px] text-fg-3">{m.close.notes.join(" · ") || "Every package in and reconciled"}</span>
+          <span className="text-xs text-fg-3">{m.close.notes.join(" · ") || "Every package in and reconciled"}</span>
         </Panel>
 
         <div className="flex flex-col gap-3 rounded-lg border border-border bg-surface p-3">
@@ -120,7 +120,7 @@ export function Overview() {
               <li key={stage}>
                 <Link href={`/prototype/exceptions?status=${stage}`} className={cn("flex flex-col gap-0.5 rounded-md px-2.5 py-2 transition-colors hover:bg-fg/[0.05]", count ? "bg-fg/[0.03]" : "")}>
                   <span className={cn("num text-lg leading-tight font-medium", count ? "text-fg" : "text-fg-3")}>{count}</span>
-                  <span className="text-[11px] text-fg-2">{STAGE_LABEL[stage]}</span>
+                  <span className="text-xs text-fg-2">{STAGE_LABEL[stage]}</span>
                 </Link>
               </li>
             ))}
@@ -129,7 +129,7 @@ export function Overview() {
 
         <Panel title="Owner report" to="/prototype/owner-report" chip={m.report.sent ? <Chip tone="green">Sent {fmtDate(m.report.sent)}</Chip> : <Chip>Draft</Chip>}>
           <Meter value={m.report.ready} total={m.report.total} label={`${m.report.ready} of ${m.report.total} properties ready`} />
-          <span className="text-[11px] text-fg-3">The rest show what&apos;s holding them</span>
+          <span className="text-xs text-fg-3">The rest show what&apos;s holding them</span>
         </Panel>
       </section>
 
@@ -161,7 +161,7 @@ export function Overview() {
       </section>
 
       <div className="grid gap-3 xl:grid-cols-[2fr_1fr]">
-        <Card title="Portfolio NOI by month" action={<span className="num text-[11px] text-fg-3">Dec 2025 – Nov 2026</span>}>
+        <Card title="Portfolio NOI by month" action={<span className="num text-xs text-fg-3">Dec 2025 – Nov 2026</span>}>
           <TrendChart
             data={noiTrend(state.compare)}
             series={[
@@ -176,7 +176,7 @@ export function Overview() {
         <WaitingOnYou />
       </div>
 
-      <Card title="Properties" flush action={<A href="/prototype/properties" className="text-[11px]">All properties</A>}>
+      <Card title="Properties" flush action={<A href="/prototype/properties" className="text-xs">All properties</A>}>
         <PropertyTable bare />
       </Card>
     </Page>
@@ -199,14 +199,14 @@ function WaitingOnYou() {
     ...approvals.map((a) => ({ key: a.id, label: a.title, meta: `${property(a.property)!.name} · from ${a.from}`, href: a.projectId ? href.project(a.projectId) : "/prototype/tasks" })),
   ];
   return (
-    <Card title="Waiting on you" action={<span className="num text-[11px] text-fg-3">{rows.length}</span>}>
+    <Card title="Waiting on you" action={<span className="num text-xs text-fg-3">{rows.length}</span>}>
       <ul className="-mx-1 flex flex-col">
         {rows.slice(0, 7).map((r) => (
           <li key={r.key}>
             <Link href={r.href} className="group flex items-center gap-3 rounded-md px-1 py-1.5 transition-colors hover:bg-fg/[0.03]">
               <span className="min-w-0 flex-1">
                 <span className="block truncate text-xs font-medium">{r.label}</span>
-                <span className="block truncate text-[11px] text-fg-3">{r.meta}</span>
+                <span className="block truncate text-xs text-fg-3">{r.meta}</span>
               </span>
               <ArrowRight className="size-3 shrink-0 text-fg-3 opacity-0 transition-opacity group-hover:opacity-100" />
             </Link>
@@ -214,7 +214,7 @@ function WaitingOnYou() {
         ))}
       </ul>
       {rows.length > 7 && (
-        <Link href="/prototype/tasks" className="mt-2 block text-[11px] text-fg-3 hover:text-fg">
+        <Link href="/prototype/tasks" className="mt-2 block text-xs text-fg-3 hover:text-fg">
           {rows.length - 7} more
         </Link>
       )}
@@ -287,7 +287,7 @@ export function PropertyTable({ bare }: { bare?: boolean }) {
             <Td num>{n ? fmt.usd(n.actual) : "–"}</Td>
             <Td num>
               {n && <Delta value={n.pct} format={fmt.signedPct} />}
-              {late && state.period === "Month" && <span className="ml-1.5 text-[10px] text-fg-3">Oct</span>}
+              {late && state.period === "Month" && <span className="ml-1.5 text-[11px] text-fg-3">Oct</span>}
             </Td>
             <Td num>{fmt.pct(k.occupancy)}</Td>
             <Td num>{fmt.pct(k.leased)}</Td>
@@ -298,7 +298,7 @@ export function PropertyTable({ bare }: { bare?: boolean }) {
             <Td num className={cn(open ? "text-fg" : "text-fg-3")}>
               {open || "–"}
             </Td>
-            <Td>{block ? <span className="text-[11px] whitespace-nowrap text-fg-3">{block}</span> : <Chip tone="green">Ready</Chip>}</Td>
+            <Td>{block ? <span className="text-xs whitespace-nowrap text-fg-3">{block}</span> : <Chip tone="green">Ready</Chip>}</Td>
           </Row>
         );
       })}

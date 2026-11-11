@@ -140,7 +140,7 @@ export function ExceptionDetail({ id }: { id: string }) {
       <Section n={6} title="Act" state={act} note="Opens once the PM replies">
         <Act e={e} />
       </Section>
-      <Card title="Log" action={<A href="/prototype/decisions" className="text-[11px]">Decision log</A>}>
+      <Card title="Log" action={<A href="/prototype/decisions" className="text-xs">Decision log</A>}>
         <Log entries={e.log} />
       </Card>
     </Page>
@@ -150,7 +150,7 @@ export function ExceptionDetail({ id }: { id: string }) {
 function Meta({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div className="flex flex-col gap-1">
-      <dt className="text-[11px] text-fg-3">{label}</dt>
+      <dt className="text-xs text-fg-3">{label}</dt>
       <dd>{children}</dd>
     </div>
   );
@@ -163,7 +163,7 @@ function StageProgress({ stage }: { stage: Stage }) {
       {STAGES.map((s, j) => (
         <span key={s} className={cn("h-1 w-4 rounded-full", j <= i ? "bg-fg/70" : "bg-fg/10")} />
       ))}
-      <span className="ml-1 text-[11px] text-fg-2">{STAGE_LABEL[stage]}</span>
+      <span className="ml-1 text-xs text-fg-2">{STAGE_LABEL[stage]}</span>
     </span>
   );
 }
@@ -174,7 +174,7 @@ function Section({ n, title, state, note, children }: { n: number; title: string
       <section className="flex items-center gap-3 rounded-lg border border-dashed border-border px-4 py-3">
         <StepNum n={n} state={state} />
         <span className="text-xs font-medium text-fg-3">{title}</span>
-        <span className="text-[11px] text-fg-3">· {note}</span>
+        <span className="text-xs text-fg-3">· {note}</span>
       </section>
     );
   }
@@ -194,7 +194,7 @@ function StepNum({ n, state }: { n: number; state: SectionState }) {
   return (
     <span
       className={cn(
-        "flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-[10px] font-semibold",
+        "flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-[11px] font-semibold",
         state === "current" ? "bg-inverted text-inverted-fg" : state === "done" ? "bg-favorable/15 text-favorable" : "border border-border text-fg-3",
       )}
     >
@@ -235,7 +235,7 @@ function Diagnose({ e }: { e: Exception }) {
                 n === level ? "border-fg/60 bg-bg" : "border-border hover:border-border-strong",
               )}
             >
-              <span className="text-[10px] text-fg-3">{lv.kind}</span>
+              <span className="text-[11px] text-fg-3">{lv.kind}</span>
               <span className="text-xs font-medium">{lv.label}</span>
             </button>
           </li>
@@ -254,15 +254,15 @@ function Diagnose({ e }: { e: Exception }) {
             />
             <div className="flex flex-col gap-3 text-xs">
               <span className="flex flex-col gap-1">
-                <span className="text-[11px] text-fg-3">Threshold</span>
+                <span className="text-xs text-fg-3">Threshold</span>
                 {e.threshold}
               </span>
               <span className="flex flex-col gap-1">
-                <span className="text-[11px] text-fg-3">Actual</span>
+                <span className="text-xs text-fg-3">Actual</span>
                 <span className={cn("num text-base", TONE_TEXT[ev.metric.tone])}>{ev.metric.format(ev.metric.actual)}</span>
               </span>
               <span className="flex flex-col gap-1">
-                <span className="text-[11px] text-fg-3">Source</span>
+                <span className="text-xs text-fg-3">Source</span>
                 {e.source}
               </span>
               <div>
@@ -309,7 +309,7 @@ function Diagnose({ e }: { e: Exception }) {
                 </Row>
               ))}
             </Table>
-            <p className="text-[11px] text-fg-3">Manager commentary: none in the package.</p>
+            <p className="text-xs text-fg-3">Manager commentary: none in the package.</p>
             <div>
               <Button variant="secondary" onClick={() => pick(3)}>
                 Open {last.kind === "Units" ? "units" : "GL transactions"} →
@@ -339,10 +339,10 @@ function Diagnose({ e }: { e: Exception }) {
             <Table bare columns={["Date", "Vendor / description", "GL account", "Invoice", { label: "Amount", num: true }]}>
               {(ev.gl ?? []).map((t) => (
                 <Row key={t.invoice}>
-                  <Td className="num whitespace-nowrap text-[11px] text-fg-2">{t.date}</Td>
+                  <Td className="num whitespace-nowrap text-xs text-fg-2">{t.date}</Td>
                   <Td>{t.vendor}</Td>
                   <Td className="text-fg-2">{e.drill[2].label}</Td>
-                  <Td className="num text-[11px] text-fg-3">{t.invoice}</Td>
+                  <Td className="num text-xs text-fg-3">{t.invoice}</Td>
                   <Td num>{fmt.usd(t.amount)}</Td>
                 </Row>
               ))}
@@ -352,11 +352,11 @@ function Diagnose({ e }: { e: Exception }) {
 
       <div className="grid gap-3 md:grid-cols-2">
         <div className="flex flex-col gap-1 rounded-md bg-fg/[0.035] px-3 py-2.5">
-          <span className="text-[11px] text-fg-3">Likely cause to check</span>
+          <span className="text-xs text-fg-3">Likely cause to check</span>
           <span className="text-xs">{e.cause}</span>
         </div>
         <div className="flex items-center justify-between gap-3 rounded-md bg-fg/[0.035] px-3 py-2.5">
-          <span className="text-[11px] text-fg-3">Is this one-time or ongoing?</span>
+          <span className="text-xs text-fg-3">Is this one-time or ongoing?</span>
           <NatureToggle e={e} />
         </div>
       </div>
@@ -370,7 +370,7 @@ function NatureToggle({ e }: { e: Exception }) {
   return (
     <div className="flex rounded-md border border-border bg-surface p-0.5">
       {opts.map((o) => (
-        <button key={o} type="button" aria-pressed={e.nature === o} onClick={() => act.setNature(e.id, o)} className={cn("cursor-pointer rounded px-2 py-1 text-[11px]", e.nature === o ? "bg-bg font-medium text-fg shadow-[0_0_0_1px_var(--border)]" : "text-fg-3 hover:text-fg")}>
+        <button key={o} type="button" aria-pressed={e.nature === o} onClick={() => act.setNature(e.id, o)} className={cn("cursor-pointer rounded px-2 py-1 text-xs", e.nature === o ? "bg-bg font-medium text-fg shadow-[0_0_0_1px_var(--border)]" : "text-fg-3 hover:text-fg")}>
           {o}
         </button>
       ))}
@@ -407,7 +407,7 @@ function WaitPm({ e, onActNow, actNow }: { e: Exception; onActNow: () => void; a
             Act without the PM
           </Button>
         </div>
-        <p className="text-[11px] text-fg-3">
+        <p className="text-xs text-fg-3">
           <A href={href.manager(m.id)}>{m.name}</A> · {m.email}
         </p>
       </div>
@@ -417,7 +417,7 @@ function WaitPm({ e, onActNow, actNow }: { e: Exception; onActNow: () => void; a
   return (
     <div className="flex flex-col gap-3">
       <div className="rounded-md bg-fg/[0.035] px-3 py-2.5">
-        <div className="mb-1.5 flex flex-wrap items-center gap-2 text-[11px] text-fg-3">
+        <div className="mb-1.5 flex flex-wrap items-center gap-2 text-xs text-fg-3">
           <span>
             Waiting on <A href={href.manager(m.id)}>{m.name}</A> since {fmtDate(q.sent)}
           </span>
@@ -428,7 +428,7 @@ function WaitPm({ e, onActNow, actNow }: { e: Exception; onActNow: () => void; a
       </div>
       {q.reply ? (
         <div className="rounded-md border border-border px-3 py-2.5">
-          <span className="mb-1.5 block text-[11px] text-fg-3">{m.name}&apos;s answer</span>
+          <span className="mb-1.5 block text-xs text-fg-3">{m.name}&apos;s answer</span>
           <p className="text-xs">{q.reply.text}</p>
           {q.reply.file && (
             <span className="mt-2 inline-block">
@@ -496,7 +496,7 @@ function Act({ e }: { e: Exception }) {
             key={a}
             type="button"
             onClick={() => setAction(a)}
-            className={cn("cursor-pointer rounded-full border px-2.5 py-1 text-[11px] transition-colors", action === a ? "border-fg/60 text-fg" : "border-border text-fg-2 hover:border-border-strong")}
+            className={cn("cursor-pointer rounded-full border px-2.5 py-1 text-xs transition-colors", action === a ? "border-fg/60 text-fg" : "border-border text-fg-2 hover:border-border-strong")}
           >
             {a}
             {n === 0 && <span className="ml-1 text-fg-3">· typical for this trigger</span>}

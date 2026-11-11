@@ -72,8 +72,8 @@ function Nav({ onNavigate }: { onNavigate?: () => void }) {
                   >
                     <Icon className={cn("size-3.5", active ? "text-fg" : "text-fg-3")} strokeWidth={1.75} />
                     <span className="flex-1">{n.label}</span>
-                    {n.badge === "exceptions" && open > 0 && <span className="num text-[10px] text-fg-3">{open}</span>}
-                    {n.badge === "tasks" && waiting > 0 && <span className="num text-[10px] text-fg-3">{waiting}</span>}
+                    {n.badge === "exceptions" && open > 0 && <span className="num text-[11px] text-fg-3">{open}</span>}
+                    {n.badge === "tasks" && waiting > 0 && <span className="num text-[11px] text-fg-3">{waiting}</span>}
                     {n.badge === "close" && closeOpen && <span className="size-1.5 rounded-full bg-warning" aria-label="Close in progress" />}
                   </Link>
                 </li>
@@ -107,7 +107,7 @@ function UserMenu() {
     <div ref={ref} className="relative border-t border-border p-2">
       {open && (
         <div className="absolute right-2 bottom-full left-2 mb-1 rounded-lg border border-border bg-bg p-1 shadow-overlay">
-          <div className="border-b border-border px-2 pt-1.5 pb-2 text-[11px] text-fg-3">{state.user.email}</div>
+          <div className="border-b border-border px-2 pt-1.5 pb-2 text-xs text-fg-3">{state.user.email}</div>
           <Link href={`${B}/settings`} onClick={() => setOpen(false)} className="flex h-7 items-center gap-2 rounded-md px-2 text-xs text-fg-2 hover:bg-fg/[0.04] hover:text-fg">
             <Settings className="size-3.5" strokeWidth={1.75} /> Settings
           </Link>
@@ -127,10 +127,10 @@ function UserMenu() {
         </div>
       )}
       <button type="button" onClick={() => setOpen((v) => !v)} aria-expanded={open} className="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-left transition-colors hover:bg-fg/[0.03]">
-        <span className="num flex size-6 shrink-0 items-center justify-center rounded-full border border-border bg-surface text-[10px] text-fg-2">{initials}</span>
+        <span className="num flex size-6 shrink-0 items-center justify-center rounded-full border border-border bg-surface text-[11px] text-fg-2">{initials}</span>
         <span className="min-w-0 flex-1">
           <span className="block truncate text-xs font-medium text-fg">{state.user.name}</span>
-          <span className="block truncate text-[11px] text-fg-3">Asset manager</span>
+          <span className="block truncate text-xs text-fg-3">Asset manager</span>
         </span>
       </button>
     </div>
@@ -147,7 +147,7 @@ function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
         </Link>
       </div>
       <div className="mx-2 mb-3 flex items-center gap-2 rounded-md border border-border bg-surface px-2 py-1.5">
-        <span className="flex size-5 shrink-0 items-center justify-center rounded bg-fg/[0.08] text-[10px] font-semibold text-fg-2">{state.org.slice(0, 1).toUpperCase()}</span>
+        <span className="flex size-5 shrink-0 items-center justify-center rounded bg-fg/[0.08] text-[11px] font-semibold text-fg-2">{state.org.slice(0, 1).toUpperCase()}</span>
         <span className="truncate text-xs font-medium">{state.org}</span>
       </div>
       <Nav onNavigate={onNavigate} />
@@ -215,7 +215,7 @@ export function Page({ title, subtitle, crumbs, controls, actions, children }: {
     <>
       <header className="px-6 pt-6 pb-4">
         {crumbs && (
-          <nav aria-label="Breadcrumb" className="mb-2 flex items-center gap-1.5 text-[11px] text-fg-3">
+          <nav aria-label="Breadcrumb" className="mb-2 flex items-center gap-1.5 text-xs text-fg-3">
             {crumbs.map((c, i) => (
               <span key={c.label} className="flex items-center gap-1.5">
                 {i > 0 && <span className="text-fg/20">/</span>}

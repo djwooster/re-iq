@@ -69,7 +69,7 @@ function Tracker() {
             title={
               <span className="flex items-center gap-2">
                 <A href={href.manager(m.id)}>{m.name}</A> <Chip tone={MANAGER_TONE[st]}>{st}</Chip>
-                <span className="text-[11px] font-normal text-fg-3">{m.email}</span>
+                <span className="text-xs font-normal text-fg-3">{m.email}</span>
               </span>
             }
             action={
@@ -96,7 +96,7 @@ function Tracker() {
                     return (
                       <Td key={rep} className="whitespace-nowrap">
                         {c.state === "Received" ? (
-                          <span className="inline-flex items-center gap-1 text-[11px] text-fg-2" title={`Received ${fmtDate(c.date)}`}>
+                          <span className="inline-flex items-center gap-1 text-xs text-fg-2" title={`Received ${fmtDate(c.date)}`}>
                             <Check className="size-3 text-favorable" /> <span className="num">{fmtDate(c.date)}</span>
                           </span>
                         ) : (
@@ -144,7 +144,7 @@ function Mapping() {
         <span className="flex items-center gap-2">
           <FileSpreadsheet className="size-3.5 text-file-xls" />
           {manager("m3").name} · GL · {CLOSE_MONTH}
-          <span className="num text-[11px] font-normal text-fg-3">
+          <span className="num text-xs font-normal text-fg-3">
             {GL_LINES} lines · {GL_LINES - unsure} matched from earlier months
           </span>
         </span>
@@ -166,7 +166,7 @@ function Mapping() {
           const done = l.sure || state.mapped.includes(l.id);
           return (
             <Row key={l.id} highlight={!done}>
-              <Td className="num text-[11px]">{l.label}</Td>
+              <Td className="num text-xs">{l.label}</Td>
               <Td className="w-56">
                 {done ? (
                   <span className="text-fg-2">{accounts[l.id] ?? l.account}</span>
@@ -178,7 +178,7 @@ function Mapping() {
               <Td num>{fmt.usd(AMOUNT[l.id])}</Td>
               <Td className="text-right">
                 {done ? (
-                  <span className="text-[11px] text-fg-3">Mapped</span>
+                  <span className="text-xs text-fg-3">Mapped</span>
                 ) : (
                   <Button variant="secondary" onClick={() => act.approveMapping([l.id])}>
                     Approve
@@ -223,15 +223,15 @@ function Reconciliation() {
             <p className="mb-4 text-xs text-fg-2">{c.note}.</p>
             <dl className="mb-4 grid max-w-lg grid-cols-3 gap-4">
               <div>
-                <dt className="text-[11px] text-fg-3">Rent roll total</dt>
+                <dt className="text-xs text-fg-3">Rent roll total</dt>
                 <dd className="num mt-1 text-sm">{fmt.usd(b.rentRoll)}</dd>
               </div>
               <div>
-                <dt className="text-[11px] text-fg-3">P&amp;L rental income</dt>
+                <dt className="text-xs text-fg-3">P&amp;L rental income</dt>
                 <dd className="num mt-1 text-sm">{fmt.usd(b.pl)}</dd>
               </div>
               <div>
-                <dt className="text-[11px] text-fg-3">Difference</dt>
+                <dt className="text-xs text-fg-3">Difference</dt>
                 <dd className="num mt-1 text-sm text-unfavorable">{fmt.usd(b.diff)}</dd>
               </div>
             </dl>
@@ -280,12 +280,12 @@ function Files() {
           <Td>
             <span className="flex items-center gap-2">
               <FileSpreadsheet className="size-3.5 shrink-0 text-file-xls" />
-              <span className="num text-[11px]">{fileName(f)}</span>
+              <span className="num text-xs">{fileName(f)}</span>
             </span>
           </Td>
           <Td className="whitespace-nowrap text-fg-2">{manager(f.manager).name}</Td>
           <Td className="whitespace-nowrap text-fg-2">{f.via === "email" ? "Email" : "Upload link"}</Td>
-          <Td className="num whitespace-nowrap text-[11px] text-fg-2">{f.when}</Td>
+          <Td className="num whitespace-nowrap text-xs text-fg-2">{f.when}</Td>
           <Td num className="text-fg-3">
             {f.size}
           </Td>

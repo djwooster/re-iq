@@ -41,7 +41,7 @@ export function Settings() {
                 </Td>
                 <Td className="text-fg-2">{m.name}</Td>
                 <Td className="text-fg-2">{m.email}</Td>
-                <Td className="num text-[11px] text-fg-3">{uploadUrl(m.token)}</Td>
+                <Td className="num text-xs text-fg-3">{uploadUrl(m.token)}</Td>
               </Row>
             );
           })}
@@ -122,7 +122,7 @@ function Thresholds() {
         {KPIS.map((k) => (
           <Row key={k.kpi}>
             <Td className="font-medium whitespace-nowrap">{k.kpi}</Td>
-            <Td className="text-[11px] text-fg-2">{k.formula}</Td>
+            <Td className="text-xs text-fg-2">{k.formula}</Td>
             <Td className="whitespace-nowrap text-fg-2">{k.source}</Td>
             <Td className="w-64">
               <Input value={targets[key(k.kpi)] ?? k.target} onChange={(e) => setTargets((t) => ({ ...t, [key(k.kpi)]: e.target.value }))} />

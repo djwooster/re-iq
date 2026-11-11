@@ -149,13 +149,13 @@ export function Kpi({ label, value, target, status, trend, href, sub }: { label:
   const body = (
     <>
       <span className="flex items-center justify-between gap-2">
-        <span className="text-[11px] font-medium text-fg-2">{label}</span>
+        <span className="text-xs font-medium text-fg-2">{label}</span>
         {status && status !== "ok" && <span className={cn("size-1.5 rounded-full", status === "breach" ? "bg-unfavorable" : "bg-warning")} aria-label={status === "breach" ? "Outside target" : "Near target"} />}
       </span>
       <span className="num text-[20px] leading-7 font-medium tracking-tight text-fg">{value}</span>
-      {sub && <span className="-mt-1 text-[11px]">{sub}</span>}
+      {sub && <span className="-mt-1 text-xs">{sub}</span>}
       {trend && <Sparkline data={trend} tone={status === "breach" ? "unfavorable" : "data"} />}
-      {target && <span className="text-[10px] leading-snug text-fg-3">{target}</span>}
+      {target && <span className="text-[11px] leading-snug text-fg-3">{target}</span>}
     </>
   );
   const cls = "flex min-w-0 flex-col gap-1.5 rounded-lg border border-border bg-surface p-3";
@@ -205,7 +205,7 @@ export function Button({ onClick, href, variant = "primary", disabled, icon, chi
 export function Segmented<T extends string>({ value, options, onChange, label }: { value: T; options: readonly T[]; onChange: (v: T) => void; label: string }) {
   return (
     <div className="flex items-center gap-2">
-      {label && <span className="text-[11px] text-fg-3">{label}</span>}
+      {label && <span className="text-xs text-fg-3">{label}</span>}
       <UiSegmented label={label || "Options"} value={value} onChange={onChange} options={options.map((o) => ({ id: o, label: o }))} />
     </div>
   );
@@ -218,7 +218,7 @@ export function Tabs<T extends string>({ value, onChange, tabs }: { value: T; on
 export function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <label className="flex flex-col gap-1.5">
-      <span className="text-[11px] font-medium text-fg-2">{label}</span>
+      <span className="text-xs font-medium text-fg-2">{label}</span>
       {children}
     </label>
   );
@@ -245,7 +245,7 @@ export function Log({ entries }: { entries: { date: string; who: string; text: s
     <ol className="flex flex-col">
       {[...entries].reverse().map((l, i) => (
         <li key={i} className="grid grid-cols-[56px_88px_1fr] gap-3 border-b border-border/70 py-2 text-xs last:border-b-0">
-          <span className="num text-[11px] text-fg-3">{fmtDate(l.date)}</span>
+          <span className="num text-xs text-fg-3">{fmtDate(l.date)}</span>
           <span className="text-fg-2">{l.who}</span>
           <span>{l.text}</span>
         </li>

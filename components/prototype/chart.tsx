@@ -16,7 +16,7 @@ const STROKE: Record<Series["style"], { stroke: string; dash?: string; width: nu
   muted: { stroke: "var(--border-strong)", width: 2 },
 };
 
-const TICK = { fill: "var(--text-muted)", fontSize: 10, fontFamily: "var(--font-geist-sans)" };
+const TICK = { fill: "var(--text-muted)", fontSize: 11, fontFamily: "var(--font-geist-sans)" };
 
 export function Legend({ series, threshold }: { series: Series[]; threshold?: string }) {
   return (
@@ -24,7 +24,7 @@ export function Legend({ series, threshold }: { series: Series[]; threshold?: st
       {series.map((s) => {
         const st = STROKE[s.style];
         return (
-          <li key={s.key} className="flex items-center gap-1.5 text-[11px] text-fg-2">
+          <li key={s.key} className="flex items-center gap-1.5 text-xs text-fg-2">
             <svg width="14" height="6" aria-hidden>
               <line x1="0" y1="3" x2="14" y2="3" stroke={st.stroke} strokeWidth={st.width} strokeDasharray={st.dash} strokeLinecap="round" />
             </svg>
@@ -33,7 +33,7 @@ export function Legend({ series, threshold }: { series: Series[]; threshold?: st
         );
       })}
       {threshold && (
-        <li className="flex items-center gap-1.5 text-[11px] text-fg-2">
+        <li className="flex items-center gap-1.5 text-xs text-fg-2">
           <svg width="14" height="6" aria-hidden>
             <line x1="0" y1="3" x2="14" y2="3" stroke="var(--unfavorable)" strokeWidth={1} strokeDasharray="2 3" />
           </svg>
@@ -54,11 +54,11 @@ function Tip({ active, payload, label, series, format }: TipProps & { series: Se
   if (!active || !payload?.length) return null;
   return (
     <div className="min-w-[150px] rounded-md bg-inverted px-2.5 py-2 text-inverted-fg shadow-overlay">
-      <div className="num mb-1.5 text-[10px] tracking-[0.08em] text-inverted-muted uppercase">{label}</div>
+      <div className="num mb-1.5 text-[11px] tracking-[0.08em] text-inverted-muted uppercase">{label}</div>
       {series.map((s) => {
         const p = payload.find((x) => x.dataKey === s.key);
         return (
-          <div key={s.key} className="flex items-center justify-between gap-4 text-[11px] leading-5">
+          <div key={s.key} className="flex items-center justify-between gap-4 text-xs leading-5">
             <span className="text-inverted-muted">{s.label}</span>
             <span className="num">{p?.value === null || p?.value === undefined ? "Not reported" : format(p.value)}</span>
           </div>
@@ -126,8 +126,8 @@ export function Bars({ data, format, highlight, height = 180 }: { data: { label:
       <ResponsiveContainer width="100%" height="100%" minWidth={0}>
         <BarChart data={data} layout="vertical" margin={{ top: 0, right: 48, bottom: 0, left: 0 }}>
           <XAxis type="number" hide />
-          <YAxis type="category" dataKey="label" tickLine={false} axisLine={false} width={96} tick={{ ...TICK, fontFamily: "var(--font-geist-sans)", fontSize: 11 }} />
-          <Bar dataKey="value" radius={[0, 3, 3, 0]} barSize={14} label={{ position: "right", formatter: (v: unknown) => format(Number(v)), fill: "var(--text-secondary)", fontSize: 10, fontFamily: "var(--font-geist-sans)" }} animationDuration={500}>
+          <YAxis type="category" dataKey="label" tickLine={false} axisLine={false} width={96} tick={{ ...TICK, fontFamily: "var(--font-geist-sans)", fontSize: 12 }} />
+          <Bar dataKey="value" radius={[0, 3, 3, 0]} barSize={14} label={{ position: "right", formatter: (v: unknown) => format(Number(v)), fill: "var(--text-secondary)", fontSize: 11, fontFamily: "var(--font-geist-sans)" }} animationDuration={500}>
             {data.map((d) => (
               <Cell key={d.label} fill={highlight === undefined || d.label === highlight ? "var(--data)" : "var(--data-soft)"} />
             ))}

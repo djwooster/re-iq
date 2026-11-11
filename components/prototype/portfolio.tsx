@@ -28,7 +28,7 @@ function DataTable({ title, note, columns, rows, action }: { title: string; note
       title={title}
       action={
         <span className="flex items-center gap-3">
-          {note && <span className="text-[11px] text-fg-3">{note}</span>}
+          {note && <span className="text-xs text-fg-3">{note}</span>}
           {action}
         </span>
       }
@@ -137,7 +137,7 @@ function Gl({ id }: { id: string }) {
       title={`GL detail · ${property(id)!.name} · ${MONTH_LONG[profile(id).through]}`}
       note="Operating expenses"
       columns={["Date", "Account", "Vendor", "Description", N("Amount")]}
-      rows={rows.map((r, i) => ({ key: String(i), cells: [<span key="d" className="num text-[11px] font-normal text-fg-2">{`${MONTHS[profile(id).through]} ${r.day}`}</span>, r.account, r.v, `Invoice INV-${5200 + i * 17}`, fmt.usd(r.amount)] }))}
+      rows={rows.map((r, i) => ({ key: String(i), cells: [<span key="d" className="num text-xs font-normal text-fg-2">{`${MONTHS[profile(id).through]} ${r.day}`}</span>, r.account, r.v, `Invoice INV-${5200 + i * 17}`, fmt.usd(r.amount)] }))}
     />
   );
 }
@@ -354,7 +354,7 @@ function RentRoll({ id }: { id: string }) {
       title={`Rent roll · ${property(id)!.name}`}
       note={`${shown.length} of ${us.length} units`}
       action={
-        <button type="button" onClick={() => setAll((v) => !v)} className="text-[11px] font-medium text-fg underline decoration-fg/20 underline-offset-[3px] hover:decoration-fg/60">
+        <button type="button" onClick={() => setAll((v) => !v)} className="text-xs font-medium text-fg underline decoration-fg/20 underline-offset-[3px] hover:decoration-fg/60">
           {all ? "Show fewer" : "Show all"}
         </button>
       }
@@ -372,7 +372,7 @@ const NEXT12 = ["Dec", "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "
 
 function Expirations() {
   return (
-    <Card title="Lease expirations · next 12 months" action={<span className="text-[11px] text-fg-3">Outlined: over 10% of units in one month</span>}>
+    <Card title="Lease expirations · next 12 months" action={<span className="text-xs text-fg-3">Outlined: over 10% of units in one month</span>}>
       <Table columns={["Property", ...NEXT12.map((m) => N(m))]}>
         {ids().map((id) => {
           const us = unitNumbers(id).map((u) => unit(id, u));
@@ -583,7 +583,7 @@ function Inspections() {
     <DataTable
       title="Inspections and site visits"
       columns={["Date", "Property", "Type", "Items for capex plan", N("Photos")]}
-      rows={rows.map(([d, id, t, items, ph]) => ({ key: d, href: href.property(id), cells: [<span key="d" className="num text-[11px] font-normal text-fg-2">{d}</span>, property(id)!.name, t, items, String(ph)] }))}
+      rows={rows.map(([d, id, t, items, ph]) => ({ key: d, href: href.property(id), cells: [<span key="d" className="num text-xs font-normal text-fg-2">{d}</span>, property(id)!.name, t, items, String(ph)] }))}
     />
   );
 }
@@ -726,7 +726,7 @@ export function ModulePage({ id }: { id: keyof typeof MODULES }) {
       <Tabs value={tab} onChange={setTab} tabs={m.tabs} />
       {t.perProperty && <PropertyPicker value={prop} onChange={setProp} />}
       {t.render(prop)}
-      {t.perProperty && <A href={href.property(prop)} className="text-[11px] font-normal text-fg-3">{`Open ${property(prop)!.name}'s scorecard`}</A>}
+      {t.perProperty && <A href={href.property(prop)} className="text-xs font-normal text-fg-3">{`Open ${property(prop)!.name}'s scorecard`}</A>}
     </Page>
   );
 }

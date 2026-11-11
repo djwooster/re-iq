@@ -122,15 +122,15 @@ export function Scorecard({ id }: { id: string }) {
       </div>
 
       <div className="grid gap-3 md:grid-cols-2">
-        <Card title="Open exceptions" action={<A href="/prototype/exceptions" className="text-[11px] font-normal text-fg-3">All exceptions</A>}>
+        <Card title="Open exceptions" action={<A href="/prototype/exceptions" className="text-xs font-normal text-fg-3">All exceptions</A>}>
           {exceptions.length ? exceptions.map((e) => <ExceptionLink key={e.id} e={e} />) : <Empty>Nothing off plan.</Empty>}
         </Card>
-        <Card title="Renovation projects" action={<A href="/prototype/renovations" className="text-[11px] font-normal text-fg-3">Renovations</A>}>
+        <Card title="Renovation projects" action={<A href="/prototype/renovations" className="text-xs font-normal text-fg-3">Renovations</A>}>
           {projects.length ? (
             projects.map((x) => (
               <Link key={x.id} href={href.project(x.id)} className="group flex items-center justify-between gap-2 border-b border-border/70 py-2 last:border-b-0">
                 <span className="text-xs font-medium group-hover:underline">{x.name}</span>
-                <span className="text-[11px] text-fg-3">
+                <span className="text-xs text-fg-3">
                   {x.type} · {projectStage(x)}
                 </span>
               </Link>
@@ -144,7 +144,7 @@ export function Scorecard({ id }: { id: string }) {
       <Card title="Stacking plan" action={<Segmented label="" value={view} options={["Occupancy", "Renovation"] as const} onChange={setView} />}>
         <div className="mb-3 flex flex-wrap gap-x-4 gap-y-1">
           {legend.map((s) => (
-            <span key={s} className="flex items-center gap-1.5 text-[11px] text-fg-3">
+            <span key={s} className="flex items-center gap-1.5 text-xs text-fg-3">
               <span className={cn("size-2.5 rounded-sm", colors[s as never])} />
               {s}
               <span className="num text-fg-3">{units.filter((u) => (view === "Occupancy" ? u.occupancy : u.status) === s).length}</span>
@@ -154,7 +154,7 @@ export function Scorecard({ id }: { id: string }) {
         <div className="flex flex-col gap-1 overflow-x-auto">
           {Array.from({ length: pr.floors }, (_, i) => pr.floors - i).map((f) => (
             <div key={f} className="flex items-center gap-2">
-              <span className="num w-10 shrink-0 text-[10px] text-fg-3">Fl {f}</span>
+              <span className="num w-10 shrink-0 text-[11px] text-fg-3">Fl {f}</span>
               <div className="grid flex-1 gap-[3px]" style={{ gridTemplateColumns: `repeat(${perFloor}, minmax(10px, 1fr))` }}>
                 {units
                   .filter((u) => u.num.startsWith(String(f)))
@@ -246,7 +246,7 @@ export function Unit({ propertyId, unit: num }: { propertyId: string; unit: stri
         <Table bare columns={["Opened", "Category", "Description", "Status", { label: "Days open", num: true }]}>
           {WORK_ORDERS.map(([d, c, t, n]) => (
             <Row key={d}>
-              <Td className="num text-[11px] whitespace-nowrap text-fg-2">{d}</Td>
+              <Td className="num text-xs whitespace-nowrap text-fg-2">{d}</Td>
               <Td>{c}</Td>
               <Td className="text-fg-2">{t}</Td>
               <Td>
@@ -288,7 +288,7 @@ export function Unit({ propertyId, unit: num }: { propertyId: string; unit: stri
 function Item({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div className="flex flex-col gap-1">
-      <dt className="text-[11px] text-fg-3">{label}</dt>
+      <dt className="text-xs text-fg-3">{label}</dt>
       <dd>{children}</dd>
     </div>
   );

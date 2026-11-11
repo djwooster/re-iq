@@ -60,7 +60,7 @@ export function Setup({ step }: { step: StepId }) {
             );
           })}
         </ol>
-        <Link href="/prototype" className="text-[11px] text-fg-3 hover:text-fg">
+        <Link href="/prototype" className="text-xs text-fg-3 hover:text-fg">
           Save and exit
         </Link>
       </header>
@@ -106,7 +106,7 @@ function Footer({ back, next, disabled, label = "Continue", onNext, hint }: { ba
         <span />
       )}
       <span className="flex items-center gap-3">
-        {hint && <span className="num text-[11px] text-fg-3">{hint}</span>}
+        {hint && <span className="num text-xs text-fg-3">{hint}</span>}
         <Button
           disabled={disabled}
           onClick={() => {
@@ -195,7 +195,7 @@ function Properties() {
         <Button variant="secondary" icon={<Plus className="size-3" />} onClick={add} disabled={!nextId}>
           Add another property
         </Button>
-        {!nextId && <span className="text-[11px] text-fg-3">Up to {MAX} properties in this prototype</span>}
+        {!nextId && <span className="text-xs text-fg-3">Up to {MAX} properties in this prototype</span>}
       </div>
 
       <Footer
@@ -223,10 +223,10 @@ function PropertyCard({ n, p, canRemove }: { n: number; p: DraftProperty; canRem
     <div className="flex flex-col gap-3 rounded-lg border border-border bg-surface p-4">
       <div className="flex items-end gap-3">
         <label className="flex flex-1 flex-col gap-1.5">
-          <span className="text-[11px] font-medium text-fg-2">Property name</span>
+          <span className="text-xs font-medium text-fg-2">Property name</span>
           <Input value={p.name} onChange={(e) => update((q) => ({ ...q, name: e.target.value }))} placeholder={n === 0 ? "As it appears on your owner reports" : ""} />
         </label>
-        <span className="num mb-2 text-[11px] whitespace-nowrap text-fg-3">{rentRoll ? `${profile(p.id).units} units · from rent roll` : "Units from rent roll"}</span>
+        <span className="num mb-2 text-xs whitespace-nowrap text-fg-3">{rentRoll ? `${profile(p.id).units} units · from rent roll` : "Units from rent roll"}</span>
         {canRemove && (
           <button type="button" onClick={remove} aria-label={`Remove ${p.name || "property"}`} className="mb-1.5 rounded-md p-1 text-fg-3 transition-colors hover:bg-fg/[0.05] hover:text-fg">
             <X className="size-3.5" />
@@ -241,10 +241,10 @@ function PropertyCard({ n, p, canRemove }: { n: number; p: DraftProperty; canRem
               <motion.li key={r.id} initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} exit={{ opacity: 0, height: 0 }} transition={{ duration: 0.25, ease: "easeOut" }} className="overflow-hidden border-b border-border/70 last:border-b-0">
                 <div className="flex items-center gap-2.5 px-3 py-1.5">
                   {/\.pdf$/i.test(r.name) ? <FileText className="size-3.5 shrink-0 text-file-pdf" /> : <FileSpreadsheet className={cn("size-3.5 shrink-0", /\.csv$/i.test(r.name) ? "text-file-csv" : "text-file-xls")} />}
-                  <span className="num min-w-0 flex-1 truncate text-[11px]" title={r.name}>
+                  <span className="num min-w-0 flex-1 truncate text-xs" title={r.name}>
                     {r.name}
                   </span>
-                  <span className="num hidden text-[10px] text-fg-3 sm:inline">{formatFileSize(r.size)}</span>
+                  <span className="num hidden text-[11px] text-fg-3 sm:inline">{formatFileSize(r.size)}</span>
                   <div className="w-40 shrink-0">
                     <Select
                       label={`Report type for ${r.name}`}
@@ -267,17 +267,17 @@ function PropertyCard({ n, p, canRemove }: { n: number; p: DraftProperty; canRem
         <input {...getInputProps()} aria-label={`Add reports for ${p.name || "this property"}`} />
         <UploadCloud className={cn("size-4", isDragActive ? "text-fg" : "text-fg-3")} strokeWidth={1.5} />
         <span className="text-xs">{isDragActive ? "Drop to add" : p.reports.length ? "Drop more reports" : "Drop this property's reports here"}</span>
-        <button type="button" onClick={open} className="rounded-md border border-border bg-surface px-2.5 py-1 text-[11px] font-medium transition-colors hover:border-border-strong">
+        <button type="button" onClick={open} className="rounded-md border border-border bg-surface px-2.5 py-1 text-xs font-medium transition-colors hover:border-border-strong">
           Choose files
         </button>
         {!p.reports.length && (
-          <button type="button" onClick={() => update((q) => ({ ...q, name: q.name.trim() || DEFAULT_NAMES.properties[q.id], reports: sampleReports(q.id, q.name.trim() || DEFAULT_NAMES.properties[q.id]) }))} className="text-[11px] text-fg-3 underline decoration-fg/20 underline-offset-[3px] hover:text-fg">
+          <button type="button" onClick={() => update((q) => ({ ...q, name: q.name.trim() || DEFAULT_NAMES.properties[q.id], reports: sampleReports(q.id, q.name.trim() || DEFAULT_NAMES.properties[q.id]) }))} className="text-xs text-fg-3 underline decoration-fg/20 underline-offset-[3px] hover:text-fg">
             Use sample reports
           </button>
         )}
       </div>
 
-      {p.reports.length > 0 && missing.length > 0 && <p className="text-[11px] text-fg-3">Not added: {missing.join(", ")}. Add them now, or the manager can send them with their upload link.</p>}
+      {p.reports.length > 0 && missing.length > 0 && <p className="text-xs text-fg-3">Not added: {missing.join(", ")}. Add them now, or the manager can send them with their upload link.</p>}
     </div>
   );
 }
@@ -312,11 +312,11 @@ function Managers() {
             <div key={m.id} className="flex flex-col gap-3 rounded-lg border border-border bg-surface p-4">
               <div className="grid gap-3 sm:grid-cols-2">
                 <label className="flex flex-col gap-1.5">
-                  <span className="text-[11px] font-medium text-fg-2">Management company</span>
+                  <span className="text-xs font-medium text-fg-2">Management company</span>
                   <Input value={m.name} onChange={(e) => set(m.id, { name: e.target.value })} />
                 </label>
                 <label className="flex flex-col gap-1.5">
-                  <span className="text-[11px] font-medium text-fg-2">Reports email</span>
+                  <span className="text-xs font-medium text-fg-2">Reports email</span>
                   <Input type="email" value={m.email} onChange={(e) => set(m.id, { email: e.target.value })} aria-invalid={!/.+@.+\..+/.test(m.email)} />
                 </label>
               </div>
@@ -326,7 +326,7 @@ function Managers() {
                     <Chip key={id}>{name(id)}</Chip>
                   ))}
                 </span>
-                <button type="button" onClick={() => copy(token)} className="flex items-center gap-1.5 text-[11px] text-fg-3 hover:text-fg">
+                <button type="button" onClick={() => copy(token)} className="flex items-center gap-1.5 text-xs text-fg-3 hover:text-fg">
                   <Copy className="size-3" />
                   <span className="num">{uploadUrl(token)}</span>
                 </button>
@@ -339,7 +339,7 @@ function Managers() {
         <input type="checkbox" checked={invite} onChange={(e) => setInvite(e.target.checked)} className="mt-0.5 accent-[var(--text-primary)]" />
         <span>
           Email each manager their upload link
-          <span className="block text-[11px] text-fg-3">One message from {PRODUCT_NAME} with the link and the reports you expect each month.</span>
+          <span className="block text-xs text-fg-3">One message from {PRODUCT_NAME} with the link and the reports you expect each month.</span>
         </span>
       </label>
       <Footer
@@ -418,7 +418,7 @@ function Review() {
               <span className="flex flex-col">
                 {c}
                 {isDone && (
-                  <motion.span initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-[11px] text-fg-3">
+                  <motion.span initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-xs text-fg-3">
                     {results[n]}
                   </motion.span>
                 )}
@@ -439,10 +439,10 @@ function Review() {
                   const confirmed = ok.includes(l.id);
                   return (
                     <div key={l.id} className={cn("grid grid-cols-[1fr_200px_auto] items-center gap-3 border-b border-border/70 px-4 py-2.5 last:border-b-0", !confirmed && "bg-warning/[0.05]")}>
-                      <span className="num text-[11px]">{l.label}</span>
+                      <span className="num text-xs">{l.label}</span>
                       <Select label={`Account for ${l.label}`} value={accounts[l.id] ?? l.account} onChange={(v) => setAccounts((a) => ({ ...a, [l.id]: v }))} options={CHART_OF_ACCOUNTS} />
                       {confirmed ? (
-                        <button type="button" onClick={() => setOk((x) => x.filter((y) => y !== l.id))} className="flex w-[72px] items-center justify-end gap-1 text-[11px] text-favorable" aria-label={`Undo ${l.label}`}>
+                        <button type="button" onClick={() => setOk((x) => x.filter((y) => y !== l.id))} className="flex w-[72px] items-center justify-end gap-1 text-xs text-favorable" aria-label={`Undo ${l.label}`}>
                           <Check className="size-3" /> Confirmed
                         </button>
                       ) : (
@@ -473,7 +473,7 @@ function Review() {
               ["Exceptions found", String(exceptions)],
             ].map(([l, v]) => (
               <div key={l} className="flex flex-col gap-1 rounded-lg border border-border bg-surface p-3">
-                <span className="text-[11px] text-fg-3">{l}</span>
+                <span className="text-xs text-fg-3">{l}</span>
                 <span className="num text-lg">{v}</span>
               </div>
             ))}
