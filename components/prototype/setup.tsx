@@ -6,7 +6,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { useDropzone } from "react-dropzone";
-import { Input } from "@/components/ui/controls";
+import { Input, Select as UiSelect } from "@/components/ui/controls";
 import { Drawer } from "@/components/ui/overlay";
 import { useToast } from "@/components/ui/toast";
 import { cn } from "@/lib/cn";
@@ -380,6 +380,8 @@ function Properties() {
 const UNASSIGNED = "Not matched";
 
 /** One property's files (or the unmatched ones): rename, retype, move, remove, add. */
+const NEW = "__new";
+
 function FilesDrawer({ id, onClose }: { id: string | null; onClose: () => void }) {
   const { state, act } = useWf();
   const d = state.draft;
@@ -409,6 +411,14 @@ function FilesDrawer({ id, onClose }: { id: string | null; onClose: () => void }
     onClose();
   };
   const names = d.properties.map((q) => q.name || "Unnamed property");
+  const owner = p && ownerOf(p);
+  const company = d.managers.find((m) => m.id === owner);
+  const setOwner = (manager: string) => p && act.setDraft((x) => ({ ...x, properties: x.properties.map((q) => (q.id === p.id ? { ...q, manager } : q)) }));
+  const newCompany = () => {
+    if (!p) return;
+    const mid = `new-${uid()}`;
+    act.setDraft((x) => ({ ...x, managers: [...x.managers, { id: mid, name: "", email: "", properties: [] }], properties: x.properties.map((q) => (q.id === p.id ? { ...q, manager: mid } : q)) }));
+  };
 
   return (
     <Drawer
@@ -444,6 +454,36 @@ function FilesDrawer({ id, onClose }: { id: string | null; onClose: () => void }
             <span className="text-xs font-medium text-fg-2">Property name</span>
             <Input value={p.name} autoFocus={!p.name} placeholder="As it appears on your owner reports" onChange={(e) => act.setDraft((x) => ({ ...x, properties: x.properties.map((q) => (q.id === p.id ? { ...q, name: e.target.value } : q)) }))} />
           </label>
+        )}
+        {p && (
+          <div className="flex flex-col gap-1.5">
+            <label htmlFor="property-company" className="flex items-center justify-between text-xs font-medium text-fg-2">
+              Management company
+              {owner && !p.manager && <span className="font-normal text-fg-3">From reports</span>}
+            </label>
+            <UiSelect id="property-company" value={owner ?? ""} onChange={(e) => (e.target.value === NEW ? newCompany() : setOwner(e.target.value))}>
+              {!owner && (
+                <option value="" disabled>
+                  Choose a company
+                </option>
+              )}
+              {companiesOf(d).map((c) => (
+                <option key={c.id} value={c.id}>
+                  {c.name || "New company"}
+                </option>
+              ))}
+              <option value={NEW}>New company…</option>
+            </UiSelect>
+            {company && !(company.id in DEFAULT_NAMES.managers) && (
+              <Input
+                aria-label="New company name"
+                autoFocus={!company.name}
+                value={company.name}
+                placeholder="Company name"
+                onChange={(e) => act.setDraft((x) => ({ ...x, managers: x.managers.map((m) => (m.id === company.id ? { ...m, name: e.target.value } : m)) }))}
+              />
+            )}
+          </div>
         )}
         {id === "unassigned" && <p className="text-xs text-fg-2">Pick the property each file belongs to, or remove it.</p>}
         {files.length > 0 && (
@@ -497,23 +537,38 @@ function FilesDrawer({ id, onClose }: { id: string | null; onClose: () => void }
   );
 }
 
+type DraftProperty = Draft["properties"][number];
+
+/** Who manages a property: the user's pick, else the company its reports came from. */
+const ownerOf = (p: DraftProperty) => p.manager ?? (p.reports.length ? managerOfId(p.id).id : undefined);
+
+/** Every company known so far: those already in setup plus any read off reports. */
+const companiesOf = (d: Draft) => {
+  const list = d.managers.map((m) => ({ id: m.id, name: m.name }));
+  for (const p of d.properties) {
+    const id = ownerOf(p);
+    if (id && id in DEFAULT_NAMES.managers && !list.some((c) => c.id === id)) list.push({ id, name: DEFAULT_NAMES.managers[id as ManagerId].name });
+  }
+  return list.sort((x, y) => x.id.localeCompare(y.id));
+};
+
 /**
- * The managers behind the properties in the draft: read off the reports the
- * first time, then the user's edits, moves and added companies are kept.
+ * The companies behind the draft's properties, each with the properties it
+ * manages. Names, emails and sent links already entered are kept, and so are
+ * companies the user added.
  */
 const managersFor = (d: Draft, prev: Draft["managers"]): Draft["managers"] => {
-  const ids = new Set(d.properties.map((p) => p.id));
-  const placed = new Set(prev.flatMap((m) => m.properties));
-  const kept = prev.map((m) => ({ ...m, properties: m.properties.filter((id) => ids.has(id)) }));
-  for (const p of d.properties) {
-    if (placed.has(p.id)) continue;
-    const id = managerOfId(p.id).id;
-    const m = kept.find((x) => x.id === id);
-    if (m) m.properties = [...m.properties, p.id];
-    else kept.push({ id, ...DEFAULT_NAMES.managers[id], properties: [p.id] });
-  }
-  // Seeded companies go once their properties are gone; ones the user added stay.
-  return kept.filter((m) => m.properties.length || !(m.id in DEFAULT_NAMES.managers)).sort((x, y) => x.id.localeCompare(y.id));
+  const owner = (p: DraftProperty) => ownerOf(p) ?? managerOfId(p.id).id;
+  const ids = [...new Set([...prev.map((m) => m.id), ...d.properties.map(owner)])];
+  return ids
+    .map((id) => {
+      const seed = DEFAULT_NAMES.managers[id as ManagerId];
+      const base = prev.find((m) => m.id === id) ?? { id, name: seed?.name ?? "", email: seed?.email ?? "", properties: [] };
+      return { ...base, properties: d.properties.filter((p) => owner(p) === id).map((p) => p.id) };
+    })
+    // Seeded companies go once they manage nothing; added ones stay unless left blank.
+    .filter((m) => m.properties.length || (!(m.id in DEFAULT_NAMES.managers) && m.name.trim()))
+    .sort((x, y) => x.id.localeCompare(y.id));
 };
 
 // ---- Step 2: managers ----
@@ -528,10 +583,19 @@ function Managers() {
   const d = state.draft;
   const name = (id: string) => d.properties.find((p) => p.id === id)?.name || DEFAULT_NAMES.properties[id];
   const set = (id: string, patch: Partial<Draft["managers"][number]>) => act.setDraft((x) => ({ ...x, managers: x.managers.map((m) => (m.id === id ? { ...m, ...patch } : m)) }));
-  const move = (pid: string, to: string) => act.setDraft((x) => ({ ...x, managers: x.managers.map((m) => ({ ...m, properties: m.id === to ? [...m.properties, pid] : m.properties.filter((q) => q !== pid) })) }));
+  const move = (pid: string, to: string) =>
+    act.setDraft((x) => ({
+      ...x,
+      properties: x.properties.map((q) => (q.id === pid ? { ...q, manager: to } : q)),
+      managers: x.managers.map((m) => ({ ...m, properties: m.id === to ? [...m.properties, pid] : m.properties.filter((q) => q !== pid) })),
+    }));
   const add = (pid?: string) => {
     const id = `new-${uid()}`;
-    act.setDraft((x) => ({ ...x, managers: [...x.managers.map((m) => ({ ...m, properties: m.properties.filter((q) => q !== pid) })), { id, name: "", email: "", properties: pid ? [pid] : [] }] }));
+    act.setDraft((x) => ({
+      ...x,
+      properties: x.properties.map((q) => (q.id === pid ? { ...q, manager: id } : q)),
+      managers: [...x.managers.map((m) => ({ ...m, properties: m.properties.filter((q) => q !== pid) })), { id, name: "", email: "", properties: pid ? [pid] : [] }],
+    }));
   };
   const send = (ids: string[]) => {
     act.setDraft((x) => ({ ...x, managers: x.managers.map((m) => (ids.includes(m.id) ? { ...m, sent: TODAY } : m)) }));
