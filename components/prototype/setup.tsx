@@ -297,7 +297,6 @@ function Properties() {
                       {SHORT[k] ?? k}
                     </th>
                   ))}
-                  <th className="text-xs font-medium text-fg-2 h-8 px-2 text-right">Files</th>
                   <th className="w-10" aria-label="Actions" />
                 </tr>
               </thead>
@@ -324,7 +323,6 @@ function Properties() {
                           {p.reports.some((r) => r.kind === k) ? <Check className="mx-auto size-3.5 text-favorable" aria-label="Added" /> : <X className="mx-auto size-3.5 text-unfavorable/60" aria-label="Missing" />}
                         </td>
                       ))}
-                      <td className="num px-2 text-right whitespace-nowrap">{p.reports.length || <span className="text-fg-3">0</span>}</td>
                       <td className="pr-2 text-right">
                         <button
                           type="button"
@@ -345,20 +343,14 @@ function Properties() {
               </motion.tbody>
               <tfoot>
                 <tr aria-hidden className="border-t border-border">
-                  <td colSpan={PACKAGE.length + 6} className="h-2 bg-bg p-0" />
+                  <td colSpan={PACKAGE.length + 5} className="h-2 bg-bg p-0" />
                 </tr>
                 <tr className="border-t border-border bg-fg/[0.02] font-medium">
                   <td colSpan={3} className="h-10 px-4 whitespace-nowrap">
                     Total
                   </td>
                   <td className="num px-2 text-right">{fmt.int(d.properties.filter((p) => p.reports.some((r) => r.kind === "Rent roll")).reduce((s, p) => s + profile(p.id).units, 0))}</td>
-                  {PACKAGE.map((k) => (
-                    <td key={k} className="num px-2 text-center text-fg-2">
-                      {d.properties.filter((p) => p.reports.some((r) => r.kind === k)).length}
-                    </td>
-                  ))}
-                  <td className="num px-2 text-right">{reports}</td>
-                  <td />
+                  <td colSpan={PACKAGE.length + 1} />
                 </tr>
               </tfoot>
             </table>
