@@ -1,12 +1,10 @@
 "use client";
 
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, WandSparkles } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { Input } from "@/components/ui/controls";
 import { cn } from "@/lib/cn";
-import { PRODUCT_NAME } from "@/lib/labels";
 import { TrendChart } from "./chart";
 import { blocker, monthStatus } from "./derive";
 import { fmt, noiTrend, noiVs, portfolioKpis, portfolioNoi, reporting, type Compare } from "./metrics";
@@ -31,50 +29,79 @@ export function Login() {
   const [password, setPassword] = useState("prototype-demo");
   const signup = mode === "signup";
   const valid = /.+@.+\..+/.test(email) && password.length >= 8 && (!signup || (name.trim() && org.trim()));
-  const field = (label: string, input: React.ReactNode) => (
-    <label className="flex flex-col gap-1.5">
-      <span className="text-xs font-medium text-fg-2">{label}</span>
-      {input}
-    </label>
-  );
+  const go = () => {
+    if (signup) {
+      act.signUp({ name: name.trim(), email: email.trim() }, org.trim());
+      router.push("/prototype/setup/properties");
+    } else {
+      router.push(state.setupDone ? "/prototype/overview" : "/prototype/setup/properties");
+    }
+  };
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center bg-bg px-4 py-10">
-      <div className="flex w-full max-w-[360px] flex-col gap-6">
-        <Link href="/" className="num text-center text-[15px] font-semibold tracking-[0.06em] text-fg hover:opacity-70">
-          {PRODUCT_NAME}
-        </Link>
+    <div className="flex min-h-screen flex-col items-center bg-bg px-4">
+      <div className="flex w-full max-w-[340px] flex-1 flex-col justify-center gap-8 py-16">
+        <div className="flex flex-col items-center gap-3 text-center">
+          <h1 className="text-[36px] leading-[1.1] font-semibold tracking-[-0.03em] text-fg">Let&apos;s save you some time.</h1>
+          <p className="text-xs text-fg-3">
+            By continuing, you agree to our <span className="text-fg-2 underline decoration-fg/25 underline-offset-[3px]">terms</span> and{" "}
+            <span className="text-fg-2 underline decoration-fg/25 underline-offset-[3px]">privacy policy</span>.
+          </p>
+        </div>
+        <div className="flex flex-col gap-2">
+          <button type="button" onClick={go} disabled={!hydrated} className={OUTLINE}>
+            <GoogleMark /> Continue with Google
+          </button>
+          <button type="button" onClick={go} disabled={!hydrated} className={OUTLINE}>
+            <WandSparkles className="size-4 text-fg-2" strokeWidth={1.75} /> Continue with magic link
+          </button>
+        </div>
         <form
-          className="flex flex-col gap-4 rounded-lg border border-border bg-surface p-5"
+          className="flex flex-col gap-2 border-t border-border pt-8"
           onSubmit={(e) => {
             e.preventDefault();
-            if (signup) {
-              act.signUp({ name: name.trim(), email: email.trim() }, org.trim());
-              router.push("/prototype/setup/properties");
-            } else {
-              router.push(state.setupDone ? "/prototype/overview" : "/prototype/setup/properties");
-            }
+            go();
           }}
         >
-          <div>
-            <h1 className="text-[15px] font-semibold">{signup ? "Create your workspace" : "Sign in"}</h1>
-            <p className="mt-0.5 text-xs text-fg-3">{signup ? "Then add your properties and last month's reports. Most portfolios are set up in about ten minutes." : "Use your work email."}</p>
-          </div>
-          {signup && field("Your name", <Input autoComplete="name" value={name} onChange={(e) => setName(e.target.value)} />)}
-          {field("Work email", <Input type="email" autoComplete="email" value={email} onChange={(e) => setEmail(e.target.value)} />)}
-          {signup && field("Firm", <Input autoComplete="organization" value={org} onChange={(e) => setOrg(e.target.value)} placeholder="As your owners know it" />)}
-          {field(signup ? "Password · 8 characters or more" : "Password", <Input type="password" autoComplete={signup ? "new-password" : "current-password"} value={password} onChange={(e) => setPassword(e.target.value)} />)}
-          <button type="submit" disabled={!valid || !hydrated} className="h-8 rounded-md bg-inverted text-xs font-medium text-inverted-fg transition-opacity hover:opacity-90 disabled:opacity-50">
-            {signup ? "Create workspace" : "Sign in"}
+          {signup && <input aria-label="Your name" autoComplete="name" value={name} onChange={(e) => setName(e.target.value)} placeholder="Your name" className={FIELD} />}
+          {signup && <input aria-label="Firm" autoComplete="organization" value={org} onChange={(e) => setOrg(e.target.value)} placeholder="Firm" className={FIELD} />}
+          <input aria-label="Work email" type="email" autoComplete="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="Work email" className={FIELD} />
+          <input
+            aria-label="Password"
+            type="password"
+            autoComplete={signup ? "new-password" : "current-password"}
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            placeholder={signup ? "Password, 8 characters or more" : "Password"}
+            className={FIELD}
+          />
+          <button type="submit" disabled={!valid || !hydrated} className="mt-2 h-10 rounded-lg bg-inverted text-[13px] font-medium text-inverted-fg transition-opacity hover:opacity-90 disabled:opacity-50">
+            {signup ? "Sign up with email" : "Sign in with email"}
           </button>
+          {!signup && <span className="mt-2 text-center text-xs text-fg-3">Forgot password?</span>}
         </form>
-        <p className="text-center text-xs text-fg-3">
-          {signup ? "Already have a workspace? " : `New to ${PRODUCT_NAME}? `}
-          <button type="button" onClick={() => setMode(signup ? "signin" : "signup")} className="font-medium text-fg underline decoration-fg/20 underline-offset-[3px] hover:decoration-fg/60">
-            {signup ? "Sign in" : "Create one"}
-          </button>
-        </p>
       </div>
+      <p className="pb-8 text-center text-xs text-fg-3">
+        {signup ? "Already have an account? " : "Don't have an account? "}
+        <button type="button" onClick={() => setMode(signup ? "signin" : "signup")} className="font-medium text-fg hover:underline">
+          {signup ? "Sign in" : "Sign up"}
+        </button>
+      </p>
     </div>
+  );
+}
+
+const OUTLINE = "flex h-10 items-center justify-center gap-2 rounded-lg border border-border bg-surface text-[13px] font-medium text-fg transition-colors hover:bg-fg/[0.03] disabled:opacity-50";
+const FIELD = "h-10 rounded-lg border border-border bg-surface px-3 text-[13px] text-fg outline-none placeholder:text-fg-3 focus:border-fg/30";
+
+/** Google's "G", in its own brand colors. */
+function GoogleMark() {
+  return (
+    <svg viewBox="0 0 24 24" className="size-4" aria-hidden>
+      <path fill="#4285F4" d="M23.5 12.27c0-.79-.07-1.54-.2-2.27H12v4.3h6.45a5.5 5.5 0 0 1-2.4 3.62v3h3.88c2.27-2.09 3.57-5.17 3.57-8.65z" />
+      <path fill="#34A853" d="M12 24c3.24 0 5.96-1.07 7.94-2.9l-3.88-3c-1.07.72-2.45 1.15-4.06 1.15-3.12 0-5.77-2.11-6.71-4.95H1.28v3.1A12 12 0 0 0 12 24z" />
+      <path fill="#FBBC05" d="M5.29 14.3a7.2 7.2 0 0 1 0-4.6V6.6H1.28a12 12 0 0 0 0 10.8l4.01-3.1z" />
+      <path fill="#EA4335" d="M12 4.75c1.76 0 3.34.6 4.59 1.8l3.44-3.44C17.95 1.19 15.24 0 12 0A12 12 0 0 0 1.28 6.6l4.01 3.1C6.23 6.86 8.88 4.75 12 4.75z" />
+    </svg>
   );
 }
 
