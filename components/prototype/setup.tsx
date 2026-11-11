@@ -258,7 +258,7 @@ function Properties() {
                           {p.reports.some((r) => r.kind === k) ? <Check className="mx-auto size-3.5 text-favorable" aria-label="Added" /> : <span className="text-fg-3" aria-label="Missing">–</span>}
                         </td>
                       ))}
-                      <td className="num px-2 text-right whitespace-nowrap">{p.reports.length ? p.reports.length : <span className="text-fg-3">Waiting on manager</span>}</td>
+                      <td className="num px-2 text-right whitespace-nowrap">{p.reports.length || <span className="text-fg-3">0</span>}</td>
                       <td className="pr-2 text-right">
                         <button
                           type="button"
