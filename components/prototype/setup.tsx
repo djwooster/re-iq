@@ -1,6 +1,6 @@
 "use client";
 
-import { Building2, Check, ChevronDown, Copy, FileSpreadsheet, FileText, Plus, Trash2, UploadCloud, X } from "lucide-react";
+import { Building2, Check, ChevronDown, Copy, Send, FileSpreadsheet, FileText, Plus, Trash2, UploadCloud, X } from "lucide-react";
 import { motion, useReducedMotion } from "motion/react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -15,7 +15,7 @@ import { PRODUCT_NAME } from "@/lib/labels";
 import { GL_LINES, uploadUrl, useCopyLink } from "./close";
 import { fmt } from "./metrics";
 import { profile } from "./numbers";
-import { ALL_PROPERTY_IDS, CHART_OF_ACCOUNTS, CLOSE_MONTH, DEFAULT_NAMES, EXCEPTIONS, MANAGERS, MAPPING, MISSING, PACKAGE, RECEIVED, detectKind, guessProperty, managerOfId, type ManagerId, type ReportKind, type Upload } from "./seed";
+import { ALL_PROPERTY_IDS, CHART_OF_ACCOUNTS, CLOSE_MONTH, DEFAULT_NAMES, EXCEPTIONS, MANAGERS, MAPPING, MISSING, PACKAGE, RECEIVED, TODAY, detectKind, fmtDate, guessProperty, managerOfId, type ManagerId, type ReportKind, type Upload } from "./seed";
 import { STEPS, type StepId } from "./setup-steps";
 import { useWf, type Draft } from "./store";
 import { Button, Select } from "./ui";
@@ -579,7 +579,7 @@ const companiesOf = (d: Draft) => {
 
 /**
  * The companies behind the draft's properties, each with the properties it
- * manages. Names and emails already entered are kept, and so are
+ * manages. Names, emails and sent links already entered are kept, and so are
  * companies the user added.
  */
 const managersFor = (d: Draft, prev: Draft["managers"]): Draft["managers"] => {
@@ -604,6 +604,7 @@ const tokenOf = (id: string) => MANAGERS.find((x) => x.id === id)?.token ?? `${i
 function Managers() {
   const { state, act } = useWf();
   const copy = useCopyLink();
+  const toast = useToast();
   const d = state.draft;
   const name = (id: string) => d.properties.find((p) => p.id === id)?.name || DEFAULT_NAMES.properties[id];
   const set = (id: string, patch: Partial<Draft["managers"][number]>) => act.setDraft((x) => ({ ...x, managers: x.managers.map((m) => (m.id === id ? { ...m, ...patch } : m)) }));
@@ -621,7 +622,14 @@ function Managers() {
       managers: [...x.managers.map((m) => ({ ...m, properties: m.properties.filter((q) => q !== pid) })), { id, name: "", email: "", properties: pid ? [pid] : [] }],
     }));
   };
+  const send = (ids: string[]) => {
+    act.setDraft((x) => ({ ...x, managers: x.managers.map((m) => (ids.includes(m.id) ? { ...m, sent: TODAY } : m)) }));
+    const sent = d.managers.filter((m) => ids.includes(m.id));
+    toast(sent.length === 1 ? `Upload link sent to ${sent[0].name}` : `Upload links sent to ${sent.length} companies`, { detail: sent.length === 1 ? sent[0].email : undefined });
+  };
   const active = d.managers.filter((m) => m.properties.length);
+  const ready = (m: Draft["managers"][number]) => m.properties.length > 0 && m.name.trim() !== "" && isEmail(m.email);
+  const unsent = active.filter((m) => ready(m) && !m.sent);
   return (
     <>
       <Heading title="Who sends you these reports?">Matched from your reports. Check each company and the email its reports come from.</Heading>
@@ -637,7 +645,7 @@ function Managers() {
                 </label>
                 <label className="flex flex-col gap-1.5">
                   <span className="text-xs font-medium text-fg">Reports email</span>
-                  <Input type="email" value={m.email} onChange={(e) => set(m.id, { email: e.target.value })} aria-invalid={m.email !== "" && !isEmail(m.email)} />
+                  <Input type="email" value={m.email} onChange={(e) => set(m.id, { email: e.target.value, sent: undefined })} aria-invalid={m.email !== "" && !isEmail(m.email)} />
                 </label>
                 {!m.properties.length && (
                   <button type="button" onClick={() => act.setDraft((x) => ({ ...x, managers: x.managers.filter((q) => q.id !== m.id) }))} aria-label={`Remove ${m.name || "company"}`} title="Remove company" className="mb-1 rounded-md p-1.5 text-fg-3 transition-colors hover:bg-fg/[0.06] hover:text-unfavorable">
@@ -654,21 +662,38 @@ function Managers() {
               </div>
 
               {m.properties.length > 0 && (
-                <div className="flex items-center border-t border-border pt-3">
+                <div className="flex flex-wrap items-center justify-between gap-3 border-t border-border pt-3">
                   <button type="button" onClick={() => copy(token)} className="flex items-center gap-1.5 text-xs text-fg-2 hover:text-fg" title="Copy upload link">
                     <Copy className="size-3" />
                     <span className="num">{uploadUrl(token)}</span>
                   </button>
+                  {m.sent ? (
+                      <span className="flex items-center gap-2 text-xs text-fg-2">
+                        <Check className="size-3 text-favorable" /> Sent {fmtDate(m.sent)}
+                        <button type="button" onClick={() => send([m.id])} className="font-medium text-fg hover:underline">
+                          Resend
+                        </button>
+                      </span>
+                    ) : (
+                      <Button variant="secondary" disabled={!ready(m)} icon={<Send className="size-3" />} onClick={() => send([m.id])}>
+                        Send link
+                      </Button>
+                    )}
                 </div>
               )}
             </div>
           );
         })}
       </div>
-      <div>
+      <div className="flex flex-wrap items-center justify-between gap-3">
         <Button variant="secondary" icon={<Plus className="size-3.5" />} onClick={() => add()}>
           Add a management company
         </Button>
+        {unsent.length > 1 && (
+          <Button variant="secondary" icon={<Send className="size-3" />} onClick={() => send(unsent.map((m) => m.id))}>
+            Send all {unsent.length} links
+          </Button>
+        )}
       </div>
       <Footer back="properties" next="review" disabled={!active.length || !active.every((m) => m.name.trim() && isEmail(m.email))} />
     </>
