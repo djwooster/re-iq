@@ -64,9 +64,6 @@ export function Setup({ step }: { step: StepId }) {
         </Link>
       </header>
       <motion.main key={step} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3, ease: "easeOut" }} className="mx-auto flex w-full max-w-[760px] flex-1 flex-col gap-6 px-5 py-10">
-        <p className="eyebrow">
-          Step {i + 1} of {STEPS.length}
-        </p>
         {!hydrated ? null : !reachable(i) ? (
           <div className="flex flex-col items-start gap-3">
             <Heading title="Finish the earlier steps first">This step needs at least one named property with a report.</Heading>
@@ -86,7 +83,7 @@ export function Setup({ step }: { step: StepId }) {
 
 function Heading({ title, children }: { title: string; children?: React.ReactNode }) {
   return (
-    <div className="-mt-4 flex flex-col gap-1">
+    <div className="flex flex-col gap-1">
       <h1 className="text-[22px] leading-8 font-semibold tracking-tight">{title}</h1>
       {children && <p className="max-w-[560px] text-xs leading-relaxed text-fg-2">{children}</p>}
     </div>
