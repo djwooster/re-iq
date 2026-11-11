@@ -263,6 +263,20 @@ function Properties() {
                   );
                 })}
               </motion.tbody>
+              <tfoot>
+                <tr className="border-t border-border bg-fg/[0.02] font-medium">
+                  <td className="h-10 px-4 whitespace-nowrap">
+                    {d.properties.length} {d.properties.length === 1 ? "property" : "properties"}
+                  </td>
+                  <td className="num px-2 text-right">{fmt.int(d.properties.filter((p) => p.reports.some((r) => r.kind === "Rent roll")).reduce((s, p) => s + profile(p.id).units, 0))}</td>
+                  {PACKAGE.map((k) => (
+                    <td key={k} className="num px-2 text-center text-fg-2">
+                      {d.properties.filter((p) => p.reports.some((r) => r.kind === k)).length}
+                    </td>
+                  ))}
+                  <td className="num px-4 text-right">{reports}</td>
+                </tr>
+              </tfoot>
             </table>
           </div>
           <div>{addButton}</div>
@@ -272,7 +286,6 @@ function Properties() {
       <Footer
         next="managers"
         disabled={!d.properties.length || !d.properties.every((p) => p.name.trim()) || !reports}
-        hint={empty ? undefined : `${d.properties.length} ${d.properties.length === 1 ? "property" : "properties"} · ${reports} ${reports === 1 ? "report" : "reports"}`}
         onNext={() => set((x) => ({ ...x, managers: managersFor(x, x.managers) }))}
       />
 
