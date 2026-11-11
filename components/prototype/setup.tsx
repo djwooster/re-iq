@@ -63,7 +63,7 @@ export function Setup({ step }: { step: StepId }) {
           Save and exit
         </Link>
       </header>
-      <motion.main key={step} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3, ease: "easeOut" }} className="flex w-full max-w-[920px] flex-1 flex-col gap-6 px-5 py-10 md:px-20">
+      <motion.main key={step} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3, ease: "easeOut" }} className="mx-auto flex w-full max-w-[760px] flex-1 flex-col gap-6 px-5 py-10">
         <p className="eyebrow">
           Step {i + 1} of {STEPS.length}
         </p>
