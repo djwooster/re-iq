@@ -807,7 +807,7 @@ function Review() {
     }
     const t = window.setTimeout(() => setCheck((c) => c + 1), reduce ? 0 : 700);
     return () => window.clearTimeout(t);
-  }, [done, d.reviewed, act, reduce]);
+  }, [check, done, d.reviewed, act, reduce]);
 
   const ids = d.properties.map((p) => p.id);
   const reports = d.properties.reduce((s, p) => s + p.reports.length, 0);
