@@ -44,7 +44,8 @@ export interface Draft {
   properties: { id: string; name: string; reports: Upload[] }[];
   /** Files RE-IQ couldn't match to a property. */
   unassigned?: Upload[];
-  managers: { id: ManagerId; name: string; email: string; properties: string[] }[];
+  /** Seeded companies keep their seed id (m1–m4); ones the user adds get a new id. `sent` is when their upload link was emailed. */
+  managers: { id: string; name: string; email: string; properties: string[]; sent?: string }[];
   reviewed: boolean;
 }
 
@@ -219,7 +220,8 @@ function useActions(set: React.Dispatch<React.SetStateAction<State>>) {
           const d = s.draft;
           const names: Names = {
             properties: { ...DEFAULT_NAMES.properties, ...Object.fromEntries(d.properties.map((p) => [p.id, p.name.trim() || DEFAULT_NAMES.properties[p.id]])) },
-            managers: { ...DEFAULT_NAMES.managers, ...Object.fromEntries(d.managers.map((m) => [m.id, { name: m.name.trim() || DEFAULT_NAMES.managers[m.id].name, email: m.email.trim() }])) },
+            // Added companies and moved properties stay in setup; the sample portfolio keeps its four managers.
+            managers: { ...DEFAULT_NAMES.managers, ...Object.fromEntries(d.managers.filter((m) => m.id in DEFAULT_NAMES.managers).map((m) => [m.id, { name: m.name.trim() || DEFAULT_NAMES.managers[m.id as ManagerId].name, email: m.email.trim() }])) },
           };
           // The dashboard always shows the sample portfolio; setup only renames it.
           return {

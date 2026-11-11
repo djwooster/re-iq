@@ -1,10 +1,10 @@
 "use client";
 
-import { Building2, Check, Copy, FileSpreadsheet, FileText, Plus, Trash2, UploadCloud, X } from "lucide-react";
+import { Building2, Check, ChevronDown, Copy, Mail, Send, FileSpreadsheet, FileText, Plus, Trash2, UploadCloud, X } from "lucide-react";
 import { motion, useReducedMotion } from "motion/react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useDropzone } from "react-dropzone";
 import { Input } from "@/components/ui/controls";
 import { Drawer } from "@/components/ui/overlay";
@@ -15,10 +15,10 @@ import { PRODUCT_NAME } from "@/lib/labels";
 import { GL_LINES, uploadUrl, useCopyLink } from "./close";
 import { fmt } from "./metrics";
 import { profile } from "./numbers";
-import { ALL_PROPERTY_IDS, CHART_OF_ACCOUNTS, CLOSE_MONTH, DEFAULT_NAMES, EXCEPTIONS, MANAGERS, MAPPING, MISSING, PACKAGE, RECEIVED, detectKind, guessProperty, managerOfId, type ManagerId, type ReportKind, type Upload } from "./seed";
+import { ALL_PROPERTY_IDS, CHART_OF_ACCOUNTS, CLOSE_MONTH, DEFAULT_NAMES, EXCEPTIONS, MANAGERS, MAPPING, MISSING, PACKAGE, RECEIVED, TODAY, detectKind, fmtDate, guessProperty, managerOfId, type ManagerId, type ReportKind, type Upload } from "./seed";
 import { STEPS, type StepId } from "./setup-steps";
 import { useWf, type Draft } from "./store";
-import { Button, Chip, Select } from "./ui";
+import { Button, Select } from "./ui";
 
 /**
  * Self-serve setup: each property with its reports, the managers who send
@@ -429,70 +429,193 @@ function FilesDrawer({ id, onClose }: { id: string | null; onClose: () => void }
   );
 }
 
-/** The managers behind the properties in the draft, keeping anything already typed. */
-const managersFor = (d: Draft, prev: Draft["managers"]): Draft["managers"] =>
-  [...new Set(d.properties.map((p) => managerOfId(p.id).id))].sort().map((id) => {
-    const old = prev.find((m) => m.id === id);
-    return { id, name: old?.name ?? DEFAULT_NAMES.managers[id].name, email: old?.email ?? DEFAULT_NAMES.managers[id].email, properties: d.properties.filter((p) => managerOfId(p.id).id === id).map((p) => p.id) };
-  });
+/**
+ * The managers behind the properties in the draft: read off the reports the
+ * first time, then the user's edits, moves and added companies are kept.
+ */
+const managersFor = (d: Draft, prev: Draft["managers"]): Draft["managers"] => {
+  const ids = new Set(d.properties.map((p) => p.id));
+  const placed = new Set(prev.flatMap((m) => m.properties));
+  const kept = prev.map((m) => ({ ...m, properties: m.properties.filter((id) => ids.has(id)) }));
+  for (const p of d.properties) {
+    if (placed.has(p.id)) continue;
+    const id = managerOfId(p.id).id;
+    const m = kept.find((x) => x.id === id);
+    if (m) m.properties = [...m.properties, p.id];
+    else kept.push({ id, ...DEFAULT_NAMES.managers[id], properties: [p.id] });
+  }
+  // Seeded companies go once their properties are gone; ones the user added stay.
+  return kept.filter((m) => m.properties.length || !(m.id in DEFAULT_NAMES.managers)).sort((x, y) => x.id.localeCompare(y.id));
+};
 
 // ---- Step 2: managers ----
+
+const isEmail = (v: string) => /.+@.+\..+/.test(v);
+const tokenOf = (id: string) => MANAGERS.find((x) => x.id === id)?.token ?? `${id}-${id.slice(-6)}`;
 
 function Managers() {
   const { state, act } = useWf();
   const copy = useCopyLink();
-  const d = state.draft;
-  const [invite, setInvite] = useState(true);
   const toast = useToast();
-  const name = (id: string) => d.properties.find((p) => p.id === id)?.name ?? DEFAULT_NAMES.properties[id];
-  const set = (id: ManagerId, patch: Partial<Draft["managers"][number]>) => act.setDraft((x) => ({ ...x, managers: x.managers.map((m) => (m.id === id ? { ...m, ...patch } : m)) }));
-  const valid = d.managers.every((m) => m.name.trim() && /.+@.+\..+/.test(m.email));
+  const d = state.draft;
+  const [previewing, setPreviewing] = useState<string | null>(d.managers[0]?.id ?? null);
+  const name = (id: string) => d.properties.find((p) => p.id === id)?.name || DEFAULT_NAMES.properties[id];
+  const set = (id: string, patch: Partial<Draft["managers"][number]>) => act.setDraft((x) => ({ ...x, managers: x.managers.map((m) => (m.id === id ? { ...m, ...patch } : m)) }));
+  const move = (pid: string, to: string) => act.setDraft((x) => ({ ...x, managers: x.managers.map((m) => ({ ...m, properties: m.id === to ? [...m.properties, pid] : m.properties.filter((q) => q !== pid) })) }));
+  const add = (pid?: string) => {
+    const id = `new-${uid()}`;
+    act.setDraft((x) => ({ ...x, managers: [...x.managers.map((m) => ({ ...m, properties: m.properties.filter((q) => q !== pid) })), { id, name: "", email: "", properties: pid ? [pid] : [] }] }));
+  };
+  const send = (ids: string[]) => {
+    act.setDraft((x) => ({ ...x, managers: x.managers.map((m) => (ids.includes(m.id) ? { ...m, sent: TODAY } : m)) }));
+    const sent = d.managers.filter((m) => ids.includes(m.id));
+    toast(sent.length === 1 ? `Upload link sent to ${sent[0].name}` : `Upload links sent to ${sent.length} companies`, { detail: sent.length === 1 ? sent[0].email : undefined });
+  };
+  const active = d.managers.filter((m) => m.properties.length);
+  const ready = (m: Draft["managers"][number]) => m.properties.length > 0 && m.name.trim() !== "" && isEmail(m.email);
+  const unsent = active.filter((m) => ready(m) && !m.sent);
   return (
     <>
-      <Heading title="Who sends you these reports?">
-        We read the management company off each property&apos;s reports. Check the names and the email their reports come from. Each company gets a private upload link, so next month&apos;s reports land here without you forwarding anything.
-      </Heading>
+      <Heading title="Who sends you these reports?">Matched from your reports. Check each company and the email its reports come from.</Heading>
       <div className="flex flex-col gap-3">
         {d.managers.map((m) => {
-          const token = MANAGERS.find((x) => x.id === m.id)?.token ?? m.id;
+          const token = tokenOf(m.id);
+          const open = previewing === m.id;
           return (
-            <div key={m.id} className="flex flex-col gap-3 rounded-lg border border-border bg-surface p-4">
-              <div className="grid gap-3 sm:grid-cols-2">
+            <div key={m.id} className="flex flex-col gap-4 rounded-lg border border-border bg-surface p-4">
+              <div className="grid gap-3 sm:grid-cols-[1fr_1fr_auto] sm:items-end">
                 <label className="flex flex-col gap-1.5">
                   <span className="text-xs font-medium text-fg-2">Management company</span>
-                  <Input value={m.name} onChange={(e) => set(m.id, { name: e.target.value })} />
+                  <Input value={m.name} autoFocus={!m.name} onChange={(e) => set(m.id, { name: e.target.value })} />
                 </label>
                 <label className="flex flex-col gap-1.5">
                   <span className="text-xs font-medium text-fg-2">Reports email</span>
-                  <Input type="email" value={m.email} onChange={(e) => set(m.id, { email: e.target.value })} aria-invalid={!/.+@.+\..+/.test(m.email)} />
+                  <Input type="email" value={m.email} onChange={(e) => set(m.id, { email: e.target.value, sent: undefined })} aria-invalid={m.email !== "" && !isEmail(m.email)} />
                 </label>
+                {!m.properties.length && (
+                  <button type="button" onClick={() => act.setDraft((x) => ({ ...x, managers: x.managers.filter((q) => q.id !== m.id) }))} aria-label={`Remove ${m.name || "company"}`} title="Remove company" className="mb-1 rounded-md p-1.5 text-fg-3 transition-colors hover:bg-fg/[0.06] hover:text-unfavorable">
+                    <Trash2 className="size-3.5" />
+                  </button>
+                )}
               </div>
-              <div className="flex flex-wrap items-center justify-between gap-3">
-                <span className="flex flex-wrap gap-1">
-                  {m.properties.map((id) => (
-                    <Chip key={id}>{name(id)}</Chip>
-                  ))}
-                </span>
-                <button type="button" onClick={() => copy(token)} className="flex items-center gap-1.5 text-xs text-fg-3 hover:text-fg">
-                  <Copy className="size-3" />
-                  <span className="num">{uploadUrl(token)}</span>
-                </button>
+
+              <div className="flex flex-wrap items-center gap-1.5">
+                {m.properties.map((id) => (
+                  <PropertyChip key={id} label={name(id)} others={d.managers.filter((o) => o.id !== m.id)} onMove={(to) => move(id, to)} onNew={() => add(id)} />
+                ))}
+                {!m.properties.length && <span className="text-xs text-fg-3">Move a property here from another company</span>}
               </div>
+
+              {m.properties.length > 0 && (
+                <div className="flex flex-wrap items-center justify-between gap-3 border-t border-border pt-3">
+                  <button type="button" onClick={() => copy(token)} className="flex items-center gap-1.5 text-xs text-fg-2 hover:text-fg" title="Copy upload link">
+                    <Copy className="size-3" />
+                    <span className="num">{uploadUrl(token)}</span>
+                  </button>
+                  <span className="flex items-center gap-3">
+                    <button type="button" onClick={() => setPreviewing(open ? null : m.id)} aria-expanded={open} className="flex items-center gap-1 text-xs text-fg-2 hover:text-fg">
+                      <Mail className="size-3" /> {open ? "Hide email" : "Preview email"}
+                    </button>
+                    {m.sent ? (
+                      <span className="flex items-center gap-2 text-xs text-fg-2">
+                        <Check className="size-3 text-favorable" /> Sent {fmtDate(m.sent)}
+                        <button type="button" onClick={() => send([m.id])} className="font-medium text-fg hover:underline">
+                          Resend
+                        </button>
+                      </span>
+                    ) : (
+                      <Button variant="secondary" disabled={!ready(m)} icon={<Send className="size-3" />} onClick={() => send([m.id])}>
+                        Send link
+                      </Button>
+                    )}
+                  </span>
+                </div>
+              )}
+
+              {open && m.properties.length > 0 && <EmailPreview from={state.user.name} org={d.org || state.org} to={m} properties={m.properties.map(name)} url={uploadUrl(token)} />}
             </div>
           );
         })}
       </div>
-      <label className="flex items-start gap-2.5 text-xs">
-        <input type="checkbox" checked={invite} onChange={(e) => setInvite(e.target.checked)} className="mt-0.5 accent-[var(--text-primary)]" />
-        <span>Email each manager their upload link</span>
-      </label>
-      <Footer
-        back="properties"
-        next="review"
-        disabled={!valid}
-        onNext={() => invite && toast(`Upload links sent to ${d.managers.length} ${d.managers.length === 1 ? "manager" : "managers"}`, { detail: "You can resend from Close or Managers." })}
-      />
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <Button variant="secondary" icon={<Plus className="size-3.5" />} onClick={() => add()}>
+          Add a management company
+        </Button>
+        {unsent.length > 1 && (
+          <Button variant="secondary" icon={<Send className="size-3" />} onClick={() => send(unsent.map((m) => m.id))}>
+            Send all {unsent.length} links
+          </Button>
+        )}
+      </div>
+      <Footer back="properties" next="review" disabled={!active.length || !active.every((m) => m.name.trim() && isEmail(m.email))} />
     </>
+  );
+}
+
+/** A property assigned to a company. Click to move it to another one. */
+function PropertyChip({ label, others, onMove, onNew }: { label: string; others: Draft["managers"]; onMove: (to: string) => void; onNew: () => void }) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLSpanElement>(null);
+  useEffect(() => {
+    if (!open) return;
+    const close = (e: MouseEvent) => !ref.current?.contains(e.target as Node) && setOpen(false);
+    document.addEventListener("mousedown", close);
+    return () => document.removeEventListener("mousedown", close);
+  }, [open]);
+  const pick = (fn: () => void) => () => {
+    setOpen(false);
+    fn();
+  };
+  const item = "flex h-7 w-full items-center gap-2 rounded-md px-2 text-left text-xs text-fg-2 hover:bg-fg/[0.04] hover:text-fg";
+  return (
+    <span ref={ref} className="relative">
+      <button type="button" onClick={() => setOpen((v) => !v)} aria-expanded={open} aria-haspopup="menu" className="flex h-6 items-center gap-1 rounded-md border border-border bg-bg pr-1.5 pl-2 text-xs text-property transition-colors hover:border-border-strong">
+        {label}
+        <ChevronDown className="size-3 text-fg-3" />
+      </button>
+      {open && (
+        <div role="menu" className="absolute top-full left-0 z-20 mt-1 w-56 rounded-lg border border-border bg-bg p-1 shadow-overlay">
+          {others.map((o) => (
+            <button key={o.id} type="button" role="menuitem" onClick={pick(() => onMove(o.id))} className={item}>
+              Move to {o.name || "the new company"}
+            </button>
+          ))}
+          <button type="button" role="menuitem" onClick={pick(onNew)} className={item}>
+            <Plus className="size-3" /> Move to a new company
+          </button>
+        </div>
+      )}
+    </span>
+  );
+}
+
+/** The email a management company gets with its upload link. */
+function EmailPreview({ from, org, to, properties, url }: { from: string; org: string; to: Draft["managers"][number]; properties: string[]; url: string }) {
+  const list = properties.length > 1 ? `${properties.slice(0, -1).join(", ")} and ${properties.at(-1)}` : properties[0];
+  return (
+    <div className="overflow-hidden rounded-md border border-border bg-bg">
+      <dl className="grid grid-cols-[56px_1fr] gap-x-3 gap-y-1 border-b border-border px-4 py-3 text-xs">
+        <dt className="text-fg-3">From</dt>
+        <dd>
+          {from} at {org} <span className="text-fg-3">via {PRODUCT_NAME}</span>
+        </dd>
+        <dt className="text-fg-3">To</dt>
+        <dd>{to.email || <span className="text-fg-3">Add an email above</span>}</dd>
+        <dt className="text-fg-3">Subject</dt>
+        <dd className="font-medium">Where to send {org}&apos;s monthly reports</dd>
+      </dl>
+      <div className="flex flex-col gap-3 px-4 py-4 text-xs leading-relaxed text-fg-2">
+        <p>Hi {to.name || "there"},</p>
+        <p>
+          Starting with {CLOSE_MONTH}, please upload the monthly package for {list} at the link below. It&apos;s private to {to.name || "your company"} and needs no login. Drop the files as they are; there&apos;s no template to follow.
+        </p>
+        <span className="flex flex-wrap items-center gap-3">
+          <span className="inline-flex h-8 items-center rounded-md bg-inverted px-3 text-[13px] font-medium text-inverted-fg">Upload reports</span>
+          <span className="num text-fg-3">{url}</span>
+        </span>
+        <p>Thanks, {from.split(" ")[0]}</p>
+      </div>
+    </div>
   );
 }
 
