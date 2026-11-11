@@ -412,12 +412,15 @@ function FilesDrawer({ id, onClose }: { id: string | null; onClose: () => void }
   };
   const names = d.properties.map((q) => q.name || "Unnamed property");
   const owner = p && ownerOf(p);
-  const company = d.managers.find((m) => m.id === owner);
+  // Typing a new company's name; it's created on save.
+  const [draftCompany, setDraftCompany] = useState<string | null>(null);
   const setOwner = (manager: string) => p && act.setDraft((x) => ({ ...x, properties: x.properties.map((q) => (q.id === p.id ? { ...q, manager } : q)) }));
-  const newCompany = () => {
-    if (!p) return;
+  const saveCompany = () => {
+    const name = draftCompany?.trim();
+    if (!p || !name) return;
     const mid = `new-${uid()}`;
-    act.setDraft((x) => ({ ...x, managers: [...x.managers, { id: mid, name: "", email: "", properties: [] }], properties: x.properties.map((q) => (q.id === p.id ? { ...q, manager: mid } : q)) }));
+    act.setDraft((x) => ({ ...x, managers: [...x.managers, { id: mid, name, email: "", properties: [] }], properties: x.properties.map((q) => (q.id === p.id ? { ...q, manager: mid } : q)) }));
+    setDraftCompany(null);
   };
 
   return (
@@ -451,37 +454,54 @@ function FilesDrawer({ id, onClose }: { id: string | null; onClose: () => void }
       <div className="flex flex-col gap-4 p-4">
         {p && (
           <label className="flex flex-col gap-1.5">
-            <span className="text-xs font-medium text-fg-2">Property name</span>
+            <span className="text-xs font-medium text-fg">Property name</span>
             <Input value={p.name} autoFocus={!p.name} placeholder="As it appears on your owner reports" onChange={(e) => act.setDraft((x) => ({ ...x, properties: x.properties.map((q) => (q.id === p.id ? { ...q, name: e.target.value } : q)) }))} />
           </label>
         )}
         {p && (
           <div className="flex flex-col gap-1.5">
-            <label htmlFor="property-company" className="flex items-center justify-between text-xs font-medium text-fg-2">
+            <label htmlFor="property-company" className="flex items-center justify-between text-xs font-medium text-fg">
               Management company
               {owner && !p.manager && <span className="font-normal text-fg-3">From reports</span>}
             </label>
-            <UiSelect id="property-company" value={owner ?? ""} onChange={(e) => (e.target.value === NEW ? newCompany() : setOwner(e.target.value))}>
-              {!owner && (
-                <option value="" disabled>
-                  Choose a company
-                </option>
-              )}
-              {companiesOf(d).map((c) => (
-                <option key={c.id} value={c.id}>
-                  {c.name || "New company"}
-                </option>
-              ))}
-              <option value={NEW}>New company…</option>
-            </UiSelect>
-            {company && !(company.id in DEFAULT_NAMES.managers) && (
-              <Input
-                aria-label="New company name"
-                autoFocus={!company.name}
-                value={company.name}
-                placeholder="Company name"
-                onChange={(e) => act.setDraft((x) => ({ ...x, managers: x.managers.map((m) => (m.id === company.id ? { ...m, name: e.target.value } : m)) }))}
-              />
+            {draftCompany === null ? (
+              <UiSelect id="property-company" value={owner ?? ""} onChange={(e) => (e.target.value === NEW ? setDraftCompany("") : setOwner(e.target.value))}>
+                {!owner && (
+                  <option value="" disabled>
+                    Choose a company
+                  </option>
+                )}
+                {companiesOf(d).map((c) => (
+                  <option key={c.id} value={c.id}>
+                    {c.name}
+                  </option>
+                ))}
+                <option value={NEW}>New company…</option>
+              </UiSelect>
+            ) : (
+              <span className="flex items-center gap-1.5">
+                <Input
+                  id="property-company"
+                  autoFocus
+                  value={draftCompany}
+                  placeholder="Company name"
+                  onChange={(e) => setDraftCompany(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") saveCompany();
+                    if (e.key === "Escape") {
+                      e.stopPropagation();
+                      setDraftCompany(null);
+                    }
+                  }}
+                  className="flex-1"
+                />
+                <button type="button" onClick={saveCompany} disabled={!draftCompany.trim()} aria-label="Save company" className="rounded-md p-2 text-fg-2 transition-colors hover:bg-fg/[0.06] hover:text-fg disabled:opacity-40">
+                  <Check className="size-3.5" />
+                </button>
+                <button type="button" onClick={() => setDraftCompany(null)} aria-label="Cancel" className="rounded-md p-2 text-fg-3 transition-colors hover:bg-fg/[0.06] hover:text-fg">
+                  <X className="size-3.5" />
+                </button>
+              </span>
             )}
           </div>
         )}
@@ -615,11 +635,11 @@ function Managers() {
             <div key={m.id} className="flex flex-col gap-4 rounded-lg border border-border bg-surface p-4">
               <div className="grid gap-3 sm:grid-cols-[1fr_1fr_auto] sm:items-end">
                 <label className="flex flex-col gap-1.5">
-                  <span className="text-xs font-medium text-fg-2">Management company</span>
+                  <span className="text-xs font-medium text-fg">Management company</span>
                   <Input value={m.name} autoFocus={!m.name} onChange={(e) => set(m.id, { name: e.target.value })} />
                 </label>
                 <label className="flex flex-col gap-1.5">
-                  <span className="text-xs font-medium text-fg-2">Reports email</span>
+                  <span className="text-xs font-medium text-fg">Reports email</span>
                   <Input type="email" value={m.email} onChange={(e) => set(m.id, { email: e.target.value, sent: undefined })} aria-invalid={m.email !== "" && !isEmail(m.email)} />
                 </label>
                 {!m.properties.length && (

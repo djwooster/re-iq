@@ -34,7 +34,7 @@ export function Login() {
   const valid = /.+@.+\..+/.test(email) && password.length >= 8 && (!signup || (name.trim() && org.trim()));
   const field = (label: string, input: React.ReactNode) => (
     <label className="flex flex-col gap-1.5">
-      <span className="text-xs font-medium text-fg-2">{label}</span>
+      <span className="text-xs font-medium text-fg">{label}</span>
       {input}
     </label>
   );
