@@ -1,6 +1,6 @@
 "use client";
 
-import { Building2, Check, ChevronDown, Copy, Mail, Send, FileSpreadsheet, FileText, Plus, Trash2, UploadCloud, X } from "lucide-react";
+import { Building2, Check, ChevronDown, Copy, Send, FileSpreadsheet, FileText, Plus, Trash2, UploadCloud, X } from "lucide-react";
 import { motion, useReducedMotion } from "motion/react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -458,7 +458,6 @@ function Managers() {
   const copy = useCopyLink();
   const toast = useToast();
   const d = state.draft;
-  const [previewing, setPreviewing] = useState<string | null>(d.managers[0]?.id ?? null);
   const name = (id: string) => d.properties.find((p) => p.id === id)?.name || DEFAULT_NAMES.properties[id];
   const set = (id: string, patch: Partial<Draft["managers"][number]>) => act.setDraft((x) => ({ ...x, managers: x.managers.map((m) => (m.id === id ? { ...m, ...patch } : m)) }));
   const move = (pid: string, to: string) => act.setDraft((x) => ({ ...x, managers: x.managers.map((m) => ({ ...m, properties: m.id === to ? [...m.properties, pid] : m.properties.filter((q) => q !== pid) })) }));
@@ -480,7 +479,6 @@ function Managers() {
       <div className="flex flex-col gap-3">
         {d.managers.map((m) => {
           const token = tokenOf(m.id);
-          const open = previewing === m.id;
           return (
             <div key={m.id} className="flex flex-col gap-4 rounded-lg border border-border bg-surface p-4">
               <div className="grid gap-3 sm:grid-cols-[1fr_1fr_auto] sm:items-end">
@@ -512,11 +510,7 @@ function Managers() {
                     <Copy className="size-3" />
                     <span className="num">{uploadUrl(token)}</span>
                   </button>
-                  <span className="flex items-center gap-3">
-                    <button type="button" onClick={() => setPreviewing(open ? null : m.id)} aria-expanded={open} className="flex items-center gap-1 text-xs text-fg-2 hover:text-fg">
-                      <Mail className="size-3" /> {open ? "Hide email" : "Preview email"}
-                    </button>
-                    {m.sent ? (
+                  {m.sent ? (
                       <span className="flex items-center gap-2 text-xs text-fg-2">
                         <Check className="size-3 text-favorable" /> Sent {fmtDate(m.sent)}
                         <button type="button" onClick={() => send([m.id])} className="font-medium text-fg hover:underline">
@@ -528,11 +522,8 @@ function Managers() {
                         Send link
                       </Button>
                     )}
-                  </span>
                 </div>
               )}
-
-              {open && m.properties.length > 0 && <EmailPreview from={state.user.name} org={d.org || state.org} to={m} properties={m.properties.map(name)} url={uploadUrl(token)} />}
             </div>
           );
         })}
@@ -586,36 +577,6 @@ function PropertyChip({ label, others, onMove, onNew }: { label: string; others:
         </div>
       )}
     </span>
-  );
-}
-
-/** The email a management company gets with its upload link. */
-function EmailPreview({ from, org, to, properties, url }: { from: string; org: string; to: Draft["managers"][number]; properties: string[]; url: string }) {
-  const list = properties.length > 1 ? `${properties.slice(0, -1).join(", ")} and ${properties.at(-1)}` : properties[0];
-  return (
-    <div className="overflow-hidden rounded-md border border-border bg-bg">
-      <dl className="grid grid-cols-[56px_1fr] gap-x-3 gap-y-1 border-b border-border px-4 py-3 text-xs">
-        <dt className="text-fg-3">From</dt>
-        <dd>
-          {from} at {org} <span className="text-fg-3">via {PRODUCT_NAME}</span>
-        </dd>
-        <dt className="text-fg-3">To</dt>
-        <dd>{to.email || <span className="text-fg-3">Add an email above</span>}</dd>
-        <dt className="text-fg-3">Subject</dt>
-        <dd className="font-medium">Where to send {org}&apos;s monthly reports</dd>
-      </dl>
-      <div className="flex flex-col gap-3 px-4 py-4 text-xs leading-relaxed text-fg-2">
-        <p>Hi {to.name || "there"},</p>
-        <p>
-          Starting with {CLOSE_MONTH}, please upload the monthly package for {list} at the link below. It&apos;s private to {to.name || "your company"} and needs no login. Drop the files as they are; there&apos;s no template to follow.
-        </p>
-        <span className="flex flex-wrap items-center gap-3">
-          <span className="inline-flex h-8 items-center rounded-md bg-inverted px-3 text-[13px] font-medium text-inverted-fg">Upload reports</span>
-          <span className="num text-fg-3">{url}</span>
-        </span>
-        <p>Thanks, {from.split(" ")[0]}</p>
-      </div>
-    </div>
   );
 }
 
