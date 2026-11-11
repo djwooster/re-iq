@@ -16,13 +16,29 @@ import { href, Page } from "./shell";
 import { isOverdue, openExceptions, useWf } from "./store";
 import { A, Card, Chip, Delta, Kpi, Meter, PlanChip, Row, Table, Td } from "./ui";
 
+/**
+ * The way in. A new account creates the workspace and goes to setup; signing
+ * in goes to the Overview only once setup has finished.
+ */
 export function Login() {
   const router = useRouter();
-  const [email, setEmail] = useState("am@ownerfirm.com");
-  const [password, setPassword] = useState("prototype-demo");
+  const { state, act, hydrated } = useWf();
+  const [mode, setMode] = useState<"signup" | "signin">("signup");
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [org, setOrg] = useState("");
+  const [password, setPassword] = useState("");
+  const signup = mode === "signup";
+  const valid = /.+@.+\..+/.test(email) && password.length >= 8 && (!signup || (name.trim() && org.trim()));
+  const field = (label: string, input: React.ReactNode) => (
+    <label className="flex flex-col gap-1.5">
+      <span className="text-[11px] font-medium text-fg-2">{label}</span>
+      {input}
+    </label>
+  );
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center bg-bg px-4">
-      <div className="flex w-full max-w-[340px] flex-col gap-6">
+    <div className="flex min-h-screen flex-col items-center justify-center bg-bg px-4 py-10">
+      <div className="flex w-full max-w-[360px] flex-col gap-6">
         <Link href="/" className="num text-center text-[15px] font-semibold tracking-[0.06em] text-fg hover:opacity-70">
           {PRODUCT_NAME}
         </Link>
@@ -30,30 +46,31 @@ export function Login() {
           className="flex flex-col gap-4 rounded-lg border border-border bg-surface p-5"
           onSubmit={(e) => {
             e.preventDefault();
-            router.push("/prototype/overview");
+            if (signup) {
+              act.signUp({ name: name.trim(), email: email.trim() }, org.trim());
+              router.push("/prototype/setup/portfolio");
+            } else {
+              router.push(state.setupDone ? "/prototype/overview" : "/prototype/setup/portfolio");
+            }
           }}
         >
           <div>
-            <h1 className="text-[15px] font-semibold">Sign in</h1>
-            <p className="mt-0.5 text-xs text-fg-3">Use your work email.</p>
+            <h1 className="text-[15px] font-semibold">{signup ? "Create your workspace" : "Sign in"}</h1>
+            <p className="mt-0.5 text-xs text-fg-3">{signup ? "Then add your properties and last month's reports. Most portfolios are set up in about ten minutes." : "Use your work email."}</p>
           </div>
-          <label className="flex flex-col gap-1.5">
-            <span className="text-[11px] font-medium text-fg-2">Email</span>
-            <Input type="email" autoComplete="email" value={email} onChange={(e) => setEmail(e.target.value)} />
-          </label>
-          <label className="flex flex-col gap-1.5">
-            <span className="text-[11px] font-medium text-fg-2">Password</span>
-            <Input type="password" autoComplete="current-password" value={password} onChange={(e) => setPassword(e.target.value)} />
-          </label>
-          <button type="submit" disabled={!email || !password} className="h-8 rounded-md bg-inverted text-xs font-medium text-inverted-fg transition-opacity hover:opacity-90 disabled:opacity-50">
-            Sign in
+          {signup && field("Your name", <Input autoComplete="name" value={name} onChange={(e) => setName(e.target.value)} />)}
+          {field("Work email", <Input type="email" autoComplete="email" value={email} onChange={(e) => setEmail(e.target.value)} />)}
+          {signup && field("Firm", <Input autoComplete="organization" value={org} onChange={(e) => setOrg(e.target.value)} placeholder="As your owners know it" />)}
+          {field(signup ? "Password · 8 characters or more" : "Password", <Input type="password" autoComplete={signup ? "new-password" : "current-password"} value={password} onChange={(e) => setPassword(e.target.value)} />)}
+          <button type="submit" disabled={!valid || !hydrated} className="h-8 rounded-md bg-inverted text-xs font-medium text-inverted-fg transition-opacity hover:opacity-90 disabled:opacity-50">
+            {signup ? "Create workspace" : "Sign in"}
           </button>
         </form>
         <p className="text-center text-xs text-fg-3">
-          New to {PRODUCT_NAME}?{" "}
-          <Link href="/prototype/setup/portfolio" className="font-medium text-fg underline decoration-fg/20 underline-offset-[3px] hover:decoration-fg/60">
-            Set up your portfolio
-          </Link>
+          {signup ? "Already have a workspace? " : `New to ${PRODUCT_NAME}? `}
+          <button type="button" onClick={() => setMode(signup ? "signin" : "signup")} className="font-medium text-fg underline decoration-fg/20 underline-offset-[3px] hover:decoration-fg/60">
+            {signup ? "Sign in" : "Create one"}
+          </button>
         </p>
       </div>
     </div>

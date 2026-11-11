@@ -158,6 +158,13 @@ function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
 
 export function Shell({ children }: { children: React.ReactNode }) {
   const [open, setOpen] = useState(false);
+  const { state, hydrated } = useWf();
+  const router = useRouter();
+  // No workspace data exists until setup finishes, so send unfinished accounts there.
+  useEffect(() => {
+    if (hydrated && !state.setupDone) router.replace("/prototype/setup/portfolio");
+  }, [hydrated, state.setupDone, router]);
+  if (!hydrated || !state.setupDone) return null;
   return (
     <div className="flex min-h-screen bg-bg text-fg">
       <aside className="sticky top-0 hidden h-screen shrink-0 md:block">

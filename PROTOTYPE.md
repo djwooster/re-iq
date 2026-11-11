@@ -9,7 +9,9 @@ Dec 14, 2026, the November close.
 
 ## Flow
 
-1. `/prototype`: sign in (goes to the Overview), or "Set up your portfolio".
+1. `/prototype`: create a workspace (name, work email, firm, password), or sign in. A new
+   workspace has no data: every app page sends you to setup until it's finished, and signing in
+   before then resumes setup.
 2. `/prototype/setup/portfolio`: firm name; import a property list (simulated); rename properties.
 3. `/prototype/setup/managers`: management companies found in the list, reports emails, upload links,
    optional email invite.

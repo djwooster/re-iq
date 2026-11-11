@@ -170,7 +170,7 @@ function Portfolio() {
   const units = d.properties.reduce((s, p) => s + p.units, 0);
   return (
     <>
-      <Heading title="Set up your portfolio">
+      <Heading title={state.user.name !== "Asset manager" ? `Welcome, ${state.user.name.split(" ")[0]}. Add your properties.` : "Add your properties"}>
         Start with the properties you own and the firm they report to. Upload your property list (any spreadsheet with property names and unit counts works) and fix any names before you continue.
       </Heading>
 

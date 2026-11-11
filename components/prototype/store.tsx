@@ -49,6 +49,8 @@ export interface Draft {
 interface State {
   org: string;
   user: { name: string; email: string };
+  /** False until setup finishes; the workspace has no data before then. */
+  setupDone: boolean;
   names: Names;
   draft: Draft;
   exceptions: Exception[];
@@ -67,6 +69,7 @@ const emptyDraft = (): Draft => ({ org: "", properties: [], managers: [], upload
 const initial = (): State => ({
   org: ORG,
   user: { name: "Asset manager", email: "am@ownerfirm.com" },
+  setupDone: false,
   names: DEFAULT_NAMES,
   draft: emptyDraft(),
   exceptions: EXCEPTIONS,
@@ -201,6 +204,7 @@ function useActions(set: React.Dispatch<React.SetStateAction<State>>) {
           };
         }),
 
+      signUp: (user: { name: string; email: string }, org: string) => set((s) => ({ ...s, user, draft: { ...s.draft, org: s.draft.org || org } })),
       setDraft: (fn: (d: Draft) => Draft) => set((s) => ({ ...s, draft: fn(s.draft) })),
       /** Setup is done: the draft's names become the workspace's names everywhere. */
       finishSetup: () =>
@@ -210,7 +214,7 @@ function useActions(set: React.Dispatch<React.SetStateAction<State>>) {
             properties: { ...DEFAULT_NAMES.properties, ...Object.fromEntries(d.properties.map((p) => [p.id, p.name.trim() || DEFAULT_NAMES.properties[p.id]])) },
             managers: { ...DEFAULT_NAMES.managers, ...Object.fromEntries(d.managers.map((m) => [m.id, { name: m.name.trim() || DEFAULT_NAMES.managers[m.id].name, email: m.email.trim() }])) },
           };
-          return { ...renamed(initial(), names), org: d.org.trim() || ORG, names, draft: s.draft };
+          return { ...renamed(initial(), names), org: d.org.trim() || ORG, names, draft: s.draft, user: s.user, setupDone: true };
         }),
       reset: () => {
         try {
