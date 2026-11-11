@@ -10,14 +10,21 @@ const EASE = [0.16, 1, 0.3, 1] as const;
 
 function useOverlayBehavior(open: boolean, onClose: () => void) {
   const panelRef = useRef<HTMLDivElement>(null);
+  // Callers often pass a new onClose each render; keep the latest without
+  // re-running the effect, which would pull focus out of inputs as you type.
+  const onCloseRef = useRef(onClose);
+  useEffect(() => {
+    onCloseRef.current = onClose;
+  });
   useEffect(() => {
     if (!open) return;
     const previous = document.activeElement as HTMLElement | null;
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") onClose();
+      if (e.key === "Escape") onCloseRef.current();
     };
     document.addEventListener("keydown", onKey);
-    const t = window.setTimeout(() => panelRef.current?.focus(), 20);
+    // Focus the panel unless something inside it (an autofocused field) already has focus.
+    const t = window.setTimeout(() => !panelRef.current?.contains(document.activeElement) && panelRef.current?.focus(), 20);
     document.body.style.overflow = "hidden";
     return () => {
       document.removeEventListener("keydown", onKey);
@@ -25,7 +32,7 @@ function useOverlayBehavior(open: boolean, onClose: () => void) {
       document.body.style.overflow = "";
       previous?.focus?.();
     };
-  }, [open, onClose]);
+  }, [open]);
   return panelRef;
 }
 
