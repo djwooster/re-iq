@@ -1,6 +1,6 @@
 "use client";
 
-import { Check, Copy, FileSpreadsheet, FileText, Plus, UploadCloud, X } from "lucide-react";
+import { Check, Copy, FileSpreadsheet, FileText, Plus, Trash2, UploadCloud, X } from "lucide-react";
 import { motion, useReducedMotion } from "motion/react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -170,6 +170,7 @@ function Properties() {
     }));
 
   const nextId = ALL_PROPERTY_IDS.find((x) => !d.properties.some((p) => p.id === x));
+  const remove = (id: string) => set((x) => ({ ...x, properties: x.properties.filter((p) => p.id !== id) }));
   const addOne = () => {
     if (!nextId) return;
     set((x) => ({ ...x, properties: [...x.properties, { id: nextId, name: "", reports: [] }] }));
@@ -233,7 +234,8 @@ function Properties() {
                       {SHORT[k] ?? k}
                     </th>
                   ))}
-                  <th className="eyebrow h-8 px-4 text-right font-normal">Files</th>
+                  <th className="eyebrow h-8 px-2 text-right font-normal">Files</th>
+                  <th className="w-10" aria-label="Actions" />
                 </tr>
               </thead>
               <motion.tbody initial="hidden" animate="show" variants={{ show: { transition: { staggerChildren: 0.03 } } }}>
@@ -246,7 +248,7 @@ function Properties() {
                       onClick={() => setOpen(p.id)}
                       onKeyDown={(e) => (e.key === "Enter" || e.key === " ") && (e.preventDefault(), setOpen(p.id))}
                       tabIndex={0}
-                      className="cursor-pointer border-b border-border/70 transition-colors last:border-b-0 hover:bg-fg/[0.025] focus-visible:bg-fg/[0.04] focus-visible:outline-none"
+                      className="group cursor-pointer border-b border-border/70 transition-colors last:border-b-0 hover:bg-fg/[0.025] focus-visible:bg-fg/[0.04] focus-visible:outline-none"
                     >
                       <td className="h-10 px-4 font-medium whitespace-nowrap">{p.name || <span className="text-fg-3">Unnamed property</span>}</td>
                       <td className="num px-2 text-right text-fg-2">{rentRoll ? profile(p.id).units : "–"}</td>
@@ -255,7 +257,21 @@ function Properties() {
                           {p.reports.some((r) => r.kind === k) ? <Check className="mx-auto size-3.5 text-favorable" aria-label="Added" /> : <span className="text-fg-3" aria-label="Missing">–</span>}
                         </td>
                       ))}
-                      <td className="num px-4 text-right whitespace-nowrap">{p.reports.length ? p.reports.length : <span className="text-fg-3">Waiting on manager</span>}</td>
+                      <td className="num px-2 text-right whitespace-nowrap">{p.reports.length ? p.reports.length : <span className="text-fg-3">Waiting on manager</span>}</td>
+                      <td className="pr-2 text-right">
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            remove(p.id);
+                          }}
+                          aria-label={`Delete ${p.name || "property"}`}
+                          title="Delete property"
+                          className="rounded-md p-1.5 text-fg-3 opacity-0 transition-[opacity,color,background-color] group-hover:opacity-100 hover:bg-fg/[0.06] hover:text-unfavorable focus-visible:opacity-100"
+                        >
+                          <Trash2 className="size-3.5" />
+                        </button>
+                      </td>
                     </motion.tr>
                   );
                 })}
@@ -271,7 +287,8 @@ function Properties() {
                       {d.properties.filter((p) => p.reports.some((r) => r.kind === k)).length}
                     </td>
                   ))}
-                  <td className="num px-4 text-right">{reports}</td>
+                  <td className="num px-2 text-right">{reports}</td>
+                  <td />
                 </tr>
               </tfoot>
             </table>
@@ -337,11 +354,11 @@ function FilesDrawer({ id, onClose }: { id: string | null; onClose: () => void }
             <Button
               variant="ghost"
               onClick={() => {
-                act.setDraft((x) => ({ ...x, properties: x.properties.filter((q) => q.id !== p.id), unassigned: [...(x.unassigned ?? []), ...p.reports.map((r) => ({ ...r, property: "" }))] }));
+                act.setDraft((x) => ({ ...x, properties: x.properties.filter((q) => q.id !== p.id) }));
                 onClose();
               }}
             >
-              Remove property
+              Delete property
             </Button>
           )}
           <Button onClick={close}>Done</Button>
