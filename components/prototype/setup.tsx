@@ -29,9 +29,10 @@ const EASE = [0.16, 1, 0.3, 1] as const;
 
 export function Setup({ step }: { step: StepId }) {
   const i = STEPS.findIndex((s) => s.id === step);
-  const { state } = useWf();
+  const { state, hydrated } = useWf();
   const d = state.draft;
   const reachable = (n: number) => n === 0 || (n === 1 && d.properties.length > 0) || (n === 2 && d.managers.length > 0) || (n === 3 && d.uploaded);
+  const furthest = [3, 2, 1, 0].find(reachable) ?? 0;
   return (
     <div className="flex min-h-screen flex-col bg-bg text-fg">
       <header className="flex h-12 items-center justify-between border-b border-border px-5">
@@ -64,10 +65,19 @@ export function Setup({ step }: { step: StepId }) {
         <p className="eyebrow">
           Step {i + 1} of {STEPS.length}
         </p>
-        {step === "portfolio" && <Portfolio />}
-        {step === "managers" && <Managers />}
-        {step === "upload" && <Upload />}
-        {step === "mapping" && <Mapping />}
+        {!hydrated ? null : !reachable(i) ? (
+          <div className="flex flex-col items-start gap-3">
+            <Heading title="Finish the earlier steps first">This step needs your properties, managers, and packages.</Heading>
+            <Button href={`${B}/${STEPS[furthest].id}`}>Go to {STEPS[furthest].label.toLowerCase()}</Button>
+          </div>
+        ) : (
+          <>
+            {step === "portfolio" && <Portfolio />}
+            {step === "managers" && <Managers />}
+            {step === "upload" && <Upload />}
+            {step === "mapping" && <Mapping />}
+          </>
+        )}
       </motion.main>
     </div>
   );
@@ -119,7 +129,7 @@ function useJob(ms: number, onDone: () => void) {
     if (p !== null && p >= 1) onDone();
     // eslint-disable-next-line react-hooks/exhaustive-deps -- fire once when the job completes
   }, [p !== null && p >= 1]);
-  return { progress: p, start: () => setP(0), running: p !== null && p < 1 };
+  return { progress: p, start: () => setP(0), reset: () => setP(null) };
 }
 
 function DropZone({ title, hint, onFiles, busy }: { title: string; hint: string; onFiles: () => void; busy?: boolean }) {
@@ -185,7 +195,14 @@ function Portfolio() {
                 · {d.properties.length} properties · {fmt.int(units)} units
               </span>
             </span>
-            <button type="button" onClick={() => setDraft((x) => ({ ...x, properties: [], managers: [] }))} className="text-[11px] text-fg-3 hover:text-fg">
+            <button
+              type="button"
+              onClick={() => {
+                job.reset();
+                setDraft((x) => ({ ...x, properties: [], managers: [], uploaded: false }));
+              }}
+              className="text-[11px] text-fg-3 hover:text-fg"
+            >
               Replace file
             </button>
           </div>

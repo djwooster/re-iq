@@ -1,9 +1,12 @@
 # Handoff
 
-State as of 2026-11-04. Everything runs on mock data; `npm run dev`, `npm run build`,
+State as of 2026-11-11. Everything runs on mock data; `npm run dev`, `npm run build`,
 `npm run lint`, and `tsc --noEmit` all pass.
 
 ## Where we are
+- **Prototype** (`/prototype`): the wireframe's flow at high fidelity, from onboarding to the
+  Overview, on the app design system with real numbers. See `PROTOTYPE.md`. Not linked from the
+  marketing nav yet.
 - **Wireframe** (`/wireframe`, linked from the marketing nav): our current thinking about the
   monthly flow (Close → Exceptions → Owner report). Still exploring; next step is reviewing it with
   Brian. See `WIREFRAME.md`.

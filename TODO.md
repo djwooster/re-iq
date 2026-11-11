@@ -6,7 +6,10 @@
 - [ ] Standard design-partner contract: annual, auto-renewing, time-boxed discount, PIIA for contributors.
 - [ ] Track time to first insight for new workspaces (start with the usability sessions).
 
-## Next up (as of 2026-11-04)
+## Next up (as of 2026-11-11)
+- [ ] Click through `/prototype` from setup to Overview (DJ, in the browser) and list refinements.
+- [ ] Prototype follow-ups: sortable tables, remember mapping choices per label, a period picker
+      for past closes, and whether the marketing nav links to `/prototype` instead of `/wireframe`.
 - [ ] Review the wireframe (`/wireframe`, `WIREFRAME.md`) with Brian; collect his corrections.
 - [ ] Restart the dev server and check the hero's file-tag colors (XLS green, PDF red, CSV blue);
       the running server doesn't pick up `app/globals.css` edits.

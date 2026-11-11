@@ -226,7 +226,7 @@ function useActions(set: React.Dispatch<React.SetStateAction<State>>) {
 }
 
 type Actions = ReturnType<typeof useActions>;
-const Ctx = createContext<{ state: State; act: Actions } | null>(null);
+const Ctx = createContext<{ state: State; act: Actions; hydrated: boolean } | null>(null);
 
 const KEY = "reiq-prototype-v1";
 
@@ -249,6 +249,7 @@ export function WfStore({ children }: { children: React.ReactNode }) {
   const [state, set] = useState(initial);
   const act = useActions(set);
   const loaded = useRef(false);
+  const [hydrated, setHydrated] = useState(false);
 
   // Load what this browser saved, then keep saving. Reads and writes can fail
   // (private windows, blocked storage); the prototype still works without them.
@@ -263,6 +264,7 @@ export function WfStore({ children }: { children: React.ReactNode }) {
       }
     } catch {}
     loaded.current = true;
+    setHydrated(true);
   }, []);
   useEffect(() => {
     if (!loaded.current) return;
@@ -271,7 +273,7 @@ export function WfStore({ children }: { children: React.ReactNode }) {
     } catch {}
   }, [state]);
 
-  const value = useMemo(() => ({ state, act }), [state, act]);
+  const value = useMemo(() => ({ state, act, hydrated }), [state, act, hydrated]);
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
 }
 
