@@ -40,9 +40,7 @@ export function Login() {
   return (
     <div className="flex min-h-screen flex-col items-center justify-center bg-bg px-4 py-10">
       <div className="flex w-full max-w-[360px] flex-col gap-6">
-        <Link href="/" className="num text-center text-[15px] font-semibold tracking-[0.06em] text-fg hover:opacity-70">
-          {PRODUCT_NAME}
-        </Link>
+        <h1 className="text-center text-[32px] leading-tight font-semibold tracking-[-0.03em] text-fg">Let&apos;s save you some time.</h1>
         <form
           className="flex flex-col gap-4 rounded-lg border border-border bg-surface p-5"
           onSubmit={(e) => {
