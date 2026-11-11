@@ -21,6 +21,8 @@
   --warning: #b45309;
   --data: #0e7490;
   --data-soft: rgb(14 116 144 / 0.14);
+  /* Properties are marked in this blue across the app: Shepherd Fairey's poster blue, deepened to read at 10px. */
+  --property: #4f7d8c;
   --file-xls: #1d6f42;
   --file-pdf: #c2352b;
   --file-csv: #2f5f9e;
@@ -52,6 +54,7 @@
   --warning: #d9a95b;
   --data: #6c9bad;
   --data-soft: rgb(34 77 95 / 0.6);
+  --property: #8fb2bd;
   --file-xls: #3f8f62;
   --file-pdf: #c9554b;
   --file-csv: #4f7fbf;
@@ -78,6 +81,7 @@
   --color-warning: var(--warning);
   --color-data: var(--data);
   --color-data-soft: var(--data-soft);
+  --color-property: var(--property);
   --color-file-xls: var(--file-xls);
   --color-file-pdf: var(--file-pdf);
   --color-file-csv: var(--file-csv);

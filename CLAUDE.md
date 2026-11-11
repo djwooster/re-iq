@@ -58,6 +58,8 @@ write-back, or AI calls. See `README.md`, `HANDOFF.md`, `TODO.md`.
 - Light is the default theme. Neutral UI; green/red/amber only for state; the one accent (`--data`, steel
   teal in dark) only for data viz and RE-IQ's AI moments. No glows, gradients, or decorative color.
   Hierarchy via opacity and scale.
+- Properties are marked in blue (`--property`, Shepherd Fairey poster blue) across the app: icons, eyebrows,
+  labels that name a property. DJ's call, 2026-11-11; apply it as screens are touched, not in one sweep.
 - Geist Sans everywhere, no monospace (DJ's call, 2026-11-11). `num` gives tabular numbers for
   metrics and table columns; `eyebrow` is small uppercase labels. 11–12px body, 13–14px headings.
 - Cards: surface, 1px border, rounded-lg, no shadow. Only modals/drawers get shadows.
