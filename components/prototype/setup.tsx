@@ -139,7 +139,7 @@ function sampleReports(id: string, name: string): Upload[] {
   }));
 }
 
-const filled = (id: string): Draft["properties"][number] => ({ id, name: DEFAULT_NAMES.properties[id], reports: sampleReports(id, DEFAULT_NAMES.properties[id]) });
+const blank = (id: string): Draft["properties"][number] => ({ id, name: "", reports: [] });
 
 function Properties() {
   const { state, act } = useWf();
@@ -147,12 +147,12 @@ function Properties() {
   const set = act.setDraft;
   const nextId = ALL_PROPERTY_IDS.find((id) => !d.properties.some((p) => p.id === id));
 
-  // Start filled in (three properties with their reports) so a demo clicks straight through.
+  // Start with one blank property; "Fill with sample reports" fills the form in one click.
   useEffect(() => {
-    set((x) => (x.properties.length ? x : { ...x, properties: ALL_PROPERTY_IDS.slice(0, 3).map(filled) }));
+    set((x) => (x.properties.length ? x : { ...x, properties: [blank(ALL_PROPERTY_IDS[0])] }));
   }, [set]);
 
-  const add = () => nextId && set((x) => ({ ...x, properties: [...x.properties, filled(nextId)] }));
+  const add = () => nextId && set((x) => ({ ...x, properties: [...x.properties, blank(nextId)] }));
   const sample = () =>
     set((x) => ({
       ...x,
@@ -174,6 +174,13 @@ function Properties() {
         For each property, add the reports your manager sent for {CLOSE_MONTH}: P&amp;L, T-12, rent roll, box score, AR aging, capex, renovation tracker, GL. Any format, any file names. {PRODUCT_NAME} reads each one and works out what it is.
       </Heading>
 
+      <div className="flex items-center justify-between gap-3 rounded-lg border border-dashed border-border px-4 py-3">
+        <span className="text-xs text-fg-2">Trying it out? Fill the form with twelve sample properties and their {CLOSE_MONTH} reports.</span>
+        <Button variant="secondary" icon={<UploadCloud className="size-3" />} onClick={sample}>
+          Fill with sample reports
+        </Button>
+      </div>
+
       <div className="flex flex-col gap-3">
         <AnimatePresence initial={false}>
           {d.properties.map((p, n) => (
@@ -188,12 +195,7 @@ function Properties() {
         <Button variant="secondary" icon={<Plus className="size-3" />} onClick={add} disabled={!nextId}>
           Add another property
         </Button>
-        <span className="flex items-center gap-3 text-[11px] text-fg-3">
-          {!nextId && `Up to ${MAX} properties in this prototype`}
-          <button type="button" onClick={sample} className="underline decoration-fg/20 underline-offset-[3px] hover:text-fg">
-            Fill in the sample portfolio
-          </button>
-        </span>
+        {!nextId && <span className="text-[11px] text-fg-3">Up to {MAX} properties in this prototype</span>}
       </div>
 
       <Footer
@@ -269,7 +271,7 @@ function PropertyCard({ n, p, canRemove }: { n: number; p: DraftProperty; canRem
           Choose files
         </button>
         {!p.reports.length && (
-          <button type="button" onClick={() => update((q) => ({ ...q, reports: sampleReports(q.id, q.name.trim() || DEFAULT_NAMES.properties[q.id]) }))} className="text-[11px] text-fg-3 underline decoration-fg/20 underline-offset-[3px] hover:text-fg">
+          <button type="button" onClick={() => update((q) => ({ ...q, name: q.name.trim() || DEFAULT_NAMES.properties[q.id], reports: sampleReports(q.id, q.name.trim() || DEFAULT_NAMES.properties[q.id]) }))} className="text-[11px] text-fg-3 underline decoration-fg/20 underline-offset-[3px] hover:text-fg">
             Use sample reports
           </button>
         )}
