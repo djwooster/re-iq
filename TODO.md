@@ -60,6 +60,9 @@
       confidence → user review. Learn mappings per property manager over time so repeat
       uploads need less review.
 - [ ] Email-in ingestion: forward monthly report emails to an org address.
+- [ ] Send managers their upload link from RE-IQ via Resend (transactional email, like a Slack
+      invite). Setup's Managers step only copies the link for now; add Send/Resend there and on
+      Close → tracker once wired, with bounce handling.
 - [ ] Scheduled reports: each PM points their system's scheduled report emails at the org's
       RE-IQ address, so monthly uploads arrive on their own (no API fees).
 - [ ] On hold: direct PMS connectors (ResMan, Rent Manager, Yardi). API costs are too high for now;
