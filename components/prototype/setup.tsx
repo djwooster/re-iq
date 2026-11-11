@@ -415,6 +415,9 @@ function FilesDrawer({ id, onClose }: { id: string | null; onClose: () => void }
   // Typing a new company's name; it's created on save.
   const [draftCompany, setDraftCompany] = useState<string | null>(null);
   const setOwner = (manager: string) => p && act.setDraft((x) => ({ ...x, properties: x.properties.map((q) => (q.id === p.id ? { ...q, manager } : q)) }));
+  const companies = companiesOf(d);
+  // With no companies yet there's nothing to pick, so go straight to typing one.
+  const typing = draftCompany !== null || !companies.length;
   const saveCompany = () => {
     const name = draftCompany?.trim();
     if (!p || !name) return;
@@ -464,14 +467,14 @@ function FilesDrawer({ id, onClose }: { id: string | null; onClose: () => void }
               Management company
               {owner && !p.manager && <span className="font-normal text-fg-3">From reports</span>}
             </label>
-            {draftCompany === null ? (
+            {!typing ? (
               <UiSelect id="property-company" value={owner ?? ""} onChange={(e) => (e.target.value === NEW ? setDraftCompany("") : setOwner(e.target.value))}>
                 {!owner && (
                   <option value="" disabled>
                     Choose a company
                   </option>
                 )}
-                {companiesOf(d).map((c) => (
+                {companies.map((c) => (
                   <option key={c.id} value={c.id}>
                     {c.name}
                   </option>
@@ -482,9 +485,9 @@ function FilesDrawer({ id, onClose }: { id: string | null; onClose: () => void }
               <span className="flex items-center gap-1.5">
                 <Input
                   id="property-company"
-                  autoFocus
-                  value={draftCompany}
-                  placeholder="Company name"
+                  autoFocus={draftCompany !== null}
+                  value={draftCompany ?? ""}
+                  placeholder={companies.length ? "Company name" : "Add a new company"}
                   onChange={(e) => setDraftCompany(e.target.value)}
                   onKeyDown={(e) => {
                     if (e.key === "Enter") saveCompany();
@@ -495,12 +498,14 @@ function FilesDrawer({ id, onClose }: { id: string | null; onClose: () => void }
                   }}
                   className="flex-1"
                 />
-                <button type="button" onClick={saveCompany} disabled={!draftCompany.trim()} aria-label="Save company" className="rounded-md p-2 text-fg-2 transition-colors hover:bg-fg/[0.06] hover:text-fg disabled:opacity-40">
+                <button type="button" onClick={saveCompany} disabled={!draftCompany?.trim()} aria-label="Save company" className="rounded-md p-2 text-fg-2 transition-colors hover:bg-fg/[0.06] hover:text-fg disabled:opacity-40">
                   <Check className="size-3.5" />
                 </button>
-                <button type="button" onClick={() => setDraftCompany(null)} aria-label="Cancel" className="rounded-md p-2 text-fg-3 transition-colors hover:bg-fg/[0.06] hover:text-fg">
-                  <X className="size-3.5" />
-                </button>
+                {companies.length > 0 && (
+                  <button type="button" onClick={() => setDraftCompany(null)} aria-label="Cancel" className="rounded-md p-2 text-fg-3 transition-colors hover:bg-fg/[0.06] hover:text-fg">
+                    <X className="size-3.5" />
+                  </button>
+                )}
               </span>
             )}
           </div>
