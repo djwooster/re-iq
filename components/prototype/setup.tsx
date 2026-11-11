@@ -156,11 +156,48 @@ function sort(d: Draft, files: { name: string; size: number }[]): Draft {
 
 const SHORT: Record<string, string> = { "Renovation tracker": "Reno tracker" };
 
+const CHECKBOX = "size-3.5 cursor-pointer accent-[var(--text-primary)]";
+
+/** Actions for the checked rows. */
+function BulkEdit({ count, onFill, onDelete }: { count: number; onFill: () => void; onDelete: () => void }) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (!open) return;
+    const close = (e: MouseEvent) => !ref.current?.contains(e.target as Node) && setOpen(false);
+    document.addEventListener("mousedown", close);
+    return () => document.removeEventListener("mousedown", close);
+  }, [open]);
+  const pick = (fn: () => void) => () => {
+    setOpen(false);
+    fn();
+  };
+  const noun = count === 1 ? "property" : "properties";
+  return (
+    <div ref={ref} className="relative">
+      <Button variant="secondary" disabled={!count} onClick={() => setOpen((v) => !v)}>
+        Bulk edit <ChevronDown className="size-3 text-fg-3" />
+      </Button>
+      {open && count > 0 && (
+        <div role="menu" className="absolute top-full right-0 z-20 mt-1 w-60 rounded-lg border border-border bg-bg p-1 shadow-overlay">
+          <button type="button" role="menuitem" onClick={pick(onFill)} className="flex h-7 w-full items-center gap-2 rounded-md px-2 text-left text-xs text-fg-2 hover:bg-fg/[0.04] hover:text-fg">
+            <FileSpreadsheet className="size-3.5" /> Fill missing with sample reports
+          </button>
+          <button type="button" role="menuitem" onClick={pick(onDelete)} className="flex h-7 w-full items-center gap-2 rounded-md px-2 text-left text-xs text-unfavorable hover:bg-unfavorable/10">
+            <Trash2 className="size-3.5" /> Delete {count} {noun}
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
+
 function Properties() {
   const { state, act } = useWf();
   const d = state.draft;
   const set = act.setDraft;
   const [open, setOpen] = useState<string | null>(null);
+  const [picked, setPicked] = useState<string[]>([]);
   const { getRootProps, getInputProps, isDragActive, open: choose } = useDropzone({ onDrop: (files) => set((x) => sort(x, files)), noClick: true, multiple: true });
   const sample = () =>
     set((x) => ({
@@ -182,6 +219,23 @@ function Properties() {
       Add a property
     </Button>
   );
+
+  const sel = picked.filter((id) => d.properties.some((p) => p.id === id));
+  const all = d.properties.length > 0 && sel.length === d.properties.length;
+  const toggle = (id: string) => setPicked((x) => (x.includes(id) ? x.filter((q) => q !== id) : [...x, id]));
+  const fillMissing = () =>
+    set((x) => ({
+      ...x,
+      properties: x.properties.map((p) => {
+        if (!sel.includes(p.id)) return p;
+        const have = new Set(p.reports.map((r) => r.kind));
+        return { ...p, reports: [...p.reports, ...sampleReports(p.id, p.name || DEFAULT_NAMES.properties[p.id], true).filter((r) => !have.has(r.kind))] };
+      }),
+    }));
+  const deleteSelected = () => {
+    set((x) => ({ ...x, properties: x.properties.filter((p) => !sel.includes(p.id)) }));
+    setPicked([]);
+  };
 
   const reports = d.properties.reduce((s, p) => s + p.reports.length, 0);
   const loose = d.unassigned ?? [];
@@ -224,11 +278,19 @@ function Properties() {
               <span className="text-fg-2">Assign →</span>
             </button>
           )}
+          <div className="flex items-center justify-between gap-3">
+            <span className="text-xs text-fg-2">{sel.length > 0 && `${sel.length} selected`}</span>
+            <BulkEdit count={sel.length} onFill={fillMissing} onDelete={deleteSelected} />
+          </div>
           <div className="overflow-x-auto rounded-lg border border-border bg-surface">
             <table className="w-full text-xs">
               <thead>
                 <tr className="border-b border-border">
-                  <th className="text-xs font-medium text-fg-2 h-8 px-4 text-left">Property</th>
+                  <th className="w-8 pl-4">
+                    <input type="checkbox" aria-label="Select all properties" checked={all} ref={(el) => void (el && (el.indeterminate = sel.length > 0 && !all))} onChange={() => setPicked(all ? [] : d.properties.map((p) => p.id))} className={CHECKBOX} />
+                  </th>
+                  <th className="w-6 px-1 text-right text-xs font-medium text-fg-2">#</th>
+                  <th className="text-xs font-medium text-fg-2 h-8 px-3 text-left">Property</th>
                   <th className="text-xs font-medium text-fg-2 h-8 px-2 text-right">Units</th>
                   {PACKAGE.map((k) => (
                     <th key={k} className="text-xs font-medium text-fg-2 h-8 px-2 text-center whitespace-nowrap">
@@ -240,7 +302,7 @@ function Properties() {
                 </tr>
               </thead>
               <motion.tbody initial="hidden" animate="show" variants={{ show: { transition: { staggerChildren: 0.03 } } }}>
-                {d.properties.map((p) => {
+                {d.properties.map((p, n) => {
                   const rentRoll = p.reports.some((r) => r.kind === "Rent roll");
                   return (
                     <motion.tr
@@ -249,9 +311,13 @@ function Properties() {
                       onClick={() => setOpen(p.id)}
                       onKeyDown={(e) => (e.key === "Enter" || e.key === " ") && (e.preventDefault(), setOpen(p.id))}
                       tabIndex={0}
-                      className="group cursor-pointer border-b border-border/70 transition-colors last:border-b-0 hover:bg-fg/[0.025] focus-visible:bg-fg/[0.04] focus-visible:outline-none"
+                      className={cn("group cursor-pointer border-b border-border/70 transition-colors last:border-b-0 hover:bg-fg/[0.025] focus-visible:bg-fg/[0.04] focus-visible:outline-none", sel.includes(p.id) && "bg-fg/[0.03]")}
                     >
-                      <td className="h-10 px-4 font-medium whitespace-nowrap">{p.name || <span className="text-fg-3">Unnamed property</span>}</td>
+                      <td className="pl-4" onClick={(e) => e.stopPropagation()}>
+                        <input type="checkbox" aria-label={`Select ${p.name || "property"}`} checked={sel.includes(p.id)} onChange={() => toggle(p.id)} className={CHECKBOX} />
+                      </td>
+                      <td className="num px-1 text-right text-fg-3">{n + 1}</td>
+                      <td className="h-10 px-3 font-medium whitespace-nowrap">{p.name || <span className="text-fg-3">Unnamed property</span>}</td>
                       <td className="num px-2 text-right text-fg-2">{rentRoll ? profile(p.id).units : "–"}</td>
                       {PACKAGE.map((k) => (
                         <td key={k} className="px-2 text-center">
@@ -279,10 +345,10 @@ function Properties() {
               </motion.tbody>
               <tfoot>
                 <tr aria-hidden className="border-t border-border">
-                  <td colSpan={PACKAGE.length + 4} className="h-2 bg-bg p-0" />
+                  <td colSpan={PACKAGE.length + 6} className="h-2 bg-bg p-0" />
                 </tr>
                 <tr className="border-t border-border bg-fg/[0.02] font-medium">
-                  <td className="h-10 px-4 whitespace-nowrap">
+                  <td colSpan={3} className="h-10 px-4 whitespace-nowrap">
                     Total{" "}
                     <span className="font-normal text-fg-3">
                       · {d.properties.length} {d.properties.length === 1 ? "property" : "properties"}
