@@ -74,7 +74,7 @@ export function Drawer({
   onClose: () => void;
   title: React.ReactNode;
   eyebrow?: React.ReactNode;
-  /** Shown in a 32px tile left of the title. */
+  /** Shown in a tile left of the title, as tall as the eyebrow and title together. */
   icon?: React.ReactNode;
   actions?: React.ReactNode;
   footer?: React.ReactNode;
@@ -103,9 +103,9 @@ export function Drawer({
               transition={{ duration: 0.25, ease: EASE }}
             >
               <div className="flex items-start justify-between gap-3 border-b border-border px-4 py-3">
-                {icon && <div className="flex size-8 shrink-0 items-center justify-center rounded-md border border-border bg-surface text-fg-2">{icon}</div>}
+                {icon && <div className="flex size-[34px] shrink-0 items-center justify-center rounded-md border border-border bg-surface text-fg-2">{icon}</div>}
                 <div className="min-w-0 flex-1">
-                  {eyebrow && <div className="eyebrow mb-1">{eyebrow}</div>}
+                  {eyebrow && <div className={cn("eyebrow", !icon && "mb-1")}>{eyebrow}</div>}
                   <h2 id={titleId} className="text-sm font-semibold leading-5 text-fg">
                     {title}
                   </h2>

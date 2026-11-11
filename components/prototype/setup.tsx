@@ -347,7 +347,7 @@ function FilesDrawer({ id, onClose }: { id: string | null; onClose: () => void }
       onClose={close}
       width={520}
       eyebrow={id === "unassigned" ? "Files" : "Property"}
-      icon={id === "unassigned" ? undefined : <Building2 className="size-4" strokeWidth={1.75} />}
+      icon={id === "unassigned" ? undefined : <Building2 className="size-[18px]" strokeWidth={1.75} />}
       title={id === "unassigned" ? "Files we couldn't match" : p?.name || "Unnamed property"}
       footer={
         <>
