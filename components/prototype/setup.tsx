@@ -1,6 +1,6 @@
 "use client";
 
-import { Building2, Check, ChevronDown, Copy, Send, FileSpreadsheet, FileText, Plus, Trash2, UploadCloud, X } from "lucide-react";
+import { Building2, Check, ChevronDown, Copy, FileSpreadsheet, LayoutGrid, Mail, Send, FileText, Plus, Trash2, UploadCloud, X } from "lucide-react";
 import { motion, useReducedMotion } from "motion/react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -33,8 +33,9 @@ export function Setup({ step }: { step: StepId }) {
   const { state, hydrated } = useWf();
   const d = state.draft;
   const ready = d.properties.length > 0 && d.properties.every((p) => p.name.trim()) && d.properties.some((p) => p.reports.length);
-  const reachable = (n: number) => n === 0 || (n === 1 && ready) || (n === 2 && ready && d.managers.length > 0);
-  const furthest = [2, 1, 0].find(reachable) ?? 0;
+  // Everything after Managers needs the companies that step sets up.
+  const reachable = (n: number) => n === 0 || (ready && (n === 1 || d.managers.length > 0));
+  const furthest = [3, 2, 1, 0].find(reachable) ?? 0;
   return (
     <div className="flex min-h-screen flex-col bg-bg text-fg">
       <header className="grid h-12 grid-cols-[1fr_auto_1fr] items-center border-b border-border px-5">
@@ -71,6 +72,7 @@ export function Setup({ step }: { step: StepId }) {
           <>
             {step === "properties" && <Properties />}
             {step === "managers" && <Managers />}
+            {step === "links" && <Links />}
             {step === "review" && <Review />}
           </>
         )}
@@ -603,8 +605,6 @@ const tokenOf = (id: string) => MANAGERS.find((x) => x.id === id)?.token ?? `${i
 
 function Managers() {
   const { state, act } = useWf();
-  const copy = useCopyLink();
-  const toast = useToast();
   const d = state.draft;
   const name = (id: string) => d.properties.find((p) => p.id === id)?.name || DEFAULT_NAMES.properties[id];
   const set = (id: string, patch: Partial<Draft["managers"][number]>) => act.setDraft((x) => ({ ...x, managers: x.managers.map((m) => (m.id === id ? { ...m, ...patch } : m)) }));
@@ -622,27 +622,12 @@ function Managers() {
       managers: [...x.managers.map((m) => ({ ...m, properties: m.properties.filter((q) => q !== pid) })), { id, name: "", email: "", properties: pid ? [pid] : [] }],
     }));
   };
-  const send = (ids: string[]) => {
-    act.setDraft((x) => ({ ...x, managers: x.managers.map((m) => (ids.includes(m.id) ? { ...m, sent: new Date().toISOString() } : m)) }));
-    const sent = d.managers.filter((m) => ids.includes(m.id));
-    toast(sent.length === 1 ? `Upload link sent to ${sent[0].name}` : `Upload links sent to ${sent.length} companies`, { detail: sent.length === 1 ? sent[0].email : undefined });
-  };
   const active = d.managers.filter((m) => m.properties.length);
-  const ready = (m: Draft["managers"][number]) => m.properties.length > 0 && m.name.trim() !== "" && isEmail(m.email);
-  const unsent = active.filter((m) => ready(m) && !m.sent);
   return (
     <>
-      <div className="flex items-end justify-between gap-4">
-        <Heading title="Who sends you these reports?">Matched from your reports. Check each company and the email its reports come from.</Heading>
-        {unsent.length > 1 && (
-          <Button variant="secondary" icon={<Send className="size-3" />} onClick={() => send(unsent.map((m) => m.id))}>
-            Send all {unsent.length} links
-          </Button>
-        )}
-      </div>
+      <Heading title="Who sends you these reports?">Matched from your reports. Check each company and the email its reports come from.</Heading>
       <div className="flex flex-col gap-3">
         {d.managers.map((m) => {
-          const token = tokenOf(m.id);
           return (
             <div key={m.id} className="flex flex-col gap-4 rounded-lg border border-border bg-surface p-4">
               <div className="grid gap-3 sm:grid-cols-[1fr_1fr_auto] sm:items-end">
@@ -668,26 +653,6 @@ function Managers() {
                 {!m.properties.length && <span className="text-xs text-fg-3">Move a property here from another company</span>}
               </div>
 
-              {m.properties.length > 0 && (
-                <div className="flex flex-wrap items-center justify-between gap-3 border-t border-border pt-3">
-                  <button type="button" onClick={() => copy(token)} className="flex items-center gap-1.5 text-xs text-fg-2 hover:text-fg" title="Copy upload link">
-                    <Copy className="size-3" />
-                    <span className="num">{uploadUrl(token)}</span>
-                  </button>
-                  {m.sent ? (
-                      <span className="flex items-center gap-2 text-xs text-fg-2">
-                        <Check className="size-3 text-favorable" /> Sent {fmtWhen(m.sent)}
-                        <button type="button" onClick={() => send([m.id])} className="font-medium text-fg hover:underline">
-                          Resend
-                        </button>
-                      </span>
-                    ) : (
-                      <Button variant="secondary" disabled={!ready(m)} icon={<Send className="size-3" />} onClick={() => send([m.id])}>
-                        Send link
-                      </Button>
-                    )}
-                </div>
-              )}
             </div>
           );
         })}
@@ -697,7 +662,7 @@ function Managers() {
           Add a management company
         </Button>
       </div>
-      <Footer back="properties" next="review" disabled={!active.length || !active.every((m) => m.name.trim() && isEmail(m.email))} />
+      <Footer back="properties" next="links" disabled={!active.length || !active.every((m) => m.name.trim() && isEmail(m.email))} />
     </>
   );
 }
@@ -739,7 +704,86 @@ function PropertyChip({ label, others, onMove, onNew }: { label: string; others:
   );
 }
 
-// ---- Step 3: review what RE-IQ found ----
+// ---- Step 3: upload links ----
+
+const HOW = [
+  { icon: Mail, text: "Each company gets an email from RE-IQ with its own private link." },
+  { icon: UploadCloud, text: "Every month, they upload the package there. No login, no template." },
+  { icon: LayoutGrid, text: "The reports land in this workspace, sorted by property." },
+];
+
+function Links() {
+  const { state, act } = useWf();
+  const copy = useCopyLink();
+  const toast = useToast();
+  const d = state.draft;
+  const active = d.managers.filter((m) => m.properties.length);
+  const unsent = active.filter((m) => !m.sent);
+  const send = (ids: string[]) => {
+    act.setDraft((x) => ({ ...x, managers: x.managers.map((m) => (ids.includes(m.id) ? { ...m, sent: new Date().toISOString() } : m)) }));
+    const sent = d.managers.filter((m) => ids.includes(m.id));
+    toast(sent.length === 1 ? `Upload link sent to ${sent[0].name}` : `Upload links sent to ${sent.length} companies`, { detail: sent.length === 1 ? sent[0].email : undefined });
+  };
+  return (
+    <>
+      <div className="flex items-end justify-between gap-4">
+        <Heading title="Send each company its upload link" />
+        {unsent.length > 0 && (
+          <Button icon={<Send className="size-3" />} onClick={() => send(unsent.map((m) => m.id))}>
+            {unsent.length === active.length ? `Send all ${unsent.length}` : `Send the other ${unsent.length}`}
+          </Button>
+        )}
+      </div>
+
+      <ol className="grid gap-3 sm:grid-cols-3">
+        {HOW.map(({ icon: Icon, text }) => (
+          <li key={text} className="flex flex-col gap-3 rounded-lg border border-border bg-surface p-4">
+            <Icon className="size-4 text-fg-2" strokeWidth={1.75} />
+            <span className="text-xs leading-relaxed text-fg">{text}</span>
+          </li>
+        ))}
+      </ol>
+
+      <ul className="divide-y divide-border rounded-lg border border-border bg-surface">
+        {active.map((m) => {
+          const token = tokenOf(m.id);
+          return (
+            <li key={m.id} className="flex flex-wrap items-center gap-x-6 gap-y-2 px-4 py-3">
+              <span className="min-w-0 flex-1">
+                <span className="block text-xs font-medium">{m.name}</span>
+                <span className="block truncate text-xs text-fg-3">
+                  {m.email} · {m.properties.length} {m.properties.length === 1 ? "property" : "properties"}
+                </span>
+              </span>
+              <button type="button" onClick={() => copy(token)} className="flex items-center gap-1.5 text-xs text-fg-2 hover:text-fg" title="Copy upload link">
+                <Copy className="size-3" />
+                <span className="num">{uploadUrl(token)}</span>
+              </button>
+              <span className="flex w-[150px] justify-end">
+                {m.sent ? (
+                  <span className="flex items-center gap-2 text-xs text-fg-2">
+                    <Check className="size-3 text-favorable" /> Sent {fmtWhen(m.sent)}
+                    <button type="button" onClick={() => send([m.id])} className="font-medium text-fg hover:underline">
+                      Resend
+                    </button>
+                  </span>
+                ) : (
+                  <Button variant="secondary" icon={<Send className="size-3" />} onClick={() => send([m.id])}>
+                    Send
+                  </Button>
+                )}
+              </span>
+            </li>
+          );
+        })}
+      </ul>
+
+      <Footer back="managers" next="review" />
+    </>
+  );
+}
+
+// ---- Step 4: review what RE-IQ found ----
 
 const CHECKS = ["Reading reports", "Mapping GL lines to your chart of accounts", "Reconciling rent rolls, cash, and statements", "Checking every KPI against your thresholds"];
 
