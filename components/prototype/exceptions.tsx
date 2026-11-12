@@ -34,7 +34,16 @@ export function Exceptions({ initialStatus }: { initialStatus?: string }) {
     .sort(byUrgency);
 
   return (
-    <Page title="Exceptions">
+    <Page
+      title="Exceptions"
+      subtitle={`${state.exceptions.filter((e) => e.stage !== "closed").length} open${state.exceptions.some(isOverdue) ? ` · ${state.exceptions.filter(isOverdue).length} overdue` : ""}`}
+      tabs={
+        <Tabs
+          value={status}
+          onChange={setStatus}
+          tabs={(["open", ...STAGES] as StatusTab[]).map((t) => ({ id: t, label: t === "open" ? "All open" : STAGE_LABEL[t], count: state.exceptions.filter((e) => inTab(e, t)).length }))}
+        />
+      }>
       <div className="flex flex-wrap gap-2">
         <div className="w-40">
           <Select value={prop} onChange={setProp} options={["All properties", ...PROPERTIES.map((p) => p.name)]} />
@@ -43,11 +52,6 @@ export function Exceptions({ initialStatus }: { initialStatus?: string }) {
           <Select value={mgr} onChange={setMgr} options={["All managers", ...MANAGERS.map((m) => m.name)]} />
         </div>
       </div>
-      <Tabs
-        value={status}
-        onChange={setStatus}
-        tabs={(["open", ...STAGES] as StatusTab[]).map((t) => ({ id: t, label: t === "open" ? "All open" : STAGE_LABEL[t], count: state.exceptions.filter((e) => inTab(e, t)).length }))}
-      />
       {rows.length ? (
         <Table columns={["Trigger", "Property", "Manager", { label: "Actual", num: true }, "Threshold", "Source report", "Status", { label: "Age", num: true }]}>
           {rows.map((e) => {

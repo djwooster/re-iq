@@ -722,8 +722,7 @@ export function ModulePage({ id }: { id: keyof typeof MODULES }) {
   const [prop, setProp] = useState("a");
   const t = m.tabs.find((x) => x.id === tab)!;
   return (
-    <Page title={m.title} subtitle={`${MONTH_LONG[LAST]} 2026 close · ${PROPERTIES.length} properties`}>
-      <Tabs value={tab} onChange={setTab} tabs={m.tabs} />
+    <Page title={m.title} subtitle={`${MONTH_LONG[LAST]} 2026 close · ${PROPERTIES.length} properties`} tabs={<Tabs value={tab} onChange={setTab} tabs={m.tabs} />}>
       {t.perProperty && <PropertyPicker value={prop} onChange={setProp} />}
       {t.render(prop)}
       {t.perProperty && <A href={href.property(prop)} className="text-xs font-normal text-fg-3">{`Open ${property(prop)!.name}'s scorecard`}</A>}

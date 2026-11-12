@@ -212,11 +212,11 @@ export interface Crumb {
   href?: string;
 }
 
-/** Page frame. `controls` adds the period and compare-to controls used on data pages. */
-export function Page({ title, subtitle, crumbs, controls, actions, children }: { title: React.ReactNode; subtitle?: React.ReactNode; crumbs?: Crumb[]; controls?: boolean; actions?: React.ReactNode; children: React.ReactNode }) {
+/** Page frame. `controls` adds the period and compare-to controls used on data pages; `tabs` sit on the header's bottom edge. */
+export function Page({ title, subtitle, crumbs, controls, actions, tabs, children }: { title: React.ReactNode; subtitle?: React.ReactNode; crumbs?: Crumb[]; controls?: boolean; actions?: React.ReactNode; tabs?: React.ReactNode; children: React.ReactNode }) {
   return (
     <>
-      <header className="px-6 pt-6 pb-4">
+      <header className={cn("px-6 pt-6", tabs ? "mb-5 border-b border-border" : "pb-4")}>
         {crumbs && (
           <nav aria-label="Breadcrumb" className="mb-2 flex items-center gap-1.5 text-xs text-fg-3">
             {crumbs.map((c, i) => (
@@ -243,6 +243,7 @@ export function Page({ title, subtitle, crumbs, controls, actions, children }: {
             {actions}
           </div>
         </div>
+        {tabs && <div className="mt-5 [&>[role=tablist]]:border-b-0">{tabs}</div>}
       </header>
       <FadeIn className="flex min-w-0 flex-col gap-6 px-6 pb-12">{children}</FadeIn>
     </>

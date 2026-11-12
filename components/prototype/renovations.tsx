@@ -56,15 +56,18 @@ export function Renovations() {
   const { state } = useWf();
   const [tab, setTab] = useState<"projects" | "pipeline">("projects");
   return (
-    <Page title="Renovations">
-      <Tabs
-        value={tab}
-        onChange={setTab}
-        tabs={[
-          { id: "projects", label: "Projects", count: state.projects.length },
-          { id: "pipeline", label: "Unit pipeline" },
-        ]}
-      />
+    <Page
+      title="Renovations"
+      tabs={
+        <Tabs
+          value={tab}
+          onChange={setTab}
+          tabs={[
+            { id: "projects", label: "Projects", count: state.projects.length },
+            { id: "pipeline", label: "Unit pipeline" },
+          ]}
+        />
+      }>
       {tab === "projects" ? (
         <Table columns={["Project", "Property", "Type", "Stage", { label: "Budget", num: true }, { label: "Spent", num: true }]}>
           {state.projects.map((p) => {

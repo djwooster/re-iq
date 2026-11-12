@@ -16,18 +16,22 @@ export function Settings() {
   const { state } = useWf();
   const [tab, setTab] = useState<Tab>("thresholds");
   return (
-    <Page title="Settings" subtitle={state.org}>
-      <Tabs
-        value={tab}
-        onChange={setTab}
-        tabs={[
-          { id: "thresholds", label: "Thresholds and targets" },
-          { id: "properties", label: "Properties and managers" },
-          { id: "accounts", label: "Chart of accounts" },
-          { id: "team", label: "Team" },
-          { id: "workspace", label: "Workspace" },
-        ]}
-      />
+    <Page
+      title="Settings"
+      subtitle={state.org}
+      tabs={
+        <Tabs
+          value={tab}
+          onChange={setTab}
+          tabs={[
+            { id: "thresholds", label: "Thresholds and targets" },
+            { id: "properties", label: "Properties and managers" },
+            { id: "accounts", label: "Chart of accounts" },
+            { id: "team", label: "Team" },
+            { id: "workspace", label: "Workspace" },
+          ]}
+        />
+      }>
       {tab === "thresholds" && <Thresholds />}
       {tab === "properties" && (
         <Table columns={["Property", { label: "Units", num: true }, "Manager", "Reports email", "Upload link"]}>

@@ -3,7 +3,7 @@
 import { Check, Copy, FileSpreadsheet, Send } from "lucide-react";
 import { useState } from "react";
 import { useToast } from "@/components/ui/toast";
-import { mappingPending, managerState, packageCell, reconChecks, reconSummary } from "./derive";
+import { mappingPending, managerState, monthStatus, packageCell, reconChecks, reconSummary } from "./derive";
 import { fmt } from "./metrics";
 import { LAST, month, type Line } from "./numbers";
 import { CHART_OF_ACCOUNTS, CLOSE_MONTH, FILES, MANAGERS, MAPPING, PACKAGE, PROPERTIES, REPORT_DUE, TODAY, daysBetween, fmtDate, manager, managerOf, property, type CheckState, type FileRow, type ManagerId } from "./seed";
@@ -20,18 +20,23 @@ export function Close({ initialTab }: { initialTab?: string }) {
   const r = reconSummary(state);
   const late = MANAGERS.filter((m) => managerState(m.id) !== "All received").length;
   const overdue = daysBetween(REPORT_DUE, TODAY);
+  const ms = monthStatus(state);
   return (
-    <Page title={`${CLOSE_MONTH} close`} subtitle={`Packages were due ${fmtDate(REPORT_DUE)}${overdue > 0 ? ` · ${overdue} days ago` : ""}`}>
-      <Tabs
-        value={tab}
-        onChange={setTab}
-        tabs={[
-          { id: "tracker", label: "Close tracker", count: late },
-          { id: "mapping", label: "Mapping review", count: mappingPending(state) },
-          { id: "reconciliation", label: "Reconciliation", count: r.breaks },
-          { id: "files", label: "All files", count: FILES.length },
-        ]}
-      />
+    <Page
+      title={`${CLOSE_MONTH} close`}
+      subtitle={`Due ${fmtDate(REPORT_DUE)}${overdue > 0 ? ` · ${overdue} days late` : ""} · ${ms.close.managersIn} of ${ms.close.managers} managers in`}
+      tabs={
+        <Tabs
+          value={tab}
+          onChange={setTab}
+          tabs={[
+            { id: "tracker", label: "Close tracker", count: late },
+            { id: "mapping", label: "Mapping review", count: mappingPending(state) },
+            { id: "reconciliation", label: "Reconciliation", count: r.breaks },
+            { id: "files", label: "All files", count: FILES.length },
+          ]}
+        />
+      }>
       {tab === "tracker" && <Tracker />}
       {tab === "mapping" && <Mapping />}
       {tab === "reconciliation" && <Reconciliation />}
