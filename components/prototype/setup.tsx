@@ -836,9 +836,7 @@ function Review() {
 
   return (
     <>
-      <Heading title={done ? "Here's what we found" : "Reading your reports"}>
-        {PRODUCT_NAME} maps every line to your chart of accounts, checks that the numbers tie, and measures each property against your thresholds.
-      </Heading>
+      <Heading title={done ? "Here's what we found" : "Reading your reports"} />
 
       {/* The checks play while reading; once done, the results below say the same thing. */}
       {!done && (
@@ -875,7 +873,7 @@ function Review() {
                 {lines.map((l) => {
                   const confirmed = ok.includes(l.id);
                   return (
-                    <div key={l.id} className={cn("grid grid-cols-[1fr_200px_auto] items-center gap-3 border-b border-border/70 px-4 py-2.5 last:border-b-0", !confirmed && "bg-warning/[0.05]")}>
+                    <div key={l.id} className="grid grid-cols-[1fr_200px_auto] items-center gap-3 border-b border-border/70 px-4 py-2.5 last:border-b-0">
                       <span className="num text-xs">{l.label}</span>
                       <Select label={`Account for ${l.label}`} value={accounts[l.id] ?? l.account} onChange={(v) => setAccounts((a) => ({ ...a, [l.id]: v }))} options={CHART_OF_ACCOUNTS} />
                       {confirmed ? (
