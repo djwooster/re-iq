@@ -150,11 +150,11 @@ export function Kpi({ label, value, target, status, trend, href, sub }: { label:
   const body = (
     <>
       <span className="flex items-center justify-between gap-2">
-        <span className="flex items-center gap-0.5 text-xs font-medium text-fg-2">
-          {label}
-          {href && <ChevronRight className="size-3.5 text-fg-3 transition-colors group-hover:text-fg" />}
+        <span className="text-xs font-medium text-fg-2">{label}</span>
+        <span className="flex items-center gap-1.5">
+          {status && status !== "ok" && <span className={cn("size-1.5 rounded-full", status === "breach" ? "bg-unfavorable" : "bg-warning")} aria-label={status === "breach" ? "Outside target" : "Near target"} />}
+          {href && <ChevronRight className="-mr-0.5 size-3.5 text-fg-3 transition-colors group-hover:text-fg" />}
         </span>
-        {status && status !== "ok" && <span className={cn("size-1.5 rounded-full", status === "breach" ? "bg-unfavorable" : "bg-warning")} aria-label={status === "breach" ? "Outside target" : "Near target"} />}
       </span>
       <span className="num text-[20px] leading-7 font-medium tracking-tight text-fg">{value}</span>
       {sub && <span className="-mt-1 text-xs">{sub}</span>}
