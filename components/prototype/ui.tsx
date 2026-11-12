@@ -1,5 +1,6 @@
 "use client";
 
+import { ChevronRight } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { createContext, useContext } from "react";
@@ -149,7 +150,10 @@ export function Kpi({ label, value, target, status, trend, href, sub }: { label:
   const body = (
     <>
       <span className="flex items-center justify-between gap-2">
-        <span className="text-xs font-medium text-fg-2">{label}</span>
+        <span className="flex items-center gap-0.5 text-xs font-medium text-fg-2">
+          {label}
+          {href && <ChevronRight className="size-3.5 text-fg-3 transition-colors group-hover:text-fg" />}
+        </span>
         {status && status !== "ok" && <span className={cn("size-1.5 rounded-full", status === "breach" ? "bg-unfavorable" : "bg-warning")} aria-label={status === "breach" ? "Outside target" : "Near target"} />}
       </span>
       <span className="num text-[20px] leading-7 font-medium tracking-tight text-fg">{value}</span>
@@ -160,7 +164,7 @@ export function Kpi({ label, value, target, status, trend, href, sub }: { label:
   );
   const cls = "flex min-w-0 flex-col gap-1.5 rounded-lg border border-border bg-surface p-3";
   return href ? (
-    <Link href={href} className={cn(cls, "transition-colors hover:border-border-strong")}>
+    <Link href={href} className={cn(cls, "group transition-colors hover:border-border-strong")}>
       {body}
     </Link>
   ) : (
