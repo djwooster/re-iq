@@ -1,7 +1,7 @@
 import { Suspense } from "react";
 import { Close } from "@/components/prototype/close";
 
-type Props = { searchParams: Promise<{ tab?: string }> };
+type Props = { searchParams: Promise<{ tab?: string; month?: string }> };
 
 export default function Page({ searchParams }: Props) {
   return (
@@ -12,6 +12,6 @@ export default function Page({ searchParams }: Props) {
 }
 
 async function Inner({ searchParams }: Props) {
-  const { tab } = await searchParams;
-  return <Close key={tab ?? ""} initialTab={tab} />;
+  const { tab, month } = await searchParams;
+  return <Close key={`${month ?? ""}-${tab ?? ""}`} initialTab={tab} month={month} />;
 }

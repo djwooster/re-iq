@@ -128,8 +128,8 @@ export const managerOf = (propertyId: string) => manager(property(propertyId)!.m
 export const PACKAGE = ["P&L", "T-12", "Rent roll", "Box score", "AR aging", "Capex", "Renovation tracker", "GL"] as const;
 export const REPORT_DUE = "2026-12-12";
 
-/** Earlier closes, oldest first. November comes from RECEIVED below. */
-export const PACKAGE_HISTORY: Record<string, { month: string; status: "On time" | "Late" | "Partial"; received: string }[]> = {
+/** Earlier closes, oldest first. November comes from RECEIVED below. `rest` is when a partial package's missing report arrived. */
+export const PACKAGE_HISTORY: Record<string, { month: string; status: "On time" | "Late" | "Partial"; received: string; rest?: string }[]> = {
   m1: [
     { month: "June", status: "On time", received: "Jul 9" },
     { month: "July", status: "On time", received: "Aug 11" },
@@ -146,7 +146,7 @@ export const PACKAGE_HISTORY: Record<string, { month: string; status: "On time" 
   ],
   m3: [
     { month: "June", status: "On time", received: "Jul 11" },
-    { month: "July", status: "Partial", received: "Aug 12" },
+    { month: "July", status: "Partial", received: "Aug 12", rest: "Aug 15" },
     { month: "August", status: "On time", received: "Sep 12" },
     { month: "September", status: "Late", received: "Oct 15" },
     { month: "October", status: "On time", received: "Nov 12" },
@@ -159,6 +159,16 @@ export const PACKAGE_HISTORY: Record<string, { month: string; status: "On time" 
     { month: "October", status: "Late", received: "Nov 19" },
   ],
 };
+
+/** Months already closed, newest first. Packages were due the 12th of the next month. */
+export const PAST_CLOSES = [
+  { month: "October", due: "Nov 12", closed: "Nov 21" },
+  { month: "September", due: "Oct 12", closed: "Oct 20" },
+  { month: "August", due: "Sep 12", closed: "Sep 19" },
+  { month: "July", due: "Aug 12", closed: "Aug 21" },
+  { month: "June", due: "Jul 12", closed: "Jul 16" },
+] as const;
+export type PastClose = (typeof PAST_CLOSES)[number];
 
 /** When each manager's package arrived. Null: nothing yet. */
 export const RECEIVED: Record<ManagerId, string | null> = { m1: "2026-12-09", m2: "2026-12-11", m3: "2026-12-12", m4: null };
