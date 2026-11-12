@@ -164,9 +164,10 @@ export function Shell({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     if (hydrated && !state.setupDone) router.replace("/prototype/setup/properties");
   }, [hydrated, state.setupDone, router]);
-  if (!hydrated || !state.setupDone) return null;
+  // Always render the page (so the route prerenders), but keep it hidden until we know setup is done.
+  const ready = hydrated && state.setupDone;
   return (
-    <div className="flex min-h-screen bg-bg text-fg">
+    <div className={cn("flex min-h-screen bg-bg text-fg", !ready && "invisible")} aria-hidden={!ready || undefined}>
       <aside className="sticky top-0 hidden h-screen shrink-0 md:block">
         <Sidebar />
       </aside>
