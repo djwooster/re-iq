@@ -248,7 +248,7 @@ function Panel({ title, to, chip, children }: { title: string; to: string; chip:
   return (
     <Link href={to} className="group flex flex-col gap-3 rounded-lg border border-border bg-surface p-3 transition-colors hover:border-border-strong">
       <span className="flex items-center justify-between">
-        <span className="flex items-center gap-0.5 text-xs font-medium text-link underline decoration-link/40 underline-offset-[3px] group-hover:decoration-link">
+        <span className="flex items-center gap-0.5 text-xs font-medium text-fg underline decoration-fg/30 underline-offset-[3px] group-hover:decoration-fg">
           {title}
           <ChevronRight className="size-3.5" />
         </span>
