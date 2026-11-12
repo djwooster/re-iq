@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, ChevronRight } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { motion, useReducedMotion } from "motion/react";
@@ -10,7 +10,7 @@ import { cn } from "@/lib/cn";
 import { PRODUCT_NAME } from "@/lib/labels";
 import { TrendChart } from "./chart";
 import { blocker, monthStatus } from "./derive";
-import { fmt, noiTrend, noiVs, portfolioKpis, portfolioNoi, reporting, type Compare } from "./metrics";
+import { fmt, noiTrend, noiVs, portfolioKpis, portfolioNoi, type Compare } from "./metrics";
 import { LAST, kpis, month, profile, reported } from "./numbers";
 import { CLOSE_MONTH, PROPERTIES, STAGES, TODAY, fmtDate, fmtLongDate, managerOf, projectStage, property, type Exception } from "./seed";
 import { href, Page } from "./shell";
@@ -129,17 +129,11 @@ export function Overview() {
   const m = monthStatus(state);
   const k = portfolioKpis();
   const noi = portfolioNoi(state.period, state.compare);
-  const missing = PROPERTIES.filter((p) => !reported(p.id, LAST));
 
   return (
     <Page
       title="Overview"
-      subtitle={
-        <>
-          {fmtLongDate(TODAY)} · {CLOSE_MONTH} figures from {reporting().length} of {PROPERTIES.length} properties
-          {missing.length > 0 && <> · {missing.map((p) => p.name).join(", ")} not received</>}
-        </>
-      }
+      subtitle={fmtLongDate(TODAY)}
       controls
     >
       <section aria-label={`${CLOSE_MONTH} close`} className="grid gap-3 lg:grid-cols-3">
@@ -254,7 +248,10 @@ function Panel({ title, to, chip, children }: { title: string; to: string; chip:
   return (
     <Link href={to} className="group flex flex-col gap-3 rounded-lg border border-border bg-surface p-3 transition-colors hover:border-border-strong">
       <span className="flex items-center justify-between">
-        <span className="text-xs font-medium group-hover:underline">{title}</span>
+        <span className="flex items-center gap-0.5 text-xs font-medium text-link underline decoration-link/40 underline-offset-[3px] group-hover:decoration-link">
+          {title}
+          <ChevronRight className="size-3.5" />
+        </span>
         {chip}
       </span>
       {children}

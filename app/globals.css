@@ -23,6 +23,8 @@
   --data-soft: rgb(14 116 144 / 0.14);
   /* Properties are marked in this blue across the app: Shepherd Fairey's poster blue, deepened to read at 10px. */
   --property: #4f7d8c;
+  /* Links that navigate: Apple's interactive blue. */
+  --link: #0071e3;
   /* Illustration colors for explainer moments (setup's how-it-works cards). Not for data or state. */
   --spot-coral: #e2603f;
   --spot-sun: #d99a00;
@@ -59,6 +61,7 @@
   --data: #6c9bad;
   --data-soft: rgb(34 77 95 / 0.6);
   --property: #8fb2bd;
+  --link: #2997ff;
   --spot-coral: #f08a6f;
   --spot-sun: #f0c04a;
   --spot-violet: #a08cff;
@@ -89,6 +92,7 @@
   --color-data: var(--data);
   --color-data-soft: var(--data-soft);
   --color-property: var(--property);
+  --color-link: var(--link);
   --color-spot-coral: var(--spot-coral);
   --color-spot-sun: var(--spot-sun);
   --color-spot-violet: var(--spot-violet);
