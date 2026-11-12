@@ -1,6 +1,6 @@
 "use client";
 
-import { Building2, Check, ChevronDown, Copy, FileSpreadsheet, LayoutGrid, Mail, Send, FileText, Plus, Trash2, UploadCloud, X } from "lucide-react";
+import { AlertCircle, Building2, Check, DoorOpen, ChevronDown, Copy, FileSpreadsheet, LayoutGrid, Mail, Send, FileText, Plus, Trash2, UploadCloud, X } from "lucide-react";
 import { motion, useReducedMotion } from "motion/react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -817,7 +817,6 @@ function Review() {
   const breaks = ids.includes("c") ? 1 : 0;
   const exceptions = EXCEPTIONS.filter((e) => ids.includes(e.property)).length;
   const unknown = d.properties.flatMap((p) => p.reports.filter((r) => r.kind === "Other"));
-  const quiet = d.properties.filter((p) => !p.reports.length);
   const results = [
     `${reports} reports for ${d.properties.length} ${d.properties.length === 1 ? "property" : "properties"}${unknown.length ? ` · ${unknown.length} kept as other files` : ""}`,
     gls ? `${fmt.int(GL_LINES * gls - lines.length)} of ${fmt.int(GL_LINES * gls)} lines matched${lines.length ? ` · ${lines.length} new labels to confirm` : ""}` : "No GL yet · mapping runs when one arrives",
@@ -841,6 +840,8 @@ function Review() {
         {PRODUCT_NAME} maps every line to your chart of accounts, checks that the numbers tie, and measures each property against your thresholds.
       </Heading>
 
+      {/* The checks play while reading; once done, the results below say the same thing. */}
+      {!done && (
       <ol className="flex flex-col gap-2 rounded-lg border border-border bg-surface p-4">
         {CHECKS.map((c, n) => {
           const isDone = n < check;
@@ -862,6 +863,7 @@ function Review() {
           );
         })}
       </ol>
+      )}
 
       {done && (
         <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3, ease: "easeOut" }} className="flex flex-col gap-6">
@@ -877,11 +879,11 @@ function Review() {
                       <span className="num text-xs">{l.label}</span>
                       <Select label={`Account for ${l.label}`} value={accounts[l.id] ?? l.account} onChange={(v) => setAccounts((a) => ({ ...a, [l.id]: v }))} options={CHART_OF_ACCOUNTS} />
                       {confirmed ? (
-                        <button type="button" onClick={() => setOk((x) => x.filter((y) => y !== l.id))} className="flex w-[72px] items-center justify-end gap-1 text-xs text-favorable" aria-label={`Undo ${l.label}`}>
+                        <button type="button" onClick={() => setOk((x) => x.filter((y) => y !== l.id))} className="flex w-[100px] items-center justify-end gap-1 text-xs text-favorable" aria-label={`Undo ${l.label}`}>
                           <Check className="size-3" /> Confirmed
                         </button>
                       ) : (
-                        <span className="w-[72px] text-right">
+                        <span className="w-[100px] text-right">
                           <Button variant="secondary" onClick={() => setOk((x) => [...x, l.id])}>
                             Confirm
                           </Button>
@@ -894,22 +896,19 @@ function Review() {
             </div>
           )}
 
-          {quiet.length > 0 && (
-            <p className="rounded-md bg-fg/[0.035] px-3 py-2.5 text-xs text-fg-2">
-              No reports yet for {quiet.map((p) => p.name).join(", ")}. They&apos;ll show as waiting on Close until the manager uploads.
-            </p>
-          )}
-
           <section aria-label="Your workspace" className="grid grid-cols-2 gap-3 sm:grid-cols-4">
             {[
-              ["Properties", String(d.properties.length)],
-              ["Units", fmt.int(ids.reduce((s, id) => s + profile(id).units, 0))],
-              ["Reports", String(reports)],
-              ["Exceptions found", String(exceptions)],
-            ].map(([l, v]) => (
-              <div key={l} className="flex flex-col gap-1 rounded-lg border border-border bg-surface p-3">
-                <span className="text-xs text-fg-3">{l}</span>
-                <span className="num text-lg">{v}</span>
+              { label: "Properties", value: String(d.properties.length), icon: <Building2 className="size-3.5 text-property" strokeWidth={1.75} /> },
+              { label: "Units", value: fmt.int(ids.reduce((s, id) => s + profile(id).units, 0)), icon: <DoorOpen className="size-3.5 text-fg-3" strokeWidth={1.75} /> },
+              { label: "Reports", value: String(reports), icon: <FileText className="size-3.5 text-fg-3" strokeWidth={1.75} /> },
+              { label: "Exceptions found", value: String(exceptions), icon: <AlertCircle className={cn("size-3.5", exceptions ? "text-warning" : "text-fg-3")} strokeWidth={1.75} /> },
+            ].map(({ label, value, icon }) => (
+              <div key={label} className="flex flex-col gap-1 rounded-lg border border-border bg-surface p-3">
+                <span className="flex items-center gap-1.5 text-xs text-fg-3">
+                  {icon}
+                  {label}
+                </span>
+                <span className="num text-lg font-semibold">{value}</span>
               </div>
             ))}
           </section>
