@@ -93,19 +93,17 @@ function Heading({ title, children }: { title: string; children?: React.ReactNod
 function Footer({ back, next, disabled, label = "Continue", onNext, hint }: { back?: StepId; next?: StepId; disabled?: boolean; label?: string; onNext?: () => void; hint?: string }) {
   const router = useRouter();
   return (
-    <div className="mt-2 flex items-center justify-between gap-3 border-t border-border pt-5">
-      {back ? (
-        <Link href={`${B}/${back}`} className="text-xs text-fg-2 hover:text-fg">
-          Back
-        </Link>
-      ) : (
-        <span />
-      )}
+    <div className="mt-2 flex items-center justify-end gap-3 border-t border-border pt-5">
       <span className="flex items-center gap-3">
         {hint && <span className="num text-xs text-fg-3">{hint}</span>}
         <Button variant="secondary" href="/prototype">
           Save and exit
         </Button>
+        {back && (
+          <Button variant="secondary" href={`${B}/${back}`}>
+            Back
+          </Button>
+        )}
         <Button
           disabled={disabled}
           onClick={() => {
@@ -864,7 +862,23 @@ function Review() {
       )}
 
       {done && (
-        <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3, ease: "easeOut" }} className="flex flex-col gap-6">
+        <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3, ease: "easeOut" }} className="flex flex-col gap-8">
+          <section aria-label="Your workspace" className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+            {[
+              { label: "Properties", value: String(d.properties.length), icon: <Building2 className="size-3.5 text-property" strokeWidth={1.75} /> },
+              { label: "Units", value: fmt.int(ids.reduce((s, id) => s + profile(id).units, 0)), icon: <DoorOpen className="size-3.5 text-fg-3" strokeWidth={1.75} /> },
+              { label: "Reports", value: String(reports), icon: <FileText className="size-3.5 text-fg-3" strokeWidth={1.75} /> },
+              { label: "Exceptions found", value: String(exceptions), icon: <AlertCircle className={cn("size-3.5", exceptions ? "text-warning" : "text-fg-3")} strokeWidth={1.75} /> },
+            ].map(({ label, value, icon }) => (
+              <div key={label} className="flex flex-col gap-1 rounded-lg border border-border bg-surface p-3">
+                <span className="flex items-center gap-1.5 text-xs text-fg-3">
+                  {icon}
+                  {label}
+                </span>
+                <span className="num text-lg font-semibold">{value}</span>
+              </div>
+            ))}
+          </section>
           {lines.length > 0 && (
             <div className="flex flex-col gap-2">
               <h2 className="text-[13px] font-semibold">Confirm the lines we couldn&apos;t place</h2>
@@ -894,30 +908,14 @@ function Review() {
             </div>
           )}
 
-          <section aria-label="Your workspace" className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-            {[
-              { label: "Properties", value: String(d.properties.length), icon: <Building2 className="size-3.5 text-property" strokeWidth={1.75} /> },
-              { label: "Units", value: fmt.int(ids.reduce((s, id) => s + profile(id).units, 0)), icon: <DoorOpen className="size-3.5 text-fg-3" strokeWidth={1.75} /> },
-              { label: "Reports", value: String(reports), icon: <FileText className="size-3.5 text-fg-3" strokeWidth={1.75} /> },
-              { label: "Exceptions found", value: String(exceptions), icon: <AlertCircle className={cn("size-3.5", exceptions ? "text-warning" : "text-fg-3")} strokeWidth={1.75} /> },
-            ].map(({ label, value, icon }) => (
-              <div key={label} className="flex flex-col gap-1 rounded-lg border border-border bg-surface p-3">
-                <span className="flex items-center gap-1.5 text-xs text-fg-3">
-                  {icon}
-                  {label}
-                </span>
-                <span className="num text-lg font-semibold">{value}</span>
-              </div>
-            ))}
-          </section>
         </motion.div>
       )}
 
-      <div className="mt-2 flex items-center justify-between border-t border-border pt-5">
-        <Link href={`${B}/links`} className="text-xs text-fg-2 hover:text-fg">
-          Back
-        </Link>
+      <div className="mt-2 flex items-center justify-end border-t border-border pt-5">
         <span className="flex items-center gap-3">
+          <Button variant="secondary" href={`${B}/links`}>
+            Back
+          </Button>
           <Button disabled={!done} onClick={finish}>
             Open dashboard
           </Button>
