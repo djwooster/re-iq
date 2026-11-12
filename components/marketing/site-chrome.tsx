@@ -9,9 +9,9 @@ export function SiteHeader() {
           {PRODUCT_NAME}
         </Link>
         <nav className="flex items-center gap-1 text-xs">
-          <a href="/demo" className="rounded-md px-2.5 py-1.5 text-fg-2 transition-colors hover:bg-surface-2 hover:text-fg">
-            Try the demo
-          </a>
+          <Link href="/prototype" className="rounded-md px-2.5 py-1.5 text-fg-2 transition-colors hover:bg-surface-2 hover:text-fg">
+            Prototype
+          </Link>
           <Link href="/wireframe" className="rounded-md px-2.5 py-1.5 text-fg-2 transition-colors hover:bg-surface-2 hover:text-fg">
             Wireframe
           </Link>
