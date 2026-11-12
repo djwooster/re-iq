@@ -60,6 +60,11 @@
       confidence → user review. Learn mappings per property manager over time so repeat
       uploads need less review.
 - [ ] Email-in ingestion: forward monthly report emails to an org address.
+- [ ] Manager upload page, built to be perfect and beautiful (DJ, 2026-11-11). What a PM sees at
+      their private link: owner firm, the properties it covers, a drop zone, a clear "received"
+      state. No login, no template. Point the prototype's links at our own route
+      (`/prototype/upload/[token]`); today they show `re-iq.app`, a domain we don't own that
+      forwards to an unrelated "ReIQ" product (re-iq.io). Check the name collision before buying a domain.
 - [ ] Send managers their upload link from RE-IQ via Resend (transactional email, like a Slack
       invite). Setup's Managers step only copies the link for now; add Send/Resend there and on
       Close → tracker once wired, with bounce handling.
