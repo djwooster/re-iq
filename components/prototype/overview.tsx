@@ -12,7 +12,7 @@ import { TrendChart } from "./chart";
 import { blocker, monthStatus } from "./derive";
 import { fmt, noiTrend, noiVs, portfolioKpis, portfolioNoi, reporting, type Compare } from "./metrics";
 import { LAST, kpis, month, profile, reported } from "./numbers";
-import { CLOSE_MONTH, PROPERTIES, STAGES, STAGE_LABEL, TODAY, fmtDate, fmtLongDate, managerOf, projectStage, property, type Exception } from "./seed";
+import { CLOSE_MONTH, PROPERTIES, STAGES, TODAY, fmtDate, fmtLongDate, managerOf, projectStage, property, type Exception } from "./seed";
 import { href, Page } from "./shell";
 import { isOverdue, openExceptions, useWf } from "./store";
 import { A, Card, Chip, Delta, Kpi, Meter, PlanChip, Row, Table, Td } from "./ui";
@@ -142,33 +142,18 @@ export function Overview() {
       }
       controls
     >
-      <section aria-label={`${CLOSE_MONTH} close`} className="grid gap-3 lg:grid-cols-[1fr_2fr_1fr]">
+      <section aria-label={`${CLOSE_MONTH} close`} className="grid gap-3 lg:grid-cols-3">
         <Panel title="Close" to="/prototype/close" chip={m.close.done ? <Chip tone="green">Closed</Chip> : <Chip tone="amber">In progress</Chip>}>
           <Meter value={m.close.managersIn} total={m.close.managers} label={`${m.close.managersIn} of ${m.close.managers} managers in`} />
           <span className="text-xs text-fg-3">{m.close.notes.join(" · ") || "Every package in and reconciled"}</span>
         </Panel>
 
-        <div className="flex flex-col gap-3 rounded-lg border border-border bg-surface p-3">
-          <span className="flex items-center justify-between">
-            <Link href="/prototype/exceptions" className="text-xs font-medium hover:underline">
-              Exceptions
-            </Link>
-            <span className="flex gap-1.5">
-              {m.exceptions.overdue > 0 && <Chip tone="red">{m.exceptions.overdue} overdue</Chip>}
-              {m.exceptions.replied > 0 && <Chip tone="green">{m.exceptions.replied} replied</Chip>}
-            </span>
+        <Panel title="Exceptions" to="/prototype/exceptions" chip={m.exceptions.overdue > 0 ? <Chip tone="red">{m.exceptions.overdue} overdue</Chip> : null}>
+          <span className="flex items-baseline gap-1.5">
+            <span className="num text-lg leading-tight font-semibold">{openExceptions(state).length}</span>
+            <span className="text-xs text-fg-2">open</span>
           </span>
-          <ol className="grid grid-cols-2 gap-1.5 sm:grid-cols-4">
-            {m.exceptions.stages.map(({ stage, count }) => (
-              <li key={stage}>
-                <Link href={`/prototype/exceptions?status=${stage}`} className={cn("flex flex-col gap-0.5 rounded-md px-2.5 py-2 transition-colors hover:bg-fg/[0.05]", count ? "bg-fg/[0.03]" : "")}>
-                  <span className={cn("num text-lg leading-tight font-medium", count ? "text-fg" : "text-fg-3")}>{count}</span>
-                  <span className="text-xs text-fg-2">{STAGE_LABEL[stage]}</span>
-                </Link>
-              </li>
-            ))}
-          </ol>
-        </div>
+        </Panel>
 
         <Panel title="Owner report" to="/prototype/owner-report" chip={m.report.sent ? <Chip tone="green">Sent {fmtDate(m.report.sent)}</Chip> : <Chip>Draft</Chip>}>
           <Meter value={m.report.ready} total={m.report.total} label={`${m.report.ready} of ${m.report.total} properties ready`} />
