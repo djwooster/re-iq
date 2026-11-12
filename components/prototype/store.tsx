@@ -216,7 +216,11 @@ function useActions(set: React.Dispatch<React.SetStateAction<State>>) {
           };
         }),
 
-      signUp: (user: { name: string; email: string }, org: string) => set((s) => ({ ...s, user, draft: { ...s.draft, org: s.draft.org || org } })),
+      /** A new account is a new, empty workspace, whatever this browser saved before. */
+      signUp: (user: { name: string; email: string }, org: string) => {
+        applyWorkspace(DEFAULT_NAMES);
+        set({ ...initial(), user, draft: { ...emptyDraft(), org } });
+      },
       setDraft: (fn: (d: Draft) => Draft) => set((s) => ({ ...s, draft: fn(s.draft) })),
       /** Setup is done: the draft's names become the workspace's names everywhere. */
       finishSetup: () =>
