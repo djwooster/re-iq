@@ -1,7 +1,5 @@
 "use client";
 
-import { ArrowRight } from "lucide-react";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { motion, useReducedMotion } from "motion/react";
 import { useState } from "react";
@@ -12,7 +10,7 @@ import { TrendChart } from "./chart";
 import { blocker } from "./derive";
 import { fmt, noiTrend, noiVs, portfolioKpis, portfolioNoi, type Compare } from "./metrics";
 import { LAST, kpis, month, profile, reported } from "./numbers";
-import { CLOSE_MONTH, PROPERTIES, STAGES, TODAY, fmtDate, fmtLongDate, managerOf, projectStage, property, type Exception } from "./seed";
+import { CLOSE_MONTH, PROPERTIES, STAGES, TODAY, fmtLongDate, managerOf, projectStage, property, type Exception } from "./seed";
 import { href, Page } from "./shell";
 import { isOverdue, openExceptions, useWf } from "./store";
 import { A, Card, Chip, Delta, Kpi, PlanChip, Row, Table, Td } from "./ui";
@@ -162,21 +160,18 @@ export function Overview() {
         <Kpi label="DSCR · T-12" value={fmt.x(k.dscr.value)} sub={<span className="text-fg-3">Lowest {fmt.x(k.dscr.lowest.dscr)}, {property(k.dscr.lowest.id)!.name}</span>} status={k.dscr.status} target="Covenant 1.25x" href="/prototype/capital" />
       </section>
 
-      <div className="grid gap-3 xl:grid-cols-[2fr_1fr]">
-        <Card title="Portfolio NOI by month" action={<span className="num text-xs text-fg-3">Dec 2025 – Nov 2026</span>}>
-          <TrendChart
-            data={noiTrend(state.compare)}
-            series={[
-              { key: "actual", label: "Actual", style: "data" },
-              { key: "plan", label: state.compare, style: "reference" },
-            ]}
-            format={fmt.usd}
-            axisFormat={fmt.usdShort}
-            height={220}
-          />
-        </Card>
-        <WaitingOnYou />
-      </div>
+      <Card title="Portfolio NOI by month" action={<span className="num text-xs text-fg-3">Dec 2025 – Nov 2026</span>}>
+        <TrendChart
+          data={noiTrend(state.compare)}
+          series={[
+            { key: "actual", label: "Actual", style: "data" },
+            { key: "plan", label: state.compare, style: "reference" },
+          ]}
+          format={fmt.usd}
+          axisFormat={fmt.usdShort}
+          height={220}
+        />
+      </Card>
 
       <Card title="Properties" flush action={<A href="/prototype/properties" className="text-xs">All properties</A>}>
         <PropertyTable bare />
@@ -186,44 +181,6 @@ export function Overview() {
 }
 
 /** What's waiting on the asset manager right now. Facts only; they decide. */
-function WaitingOnYou() {
-  const { state } = useWf();
-  const replied = state.exceptions.filter((e) => e.stage === "waiting" && e.question?.reply);
-  const overdue = state.exceptions.filter(isOverdue);
-  const fresh = state.exceptions.filter((e) => e.stage === "new");
-  const gates = state.projects.filter((p) => p.status === "Active" && (p.step === 2 || (p.step === 4 && p.type === "Interior")));
-  const approvals = state.approvals.filter((a) => a.status === "Waiting");
-  const rows: { key: string; label: React.ReactNode; meta: string; href: string }[] = [
-    ...overdue.map((e) => ({ key: e.id, label: e.trigger, meta: `${property(e.property)!.name} · overdue since ${fmtDate(e.question!.due)}`, href: href.exception(e.id) })),
-    ...replied.map((e) => ({ key: e.id, label: e.trigger, meta: `${property(e.property)!.name} · PM replied`, href: href.exception(e.id) })),
-    ...fresh.map((e) => ({ key: e.id, label: e.trigger, meta: `${property(e.property)!.name} · new ${fmtDate(e.opened)}`, href: href.exception(e.id) })),
-    ...gates.map((p) => ({ key: p.id, label: `${projectStage(p)} · ${p.name}`, meta: property(p.property)!.name, href: href.project(p.id) })),
-    ...approvals.map((a) => ({ key: a.id, label: a.title, meta: `${property(a.property)!.name} · from ${a.from}`, href: a.projectId ? href.project(a.projectId) : "/prototype/tasks" })),
-  ];
-  return (
-    <Card title="Waiting on you" action={<span className="num text-xs text-fg-3">{rows.length}</span>}>
-      <ul className="-mx-1 flex flex-col">
-        {rows.slice(0, 7).map((r) => (
-          <li key={r.key}>
-            <Link href={r.href} className="group flex items-center gap-3 rounded-md px-1 py-1.5 transition-colors hover:bg-fg/[0.03]">
-              <span className="min-w-0 flex-1">
-                <span className="block truncate text-xs font-medium">{r.label}</span>
-                <span className="block truncate text-xs text-fg-3">{r.meta}</span>
-              </span>
-              <ArrowRight className="size-3 shrink-0 text-fg-3 opacity-0 transition-opacity group-hover:opacity-100" />
-            </Link>
-          </li>
-        ))}
-      </ul>
-      {rows.length > 7 && (
-        <Link href="/prototype/tasks" className="mt-2 block text-xs text-fg-3 hover:text-fg">
-          {rows.length - 7} more
-        </Link>
-      )}
-    </Card>
-  );
-}
-
 /** NOI for the last month a property reported, against the comparison. */
 function latestNoi(id: string, compare: Compare) {
   const m = profile(id).through;
