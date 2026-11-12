@@ -8,6 +8,7 @@ import { FadeIn } from "@/components/ui/motion";
 import { cn } from "@/lib/cn";
 import { PRODUCT_NAME } from "@/lib/labels";
 import { managerState } from "./derive";
+import { Notifications } from "./notifications";
 import { MANAGERS } from "./seed";
 import { openExceptions, useWf, type Compare, type Period } from "./store";
 import { Segmented } from "./ui";
@@ -56,8 +57,8 @@ function Nav({ onNavigate }: { onNavigate?: () => void }) {
   return (
     <div className="flex-1 overflow-y-auto px-2 pt-1">
       {NAV.map((g, i) => (
-        <div key={g.group ?? i} className="mb-4">
-          {g.group && <div className="eyebrow px-2 pb-1.5">{g.group}</div>}
+        <div key={g.group ?? i} className="mb-5">
+          {g.group && <div className="px-2 pb-1 text-[11px] font-medium text-fg-3">{g.group}</div>}
           <ul className="flex flex-col gap-px">
             {g.items.map((n) => {
               const active = pathname === n.href || pathname.startsWith(`${n.href}/`);
@@ -68,9 +69,9 @@ function Nav({ onNavigate }: { onNavigate?: () => void }) {
                     href={n.href}
                     onClick={onNavigate}
                     aria-current={active ? "page" : undefined}
-                    className={cn("flex h-7 items-center gap-2 rounded-md px-2 text-xs transition-colors duration-100", active ? "bg-fg/[0.06] font-medium text-fg" : "text-fg-2 hover:bg-fg/[0.03] hover:text-fg")}
+                    className={cn("flex h-8 items-center gap-2.5 rounded-md px-2 text-[13px] transition-colors duration-100", active ? "bg-brand-soft font-medium text-brand" : "text-fg/80 hover:bg-fg/[0.04] hover:text-fg")}
                   >
-                    <Icon className={cn("size-3.5", active ? "text-fg" : "text-fg-3")} strokeWidth={1.75} />
+                    <Icon className={cn("size-4", active ? "text-brand" : "text-fg-2")} strokeWidth={1.75} />
                     <span className="flex-1">{n.label}</span>
                     {n.badge === "exceptions" && open > 0 && <span className="num text-[11px] text-fg-3">{open}</span>}
                     {n.badge === "tasks" && waiting > 0 && <span className="num text-[11px] text-fg-3">{waiting}</span>}
@@ -140,13 +141,14 @@ function UserMenu() {
 function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
   const { state } = useWf();
   return (
-    <nav aria-label="Primary" className="flex h-full w-[220px] flex-col border-r border-border bg-bg">
-      <div className="flex h-12 items-center gap-2 px-4">
+    <nav aria-label="Primary" className="flex h-full w-[220px] flex-col border-r border-border bg-surface">
+      <div className="flex h-12 items-center justify-between gap-2 pr-2.5 pl-4">
         <Link href={`${B}/overview`} onClick={onNavigate} className="num text-[13px] font-semibold tracking-[0.06em] text-fg">
           {PRODUCT_NAME}
         </Link>
+        <Notifications />
       </div>
-      <div className="mx-2 mb-3 flex items-center gap-2 rounded-md border border-border bg-surface px-2 py-1.5">
+      <div className="mx-2 mb-4 flex items-center gap-2 rounded-md border border-border bg-bg px-2 py-1.5">
         <span className="flex size-5 shrink-0 items-center justify-center rounded bg-fg/[0.08] text-[11px] font-semibold text-fg-2">{state.org.slice(0, 1).toUpperCase()}</span>
         <span className="truncate text-xs font-medium">{state.org}</span>
       </div>

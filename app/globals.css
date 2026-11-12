@@ -25,6 +25,9 @@
   --property: #4f7d8c;
   /* Links that navigate: Apple's interactive blue. */
   --link: #0071e3;
+  /* Brand blue: calm and cool, for the selected nav item. Not for data, state or links. */
+  --brand: #2f5fb3;
+  --brand-soft: rgb(47 95 179 / 0.09);
   /* Illustration colors for explainer moments (setup's how-it-works cards). Not for data or state. */
   --spot-coral: #e2603f;
   --spot-sun: #d99a00;
@@ -62,6 +65,8 @@
   --data-soft: rgb(34 77 95 / 0.6);
   --property: #8fb2bd;
   --link: #2997ff;
+  --brand: #8eaee6;
+  --brand-soft: rgb(142 174 230 / 0.12);
   --spot-coral: #f08a6f;
   --spot-sun: #f0c04a;
   --spot-violet: #a08cff;
@@ -93,6 +98,8 @@
   --color-data-soft: var(--data-soft);
   --color-property: var(--property);
   --color-link: var(--link);
+  --color-brand: var(--brand);
+  --color-brand-soft: var(--brand-soft);
   --color-spot-coral: var(--spot-coral);
   --color-spot-sun: var(--spot-sun);
   --color-spot-violet: var(--spot-violet);

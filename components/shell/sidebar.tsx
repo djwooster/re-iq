@@ -78,7 +78,7 @@ export function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
       <div className="flex-1 overflow-y-auto px-2 pt-2">
         {NAV.map((section) => (
           <div key={section.label} className="mb-4">
-            <div className="eyebrow px-2 pb-1.5">{section.label}</div>
+            <div className="px-2 pb-1.5 text-[11px] font-medium text-fg-3">{section.label}</div>
             <ul className="flex flex-col gap-px">
               {section.items.map((item) => {
                 const active = item.exact ? pathname === item.href : pathname === item.href || pathname.startsWith(`${item.href}/`);
@@ -91,10 +91,10 @@ export function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
                       aria-current={active ? "page" : undefined}
                       className={cn(
                         "flex h-7 items-center gap-2 rounded-md px-2 text-xs transition-colors duration-100",
-                        active ? "bg-fg/[0.06] font-medium text-fg" : "text-fg-2 hover:bg-fg/[0.03] hover:text-fg",
+                        active ? "bg-brand-soft font-medium text-brand" : "text-fg-2 hover:bg-fg/[0.03] hover:text-fg",
                       )}
                     >
-                      <Icon className={cn("size-3.5", active ? "text-fg" : "text-fg-3")} strokeWidth={1.75} />
+                      <Icon className={cn("size-3.5", active ? "text-brand" : "text-fg-3")} strokeWidth={1.75} />
                       <span className="flex-1">{item.label}</span>
                       {item.badge === "actions" && newActions > 0 && <span className="num text-[10px] text-fg-3">{newActions}</span>}
                       {item.badge === "questions" && questionsForYou > 0 && <span className="num text-[10px] text-fg-3">{questionsForYou}</span>}

@@ -15,7 +15,7 @@ copied from source; if they ever disagree, the code wins and this file should be
   opacity and size, not hue.
 - **Color means something.** Green / red / amber only for state (good / bad / needs attention).
   The one accent (`--data`: steel teal in dark, deep cyan in light) only for data visualization,
-  data highlights, and RE-IQ's AI moments. Nothing is colored for decoration. Light is the default theme.
+  data highlights, and RE-IQ's AI moments. Brand blue (`--brand`) marks only the selected nav item. Nothing is colored for decoration. Light is the default theme.
 - **Color is never the only cue.** Signed numbers always print their sign; badges carry a
   word; variance can append "fav" / "unfav".
 - **Flat.** Cards have a 1px border and no shadow. Only floating layers (drawers, modals,
@@ -49,6 +49,8 @@ Tailwind name is what components use.
 | `--unfavorable`     | `unfavorable`                 | `#b91c1c`                              | `#e08a80`                              | Bad state, negative impact, destructive actions |
 | `--warning`         | `warning`                     | `#b45309`                              | `#d9a95b`                              | Needs attention, late, low confidence |
 | `--data`            | `data`                        | `#0e7490`                              | `#6c9bad`                              | Chart series, data highlights |
+| `--brand`           | `brand`                       | `#2f5fb3`                              | `#8eaee6`                              | Brand blue: selected nav item text and icon only |
+| `--brand-soft`      | `brand-soft`                  | `rgb(47 95 179 / 0.09)`                | `rgb(142 174 230 / 0.12)`              | Selected nav item fill |
 | `--data-soft`       | `data-soft`                   | `rgb(14 116 144 / 0.14)`               | `rgb(34 211 238 / 0.16)`               | Text selection, highlighted inline text |
 | `--file-xls` / `--file-pdf` / `--file-csv` | `file-xls` / `file-pdf` / `file-csv` | `#1d6f42` / `#c2352b` / `#2f5f9e` | `#3f8f62` / `#c9554b` / `#4f7fbf` | File-format tags only (spreadsheet green, PDF red, CSV blue), with `--file-ink` text |
 | `--inverted`        | `inverted`                    | `#0a0a0a`                              | `#ffffff`                              | Primary button, toasts, chart tooltips |
@@ -71,7 +73,7 @@ use the ink color at low alpha, which works in both themes:
 | `bg-fg/[0.03]`     | Nav / list / chart-row hover |
 | `bg-fg/[0.035]`    | Drop zone while dragging |
 | `bg-fg/[0.04]`     | Selected row, focused row, menu item hover |
-| `bg-fg/[0.06]`     | Active nav item, neutral badge, skeleton |
+| `bg-fg/[0.06]`     | Neutral badge, skeleton |
 | `bg-fg/10`         | Progress / meter track |
 | `border-border/70` | Row dividers inside a card (softer than the card edge) |
 
@@ -124,7 +126,7 @@ headings. Nothing heavier.
 
 - Every metric value and every number in a table cell (`<Td mono>`).
 - Signed variances, percentage-point deltas, confidence percentages.
-- Eyebrow labels: section labels, table headers, metric labels, sidebar group labels.
+- Eyebrow labels: section labels, table headers, metric labels. (Sidebar group labels are sentence case, not eyebrows.)
 - Counts next to tabs and nav items.
 - Segmented-control options (period codes like MTD / QTD).
 - File names, import/source labels, "data through" timestamps.
@@ -209,9 +211,9 @@ fallback because it reads `usePathname()`.
 
 - Frame: `w-[220px] h-full flex flex-col border-r border-border bg-bg`.
 - Brand row: `h-12 px-4`, wordmark `num text-[13px] font-semibold tracking-[0.06em] text-fg`.
-- Groups: `eyebrow px-2 pb-1.5` label, `mb-4` between groups, items `gap-px`.
+- Groups: sentence-case label `px-2 pb-1.5 text-[11px] font-medium text-fg-3`, `mb-4` between groups, items `gap-px`.
 - Item: `h-7 px-2 gap-2 rounded-md text-xs`, icon `size-3.5 strokeWidth={1.75}`.
-  - Active: `bg-fg/[0.06] font-medium text-fg`, icon `text-fg`, `aria-current="page"`.
+  - Active: `bg-brand-soft font-medium text-brand`, icon `text-brand`, `aria-current="page"`.
   - Idle: `text-fg-2 hover:bg-fg/[0.03] hover:text-fg`, icon `text-fg-3`.
   - Trailing indicator: a mono count (`num text-[10px] text-fg-3`) or a `Dot` for state.
 - Account footer: `border-t p-2`; 24px round initials avatar; name `text-xs font-medium`,

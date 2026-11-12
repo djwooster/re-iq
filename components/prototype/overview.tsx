@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowRight, ChevronRight } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { motion, useReducedMotion } from "motion/react";
@@ -9,13 +9,13 @@ import { Input } from "@/components/ui/controls";
 import { cn } from "@/lib/cn";
 import { PRODUCT_NAME } from "@/lib/labels";
 import { TrendChart } from "./chart";
-import { blocker, monthStatus } from "./derive";
+import { blocker } from "./derive";
 import { fmt, noiTrend, noiVs, portfolioKpis, portfolioNoi, type Compare } from "./metrics";
 import { LAST, kpis, month, profile, reported } from "./numbers";
 import { CLOSE_MONTH, PROPERTIES, STAGES, TODAY, fmtDate, fmtLongDate, managerOf, projectStage, property, type Exception } from "./seed";
 import { href, Page } from "./shell";
 import { isOverdue, openExceptions, useWf } from "./store";
-import { A, Card, Chip, Delta, Kpi, Meter, PlanChip, Row, Table, Td } from "./ui";
+import { A, Card, Chip, Delta, Kpi, PlanChip, Row, Table, Td } from "./ui";
 
 /**
  * The way in. A new account creates the workspace and goes to setup; signing
@@ -126,7 +126,6 @@ export const byUrgency = (a: Exception, b: Exception) => Number(isOverdue(b)) - 
 
 export function Overview() {
   const { state } = useWf();
-  const m = monthStatus(state);
   const k = portfolioKpis();
   const noi = portfolioNoi(state.period, state.compare);
 
@@ -136,25 +135,6 @@ export function Overview() {
       subtitle={fmtLongDate(TODAY)}
       controls
     >
-      <section aria-label={`${CLOSE_MONTH} close`} className="grid gap-3 lg:grid-cols-3">
-        <Panel title="Close" to="/prototype/close" chip={m.close.done ? <Chip tone="green">Closed</Chip> : <Chip tone="amber">In progress</Chip>}>
-          <Meter value={m.close.managersIn} total={m.close.managers} label={`${m.close.managersIn} of ${m.close.managers} managers in`} />
-          <span className="text-xs text-fg-3">{m.close.notes.join(" · ") || "Every package in and reconciled"}</span>
-        </Panel>
-
-        <Panel title="Exceptions" to="/prototype/exceptions" chip={m.exceptions.overdue > 0 ? <Chip tone="red">{m.exceptions.overdue} overdue</Chip> : null}>
-          <span className="flex items-baseline gap-1.5">
-            <span className="num text-lg leading-tight font-semibold">{openExceptions(state).length}</span>
-            <span className="text-xs text-fg-2">open</span>
-          </span>
-        </Panel>
-
-        <Panel title="Owner report" to="/prototype/owner-report" chip={m.report.sent ? <Chip tone="green">Sent {fmtDate(m.report.sent)}</Chip> : <Chip>Draft</Chip>}>
-          <Meter value={m.report.ready} total={m.report.total} label={`${m.report.ready} of ${m.report.total} properties ready`} />
-          <span className="text-xs text-fg-3">The rest show what&apos;s holding them</span>
-        </Panel>
-      </section>
-
       <section aria-label="Portfolio KPIs" className="grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-6">
         <Kpi
           label={`NOI · ${state.period === "Month" ? CLOSE_MONTH : state.period}`}
@@ -241,21 +221,6 @@ function WaitingOnYou() {
         </Link>
       )}
     </Card>
-  );
-}
-
-function Panel({ title, to, chip, children }: { title: string; to: string; chip: React.ReactNode; children: React.ReactNode }) {
-  return (
-    <Link href={to} className="group flex flex-col gap-3 rounded-lg border border-border bg-surface p-3 transition-colors hover:border-border-strong">
-      <span className="flex items-center justify-between">
-        <span className="flex items-center gap-0.5 text-xs font-medium text-fg underline decoration-fg/30 underline-offset-[3px] group-hover:decoration-fg">
-          {title}
-          <ChevronRight className="size-3.5" />
-        </span>
-        {chip}
-      </span>
-      {children}
-    </Link>
   );
 }
 

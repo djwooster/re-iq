@@ -67,6 +67,8 @@ interface State {
   decisions: Decision[];
   mapped: string[];
   ownerReport: { sent?: string };
+  /** Notification ids the user has read (see notifications.tsx). */
+  seen: string[];
   period: Period;
   compare: Compare;
 }
@@ -88,6 +90,7 @@ const initial = (): State => ({
   decisions: DECISIONS,
   mapped: [],
   ownerReport: {},
+  seen: [],
   period: "Month",
   compare: "Budget",
 });
@@ -243,6 +246,7 @@ function useActions(set: React.Dispatch<React.SetStateAction<State>>) {
       },
       approveMapping: (ids: string[]) => set((s) => ({ ...s, mapped: [...new Set([...s.mapped, ...ids])] })),
       sendOwnerReport: () => set((s) => ({ ...s, ownerReport: { sent: TODAY } })),
+      markSeen: (ids: string[]) => set((s) => ({ ...s, seen: [...new Set([...s.seen, ...ids])] })),
     };
   }, [set]);
 }
@@ -281,7 +285,7 @@ export function WfStore({ children }: { children: React.ReactNode }) {
         const saved = JSON.parse(raw) as State;
         applyWorkspace(saved.names, saved.included);
         // eslint-disable-next-line react-hooks/set-state-in-effect -- one-time hydration from storage
-        set(saved);
+        set({ ...initial(), ...saved });
       }
     } catch {}
     setHydrated(true);
