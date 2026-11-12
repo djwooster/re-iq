@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useContext, useEffect, useMemo, useRef, useState } from "react";
+import { createContext, useContext, useEffect, useMemo, useState } from "react";
 import {
   APPROVALS,
   DEFAULT_NAMES,
@@ -270,7 +270,6 @@ function renamed(s: State, names: Names, included: string[]): State {
 export function WfStore({ children }: { children: React.ReactNode }) {
   const [state, set] = useState(initial);
   const act = useActions(set);
-  const loaded = useRef(false);
   const [hydrated, setHydrated] = useState(false);
 
   // Load what this browser saved, then keep saving. Reads and writes can fail
@@ -285,15 +284,16 @@ export function WfStore({ children }: { children: React.ReactNode }) {
         set(saved);
       }
     } catch {}
-    loaded.current = true;
     setHydrated(true);
   }, []);
+  // Save only once the loaded state has rendered. Saving earlier writes the
+  // initial state over what was saved (dev runs effects twice, so a reload lost it).
   useEffect(() => {
-    if (!loaded.current) return;
+    if (!hydrated) return;
     try {
       localStorage.setItem(KEY, JSON.stringify(state));
     } catch {}
-  }, [state]);
+  }, [state, hydrated]);
 
   const value = useMemo(() => ({ state, act, hydrated }), [state, act, hydrated]);
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;

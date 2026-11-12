@@ -60,7 +60,7 @@ export function Setup({ step }: { step: StepId }) {
             );
           })}
         </ol>
-        <span aria-hidden />
+        <SkipSetup />
       </header>
       <motion.main key={step} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3, ease: "easeOut" }} className="mx-auto flex w-full max-w-[760px] flex-1 flex-col gap-6 px-5 py-10">
         {!hydrated ? null : !reachable(i) ? (
@@ -597,6 +597,27 @@ const managersFor = (d: Draft, prev: Draft["managers"]): Draft["managers"] => {
     .filter((m) => m.properties.length || (!(m.id in DEFAULT_NAMES.managers) && m.name.trim()))
     .sort((x, y) => x.id.localeCompare(y.id));
 };
+
+/** Fills every step with the sample portfolio and opens the dashboard, for getting past setup quickly. */
+function SkipSetup() {
+  const { act } = useWf();
+  const router = useRouter();
+  const skip = () => {
+    act.setDraft((x) => {
+      const filled = { ...x, unassigned: [], properties: ALL_PROPERTY_IDS.map((id) => ({ id, name: DEFAULT_NAMES.properties[id], reports: sampleReports(id, DEFAULT_NAMES.properties[id], true) })) };
+      return { ...filled, managers: managersFor(filled, []), reviewed: true };
+    });
+    act.finishSetup();
+    router.push("/prototype/overview");
+  };
+  return (
+    <span className="justify-self-end">
+      <Button variant="ghost" onClick={skip}>
+        Skip setup
+      </Button>
+    </span>
+  );
+}
 
 // ---- Step 2: managers ----
 
