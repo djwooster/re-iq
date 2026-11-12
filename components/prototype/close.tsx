@@ -5,10 +5,10 @@ import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { useToast } from "@/components/ui/toast";
 import { cn } from "@/lib/cn";
-import { mappingPending, managerState, monthStatus, packageCell, reconChecks, reconSummary } from "./derive";
+import { mappingPending, managerState, packageCell, reconChecks, reconSummary } from "./derive";
 import { fmt } from "./metrics";
 import { LAST, month, type Line } from "./numbers";
-import { CHART_OF_ACCOUNTS, CLOSE_MONTH, FILES, MANAGERS, MAPPING, PACKAGE, PACKAGE_HISTORY, PAST_CLOSES, PROPERTIES, RECON_CHECKS, REPORT_DUE, TODAY, daysBetween, fmtDate, manager, managerOf, property, type CheckState, type FileRow, type ManagerId, type PastClose } from "./seed";
+import { CHART_OF_ACCOUNTS, CLOSE_MONTH, FILES, MANAGERS, MAPPING, PACKAGE, PACKAGE_HISTORY, PAST_CLOSES, PROPERTIES, RECON_CHECKS, fmtDate, manager, managerOf, property, type CheckState, type FileRow, type ManagerId, type PastClose } from "./seed";
 import { href, Page } from "./shell";
 import { useWf } from "./store";
 import { A, Button, Card, Chip, Row, Select, Table, Tabs, Td, type Tone } from "./ui";
@@ -26,12 +26,9 @@ function CurrentClose({ initialTab }: { initialTab?: string }) {
   const [tab, setTab] = useState<Tab>(TABS.includes(initialTab as Tab) ? (initialTab as Tab) : "tracker");
   const r = reconSummary(state);
   const late = MANAGERS.filter((m) => managerState(m.id) !== "All received").length;
-  const overdue = daysBetween(REPORT_DUE, TODAY);
-  const ms = monthStatus(state);
   return (
     <Page
       title={<MonthPicker month={CLOSE_MONTH} />}
-      subtitle={`Due ${fmtDate(REPORT_DUE)}${overdue > 0 ? ` · ${overdue} days late` : ""} · ${ms.close.managersIn} of ${ms.close.managers} managers in`}
       tabs={
         <Tabs
           value={tab}
