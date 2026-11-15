@@ -163,12 +163,14 @@ export const PACKAGE_HISTORY: Record<string, { month: string; status: "On time" 
 /** Months already closed, newest first. Packages were due the 12th of the next month. */
 export const PAST_CLOSES = [
   { month: "October", due: "Nov 12", closed: "Nov 21" },
-  { month: "September", due: "Oct 12", closed: "Oct 20" },
+  { month: "September", due: "Oct 12", closed: "Oct 20", afterClose: { manager: "m2", title: "P&L (corrected)", when: "Oct 24" } },
   { month: "August", due: "Sep 12", closed: "Sep 19" },
   { month: "July", due: "Aug 12", closed: "Aug 21" },
   { month: "June", due: "Jul 12", closed: "Jul 16" },
 ] as const;
-export type PastClose = (typeof PAST_CLOSES)[number];
+export type PastClose = (typeof PAST_CLOSES)[number] & { afterClose?: { manager: ManagerId; title: string; when: string } };
+/** The month after November, once November is closed. */
+export const NEXT_MONTH = { month: "December", due: "Jan 12" };
 
 /** When each manager's package arrived. Null: nothing yet. */
 export const RECEIVED: Record<ManagerId, string | null> = { m1: "2026-12-09", m2: "2026-12-11", m3: "2026-12-12", m4: null };

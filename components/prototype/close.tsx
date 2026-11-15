@@ -1,14 +1,15 @@
 "use client";
 
-import { Check, ChevronDown, Copy, FileSpreadsheet, Send } from "lucide-react";
+import { AlertCircle, Check, CheckCircle2, ChevronDown, Copy, FileSpreadsheet, Lock, Send } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
+import { Modal } from "@/components/ui/overlay";
 import { useToast } from "@/components/ui/toast";
 import { cn } from "@/lib/cn";
-import { mappingPending, managerState, packageCell, reconChecks, reconSummary } from "./derive";
+import { mappingPending, managerState, monthStatus, packageCell, reconChecks, reconSummary } from "./derive";
 import { fmt } from "./metrics";
 import { LAST, month, type Line } from "./numbers";
-import { CHART_OF_ACCOUNTS, CLOSE_MONTH, FILES, MANAGERS, MAPPING, PACKAGE, PACKAGE_HISTORY, PAST_CLOSES, PROPERTIES, RECON_CHECKS, fmtDate, manager, managerOf, property, type CheckState, type FileRow, type ManagerId, type PastClose } from "./seed";
+import { CHART_OF_ACCOUNTS, CLOSE_MONTH, FILES, MANAGERS, MAPPING, NEXT_MONTH, PACKAGE, PACKAGE_HISTORY, PAST_CLOSES, PROPERTIES, RECON_CHECKS, fmtDate, manager, managerOf, property, type CheckState, type FileRow, type ManagerId, type PastClose } from "./seed";
 import { href, Page } from "./shell";
 import { useWf } from "./store";
 import { A, Button, Card, Chip, Row, Select, Table, Tabs, Td, type Tone } from "./ui";
@@ -17,8 +18,73 @@ type Tab = "tracker" | "mapping" | "reconciliation" | "files";
 const TABS: Tab[] = ["tracker", "mapping", "reconciliation", "files"];
 
 export function Close({ initialTab, month }: { initialTab?: string; month?: string }) {
+  const { state } = useWf();
   const past = PAST_CLOSES.find((c) => c.month.toLowerCase() === month);
-  return past ? <PastCloseView close={past} initialTab={initialTab} /> : <CurrentClose initialTab={initialTab} />;
+  if (past) return <PastCloseView close={past} initialTab={initialTab} />;
+  // Once November is closed, the current close is December's; November stays at its own URL.
+  if (state.closed && month !== CLOSE_MONTH.toLowerCase()) return <NextClose />;
+  return <CurrentClose initialTab={initialTab} />;
+}
+
+/** What's still open, checked when the AM closes the month. Open items warn; they don't block. */
+function useReadiness() {
+  const { state } = useWf();
+  const ms = monthStatus(state);
+  const r = reconSummary(state);
+  const pending = mappingPending(state);
+  const late = MANAGERS.filter((m) => managerState(m.id) !== "All received");
+  return [
+    { label: "Packages", done: !late.length, note: late.length ? `${ms.close.managersIn} of ${ms.close.managers} managers in · ${late.map((m) => `${m.name} ${managerState(m.id).toLowerCase()}`).join(", ")}` : "Every package in" },
+    { label: "Reconciliation", done: !r.breaks, note: r.breaks ? `${r.breaks} break${r.breaks > 1 ? "s" : ""} open` : "Every check passes" },
+    { label: "Mapping", done: !pending, note: pending ? `${pending} line${pending > 1 ? "s" : ""} to approve` : "Every line mapped" },
+    { label: "Owner report", done: !!state.ownerReport.sent, note: state.ownerReport.sent ? `Sent ${fmtDate(state.ownerReport.sent)}` : "Not sent" },
+  ];
+}
+
+function CloseMonth() {
+  const { act } = useWf();
+  const toast = useToast();
+  const items = useReadiness();
+  const [open, setOpen] = useState(false);
+  const left = items.filter((i) => !i.done);
+  const close = () => {
+    act.closeMonth(left.map((i) => `${i.label}: ${i.note}`));
+    setOpen(false);
+    toast(`${CLOSE_MONTH} closed`, { detail: left.length ? `With ${left.length} open item${left.length > 1 ? "s" : ""} recorded.` : "Numbers are locked for reporting." });
+  };
+  return (
+    <>
+      <Button icon={<Lock className="size-3" />} onClick={() => setOpen(true)}>
+        Close {CLOSE_MONTH}
+      </Button>
+      <Modal
+        open={open}
+        onClose={() => setOpen(false)}
+        title={`Close ${CLOSE_MONTH}`}
+        description="Locks this month's numbers and files for reporting. A file that arrives later shows as received after close."
+        footer={
+          <>
+            <Button variant="secondary" onClick={() => setOpen(false)}>
+              Cancel
+            </Button>
+            <Button onClick={close}>{left.length ? `Close with ${left.length} open item${left.length > 1 ? "s" : ""}` : `Close ${CLOSE_MONTH}`}</Button>
+          </>
+        }
+      >
+        <ul className="flex flex-col divide-y divide-border rounded-lg border border-border">
+          {items.map((i) => (
+            <li key={i.label} className="flex items-start gap-2.5 px-3 py-2.5">
+              {i.done ? <CheckCircle2 className="mt-px size-3.5 shrink-0 text-favorable" /> : <AlertCircle className="mt-px size-3.5 shrink-0 text-warning" />}
+              <span className="min-w-0 flex-1">
+                <span className="block text-xs font-medium text-fg">{i.label}</span>
+                <span className="block text-xs text-fg-3">{i.note}</span>
+              </span>
+            </li>
+          ))}
+        </ul>
+      </Modal>
+    </>
+  );
 }
 
 function CurrentClose({ initialTab }: { initialTab?: string }) {
@@ -26,9 +92,12 @@ function CurrentClose({ initialTab }: { initialTab?: string }) {
   const [tab, setTab] = useState<Tab>(TABS.includes(initialTab as Tab) ? (initialTab as Tab) : "tracker");
   const r = reconSummary(state);
   const late = MANAGERS.filter((m) => managerState(m.id) !== "All received").length;
+  const closed = state.closed;
   return (
     <Page
       title={<MonthPicker month={CLOSE_MONTH} />}
+      subtitle={closed && `Closed ${fmtDate(closed.date)}${closed.open.length ? ` with ${closed.open.length} open item${closed.open.length > 1 ? "s" : ""}` : ""}`}
+      actions={!closed && <CloseMonth />}
       tabs={
         <Tabs
           value={tab}
@@ -49,11 +118,40 @@ function CurrentClose({ initialTab }: { initialTab?: string }) {
   );
 }
 
-const closeHref = (month: string) => (month === CLOSE_MONTH ? "/prototype/close" : `/prototype/close?month=${month.toLowerCase()}`);
+/** The month after a close: nothing is due yet. */
+function NextClose() {
+  const copy = useCopyLink();
+  return (
+    <Page title={<MonthPicker month={NEXT_MONTH.month} />} subtitle={`Packages due ${NEXT_MONTH.due}`}>
+      <Table columns={["Manager", "Properties", "Reports email", "Status", ""]}>
+        {MANAGERS.map((m) => (
+          <Row key={m.id}>
+            <Td className="whitespace-nowrap">
+              <A href={href.manager(m.id)}>{m.name}</A>
+            </Td>
+            <Td className="text-fg-2">{propertiesOf(m.id)}</Td>
+            <Td className="whitespace-nowrap text-fg-2">{m.email}</Td>
+            <Td>
+              <Chip>Not due yet</Chip>
+            </Td>
+            <Td className="text-right">
+              <Button variant="ghost" icon={<Copy className="size-3" />} onClick={() => copy(m.token)}>
+                Upload link
+              </Button>
+            </Td>
+          </Row>
+        ))}
+      </Table>
+    </Page>
+  );
+}
+
+const closeHref = (month: string, current: string) => (month === current ? "/prototype/close" : `/prototype/close?month=${month.toLowerCase()}`);
 const lateIn = (month: string) => MANAGERS.filter((m) => PACKAGE_HISTORY[m.id].find((h) => h.month === month)?.status !== "On time").length;
 
 /** The page title doubles as the way to earlier closes. */
 function MonthPicker({ month }: { month: string }) {
+  const { state } = useWf();
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
   useEffect(() => {
@@ -67,7 +165,13 @@ function MonthPicker({ month }: { month: string }) {
       document.removeEventListener("keydown", key);
     };
   }, [open]);
-  const items = [{ month: CLOSE_MONTH, note: "In progress" }, ...PAST_CLOSES.map((c) => ({ month: c.month, note: `Closed ${c.closed}${lateIn(c.month) ? ` · ${lateIn(c.month)} late` : ""}` }))];
+  const closed = state.closed;
+  const current = closed ? NEXT_MONTH.month : CLOSE_MONTH;
+  const items = [
+    { month: current, note: "In progress" },
+    ...(closed ? [{ month: CLOSE_MONTH, note: `Closed ${fmtDate(closed.date)}${closed.open.length ? ` · ${closed.open.length} open` : ""}` }] : []),
+    ...PAST_CLOSES.map((c) => ({ month: c.month, note: `Closed ${c.closed}${lateIn(c.month) ? ` · ${lateIn(c.month)} late` : ""}` })),
+  ];
   return (
     <div ref={ref} className="relative inline-block">
       <button type="button" onClick={() => setOpen((v) => !v)} aria-expanded={open} aria-haspopup="menu" className="-mx-1.5 flex items-center gap-1.5 rounded-md px-1.5 transition-colors hover:bg-fg/[0.04]">
@@ -80,7 +184,7 @@ function MonthPicker({ month }: { month: string }) {
             <Link
               key={it.month}
               role="menuitem"
-              href={closeHref(it.month)}
+              href={closeHref(it.month, current)}
               onClick={() => setOpen(false)}
               aria-current={it.month === month ? "page" : undefined}
               className={cn("flex items-center justify-between gap-3 rounded-md px-2 py-1.5 transition-colors hover:bg-fg/[0.04]", it.month === month && "bg-fg/[0.04]")}
@@ -105,12 +209,14 @@ function PastCloseView({ close, initialTab }: { close: PastClose; initialTab?: s
   const files = MANAGERS.flatMap((m) => {
     const h = PACKAGE_HISTORY[m.id].find((x) => x.month === close.month)!;
     const pkg = { id: `${m.id}-pkg`, manager: m.id, title: `${close.month} package`, when: h.received, version: "v1", size: `${(3.6 + Number(m.id.slice(1)) * 0.4).toFixed(1)} MB` };
-    return h.rest ? [pkg, { id: `${m.id}-rest`, manager: m.id, title: "AR aging", when: h.rest, version: "v1", size: "184 KB" }] : [pkg];
+    const rest = h.rest ? [{ id: `${m.id}-rest`, manager: m.id, title: "AR aging", when: h.rest, version: "v1", size: "184 KB" }] : [];
+    const after = close.afterClose?.manager === m.id ? [{ id: `${m.id}-after`, manager: m.id, title: close.afterClose.title, when: close.afterClose.when, version: "v2", size: "296 KB", afterClose: true }] : [];
+    return [pkg, ...rest, ...after];
   });
   return (
     <Page
       title={<MonthPicker month={close.month} />}
-      subtitle={`Closed ${close.closed} · Due ${close.due} · ${late ? `${late} of ${MANAGERS.length} managers late` : "every package on time"}`}
+      subtitle={`Closed ${close.closed} · Due ${close.due} · ${late ? `${late} of ${MANAGERS.length} managers late` : "every package on time"}${close.afterClose ? " · 1 file received after close" : ""}`}
       tabs={
         <Tabs
           value={tab}
@@ -188,7 +294,7 @@ function PastCloseView({ close, initialTab }: { close: PastClose; initialTab?: s
               <Td>
                 <span className="flex items-center gap-2">
                   <FileSpreadsheet className="size-3.5 shrink-0 text-file-xls" />
-                  <span className="num text-xs">{f.title === "AR aging" ? `AR aging · ${propertiesOf(f.manager).split(", ")[0]}` : `${f.title} · ${propertiesOf(f.manager)}`}</span>
+                  <span className="num text-xs">{f.title.endsWith("package") ? `${f.title} · ${propertiesOf(f.manager)}` : `${f.title} · ${propertiesOf(f.manager).split(", ")[0]}`}</span>
                 </span>
               </Td>
               <Td className="whitespace-nowrap text-fg-2">{manager(f.manager).name}</Td>
@@ -197,7 +303,10 @@ function PastCloseView({ close, initialTab }: { close: PastClose; initialTab?: s
                 {f.size}
               </Td>
               <Td>
-                <Chip>{f.version}</Chip>
+                <span className="flex items-center gap-1.5">
+                  <Chip>{f.version}</Chip>
+                  {"afterClose" in f && <Chip tone="amber">Received after close</Chip>}
+                </span>
               </Td>
             </Row>
           ))}

@@ -67,6 +67,8 @@ interface State {
   decisions: Decision[];
   mapped: string[];
   ownerReport: { sent?: string };
+  /** Set once the AM closes November: when, and the checklist items still open at the time. */
+  closed?: { date: string; open: string[] };
   /** Notification ids the user has read (see notifications.tsx). */
   seen: string[];
   period: Period;
@@ -250,6 +252,7 @@ function useActions(set: React.Dispatch<React.SetStateAction<State>>) {
       },
       approveMapping: (ids: string[]) => set((s) => ({ ...s, mapped: [...new Set([...s.mapped, ...ids])] })),
       sendOwnerReport: () => set((s) => ({ ...s, ownerReport: { sent: TODAY } })),
+      closeMonth: (open: string[]) => set((s) => ({ ...s, closed: { date: TODAY, open } })),
       markSeen: (ids: string[]) => set((s) => ({ ...s, seen: [...new Set([...s.seen, ...ids])] })),
     };
   }, [set]);

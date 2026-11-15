@@ -53,7 +53,7 @@ function Nav({ onNavigate }: { onNavigate?: () => void }) {
   const { state } = useWf();
   const open = openExceptions(state).length;
   const waiting = state.approvals.filter((a) => a.status === "Waiting").length + state.projects.filter((p) => p.status === "Active" && (p.step === 2 || (p.step === 4 && p.type === "Interior"))).length;
-  const closeOpen = MANAGERS.some((m) => managerState(m.id) !== "All received");
+  const closeOpen = !state.closed && MANAGERS.some((m) => managerState(m.id) !== "All received");
   return (
     <div className="flex-1 overflow-y-auto px-2 pt-1">
       {NAV.map((g, i) => (
