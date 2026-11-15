@@ -31,6 +31,9 @@
       check-ins, cycling highlights; `components/marketing/*-art.tsx`, `use-cycle.ts`) into the app.
 - [ ] Refined microinteractions (Rive-style, subtle), once the core flow is validated.
 - [ ] "Ask" interface for natural-language questions about the portfolio.
+- [ ] Quarterly investor report for each deal: an AI-drafted narrative the AM edits, PDF export,
+      later uploads to investor portals (Juniper Square, AppFolio IM). All three of Brian's newer docs
+      call it the hero feature (Product Spec, 2026-11-05: v1). Sits next to the monthly owner report.
 - [ ] New-organization onboarding: built on `testing` (signup starts an empty workspace); merge to
       `main` once usability sessions confirm it.
 - [ ] Phase 2 write-back to property management systems, with approvals.
