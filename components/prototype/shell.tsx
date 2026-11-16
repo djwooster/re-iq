@@ -235,7 +235,7 @@ export function Page({ title, subtitle, crumbs, controls, actions, tabs, tabsEnd
         )}
         <div className="flex flex-wrap items-end justify-between gap-3">
           <div className="min-w-0">
-            <h1 className="text-[20px] leading-7 font-semibold tracking-tight text-fg">{title}</h1>
+            <h1 className="text-[24px] leading-8 font-semibold tracking-tight text-fg">{title}</h1>
             {subtitle && <div className="mt-0.5 text-xs text-fg-3">{subtitle}</div>}
           </div>
           <div className="flex flex-wrap items-center gap-3">
