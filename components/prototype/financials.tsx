@@ -9,7 +9,7 @@ import { EXPENSE_LINES, LAST, MONTHS, MONTH_LONG, REVENUE_LINES, month, periodTo
 import { Ap, Ar, Balance, Cash, Gl, ModulePage, Reforecast, Variance } from "./portfolio";
 import { PROPERTIES, property } from "./seed";
 import { Page } from "./shell";
-import { ConceptSwitch, Delta, Segmented, Select, Sparkline, Table, Tabs, type Column } from "./ui";
+import { ConceptSwitch, Delta, Segmented, Select, Sparkline, Table, Tabs, type Column, type Sort } from "./ui";
 
 /** Financials in two concepts. A is the original page; B leads with a collapsed statement and an all-properties view. */
 export function Financials({ concept, property }: { concept: "a" | "b"; property?: string }) {
@@ -60,7 +60,7 @@ function FinancialsB({ switcher, prop }: { switcher: React.ReactNode; prop: stri
         </>
       }
     >
-      {tab === "t12" && (id === ALL ? <PortfolioT12 months={view === "Months"} onPick={setProp} /> : <Statement id={id} months={view === "Months"} />)}
+      {tab === "t12" && (id === ALL ? <PortfolioT12 key={view} months={view === "Months"} onPick={setProp} /> : <Statement id={id} months={view === "Months"} />)}
       {tab === "budget" && (budget === "Year end" ? <Reforecast /> : id === ALL ? <PortfolioVariance onPick={setProp} /> : <Variance id={id} />)}
       {tab === "balance" && <Balance id={id} />}
       {tab === "gl" && <Gl id={id} />}
@@ -81,7 +81,24 @@ function PropertySelect({ value, all, onChange }: { value: string; all: boolean;
 }
 
 const N = (label: string): Column => ({ label, num: true });
-const columns = (first: string, months: boolean, extra: string[] = [], total = "T-12"): Column[] => (months ? [first, ...MONTHS.map(N), N(total), N("vs budget")] : [first, ...extra.map(N), N(total), N("Last 12 months"), N("vs budget")]);
+const columns = (first: string, months: boolean, extra: string[] = [], total = "T-12"): Column[] => (months ? [first, ...MONTHS.map(N), N(total), N("vs budget")] : [first, ...extra.map(N), N(total), { label: "Last 12 months", num: true, sort: false }, N("vs budget")]);
+
+/** Click a header: text sorts A–Z and numbers high to low first; click again to flip. Empty values sort last. */
+function useSort<T>(key: (row: T, col: number) => string | number | null) {
+  const [sort, setSort] = useState<Sort>(null);
+  const onSort = (col: number) => setSort((s) => (s?.col === col ? { col, dir: s.dir === "asc" ? "desc" : "asc" } : { col, dir: col === 0 ? "asc" : "desc" }));
+  const apply = (rows: T[]) => {
+    if (!sort) return rows;
+    const sign = sort.dir === "asc" ? 1 : -1;
+    return [...rows].sort((a, b) => {
+      const x = key(a, sort.col);
+      const y = key(b, sort.col);
+      if (x === null || y === null) return x === y ? 0 : x === null ? 1 : -1;
+      return (typeof x === "string" ? x.localeCompare(String(y)) : x - (y as number)) * sign;
+    });
+  };
+  return { sort, onSort, apply };
+}
 
 const TD = "h-9 px-3 align-middle first:pl-4 last:pr-4";
 const NUM = "num text-right whitespace-nowrap";
@@ -115,7 +132,7 @@ function Tr({ label, kind = "line", depth = 0, striped, open, onToggle, onClick,
           ) : (
             <>
               <span className="w-3.5 shrink-0" />
-              {onClick ? <span className="font-medium text-property decoration-property/40 underline-offset-[3px] group-hover:underline">{label}</span> : label}
+              {onClick ? <span className="font-medium text-property underline decoration-property/50 decoration-dashed underline-offset-[3px] group-hover:decoration-property">{label}</span> : label}
             </>
           )}
         </span>
@@ -187,9 +204,14 @@ function PortfolioT12({ months, onPick }: { months: boolean; onPick: (id: string
   const a = portfolioTotal(IDS, "T-12");
   const b = portfolioTotal(IDS, "T-12", "Budget");
   const vals = MS.map((m) => (rows.every((r) => r.vals[m] !== null) ? rows.reduce((s, r) => s + r.vals[m]!, 0) : null));
+  const { sort, onSort, apply } = useSort<(typeof rows)[number]>((r, c) => {
+    if (c === 0) return property(r.id)!.name;
+    const cols = months ? [...r.vals, r.a.noi, r.a.noi - r.b.noi] : [r.a.egi, r.a.opex, r.a.noi, null, r.a.noi - r.b.noi];
+    return cols[c - 1];
+  });
   return (
-    <Table columns={columns("Property", months, ["EGI", "Operating expenses"], "NOI")}>
-      {rows.map((r, i) => (
+    <Table columns={columns("Property", months, ["EGI", "Operating expenses"], "NOI")} sort={sort} onSort={onSort}>
+      {apply(rows).map((r, i) => (
         <Tr key={r.id} striped={i % 2 === 1} label={property(r.id)!.name} onClick={() => onPick(r.id)} vals={r.vals} extra={[r.a.egi, r.a.opex]} total={r.a.noi} plan={r.b.noi} months={months} />
       ))}
       <Tr label="Portfolio" kind="total" vals={vals} extra={[a.egi, a.opex]} total={a.noi} plan={b.noi} months={months} />
@@ -200,9 +222,10 @@ function PortfolioT12({ months, onPick }: { months: boolean; onPick: (id: string
 /** November NOI against budget by property; open one for its line-by-line variance. */
 function PortfolioVariance({ onPick }: { onPick: (id: string) => void }) {
   const rows = IDS.map((id) => ({ id, a: reported(id, LAST) ? month(id, LAST).noi : null, b: month(id, LAST, "Budget").noi }));
-  const in_ = rows.filter((r) => r.a !== null);
-  const a = in_.reduce((s, r) => s + r.a!, 0);
-  const b = in_.reduce((s, r) => s + r.b, 0);
+  const got = rows.filter((r) => r.a !== null);
+  const a = got.reduce((s, r) => s + r.a!, 0);
+  const b = got.reduce((s, r) => s + r.b, 0);
+  const { sort, onSort, apply } = useSort<(typeof rows)[number]>((r, c) => (c === 0 ? property(r.id)!.name : r.a === null ? null : [r.a, r.b, r.a - r.b, r.a / r.b - 1][c - 1]));
   const cells = (actual: number, plan: number) => (
     <>
       <td className={cn(TD, NUM, "text-fg")}>{fmt.usd(actual)}</td>
@@ -216,10 +239,10 @@ function PortfolioVariance({ onPick }: { onPick: (id: string) => void }) {
     </>
   );
   return (
-    <Table columns={[`Property · ${MONTH_LONG[LAST]} NOI`, N("Actual"), N("Budget"), N("$ variance"), N("% variance")]}>
-      {rows.map((r, i) => (
+    <Table columns={[`Property · ${MONTH_LONG[LAST]} NOI`, N("Actual"), N("Budget"), N("$ variance"), N("% variance")]} sort={sort} onSort={onSort}>
+      {apply(rows).map((r, i) => (
         <tr key={r.id} onClick={() => onPick(r.id)} onKeyDown={(e) => e.key === "Enter" && onPick(r.id)} tabIndex={0} className={cn("group cursor-pointer transition-colors duration-100 hover:bg-fg/[0.045] focus-visible:bg-fg/[0.04] focus-visible:outline-none", i % 2 === 1 && "bg-fg/[0.02]")}>
-          <td className={cn(TD, "font-medium text-property decoration-property/40 underline-offset-[3px] group-hover:underline")}>{property(r.id)!.name}</td>
+          <td className={cn(TD, "font-medium text-property underline decoration-property/50 decoration-dashed underline-offset-[3px] group-hover:decoration-property")}>{property(r.id)!.name}</td>
           {r.a === null ? (
             <td colSpan={4} className={cn(TD, "text-right text-fg-3")}>
               Not received
