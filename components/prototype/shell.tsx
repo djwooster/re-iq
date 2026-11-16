@@ -1,6 +1,6 @@
 "use client";
 
-import { AlertCircle, Building2, CalendarCheck, ChartNoAxesColumn, ClipboardCheck, FileText, HardHat, Landmark, LayoutGrid, ListChecks, LogOut, Menu, RotateCcw, ScrollText, Settings, Users, Wrench, X } from "lucide-react";
+import { AlertCircle, Building2, CalendarCheck, ChartNoAxesColumn, ClipboardCheck, FileText, HardHat, Landmark, LayoutGrid, ListChecks, LogOut, Menu, RotateCcw, Settings, Users, Wrench, X } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
@@ -31,7 +31,7 @@ const NAV: { group?: string; items: Item[] }[] = [
       { href: `${B}/exceptions`, label: "Exceptions", icon: AlertCircle, badge: "exceptions" },
       { href: `${B}/tasks`, label: "Tasks", icon: ListChecks, badge: "tasks" },
       { href: `${B}/owner-report`, label: "Owner report", icon: FileText },
-      { href: `${B}/decisions`, label: "Decision log", icon: ScrollText },
+      // { href: `${B}/decisions`, label: "Decision log", icon: ScrollText },
     ],
   },
   {
