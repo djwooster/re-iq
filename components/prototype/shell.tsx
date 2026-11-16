@@ -212,8 +212,8 @@ export interface Crumb {
   href?: string;
 }
 
-/** Page frame. `controls` adds the period and compare-to controls used on data pages; `tabs` sit on the header's bottom edge. */
-export function Page({ title, subtitle, crumbs, controls, actions, tabs, children }: { title: React.ReactNode; subtitle?: React.ReactNode; crumbs?: Crumb[]; controls?: boolean; actions?: React.ReactNode; tabs?: React.ReactNode; children: React.ReactNode }) {
+/** Page frame. `controls` adds the period and compare-to controls used on data pages; `tabs` sit on the header's bottom edge, with `tabsEnd` (a concept switch) at the row's right. */
+export function Page({ title, subtitle, crumbs, controls, actions, tabs, tabsEnd, children }: { title: React.ReactNode; subtitle?: React.ReactNode; crumbs?: Crumb[]; controls?: boolean; actions?: React.ReactNode; tabs?: React.ReactNode; tabsEnd?: React.ReactNode; children: React.ReactNode }) {
   return (
     <>
       <header className={cn("px-6 pt-6", tabs ? "mb-5 border-b border-border" : "pb-4")}>
@@ -243,7 +243,12 @@ export function Page({ title, subtitle, crumbs, controls, actions, tabs, childre
             {actions}
           </div>
         </div>
-        {tabs && <div className="mt-5 [&>[role=tablist]]:border-b-0">{tabs}</div>}
+        {tabs && (
+          <div className="mt-5 flex items-end justify-between gap-4 [&>[role=tablist]]:border-b-0">
+            {tabs}
+            {tabsEnd && <div className="shrink-0 pb-1.5">{tabsEnd}</div>}
+          </div>
+        )}
       </header>
       <FadeIn className="flex min-w-0 flex-col gap-6 px-6 pb-12">{children}</FadeIn>
     </>

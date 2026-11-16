@@ -215,6 +215,17 @@ export function Segmented<T extends string>({ value, options, onChange, label }:
   );
 }
 
+/** Side-by-side design concepts for one page, kept in the URL (`?concept=b`). Concept A is the page as it was. */
+export function ConceptSwitch<T extends string>({ value, options, base }: { value: T; options: readonly T[]; base: string }) {
+  const router = useRouter();
+  return (
+    <div className="flex items-center gap-2">
+      <span className="text-xs text-fg-3">Concept</span>
+      <UiSegmented label="Concept" value={value} onChange={(c) => router.replace(c === options[0] ? base : `${base}?concept=${c}`, { scroll: false })} options={options.map((o) => ({ id: o, label: o.toUpperCase() }))} />
+    </div>
+  );
+}
+
 export function Tabs<T extends string>({ value, onChange, tabs }: { value: T; onChange: (t: T) => void; tabs: readonly { id: T; label: string; count?: number }[] }) {
   return <UiTabs value={value} onChange={onChange} tabs={tabs.map((t) => ({ ...t, count: t.count || undefined }))} />;
 }

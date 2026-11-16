@@ -97,7 +97,7 @@ const COMMENTARY: Record<string, Partial<Record<Line, string>>> = {
   k: { Turnover: "Turn vendor backlog" },
 };
 
-function Variance({ id }: { id: string }) {
+export function Variance({ id }: { id: string }) {
   const m = profile(id).through;
   const a = month(id, m);
   const b = month(id, m, "Budget");
@@ -126,7 +126,7 @@ function Variance({ id }: { id: string }) {
 
 const VENDORS = ["HVAC vendor", "Plumbing vendor", "Landscaping vendor", "Paint vendor", "Turn contractor", "Utility provider", "Pest control", "Appliance parts"];
 
-function Gl({ id }: { id: string }) {
+export function Gl({ id }: { id: string }) {
   const rows = Array.from({ length: 10 }, (_, i) => {
     const v = VENDORS[Math.floor(wig(`${id}-v-${i}`) * VENDORS.length)];
     const account: Line = v === "Utility provider" ? "Utilities" : v === "Turn contractor" || v === "Paint vendor" ? "Turnover" : "Repairs & maintenance";
@@ -142,7 +142,7 @@ function Gl({ id }: { id: string }) {
   );
 }
 
-function Balance({ id }: { id: string }) {
+export function Balance({ id }: { id: string }) {
   const u = profile(id).units;
   const noi = month(id, LAST).noi;
   const rows: [string, number, number][] = [
@@ -163,7 +163,7 @@ function Balance({ id }: { id: string }) {
   );
 }
 
-function Cash() {
+export function Cash() {
   return (
     <DataTable
       title={`Cash reconciliation · ${MONTH_LONG[LAST]}`}
@@ -192,7 +192,7 @@ function arBuckets(id: string) {
   return { billed, buckets: [billed * 0.031, billed * late * 0.55, billed * late * 0.3, billed * late * 0.15] };
 }
 
-function Ar() {
+export function Ar() {
   return (
     <DataTable
       title={`AR aging · ${MONTH_LONG[LAST]} 30`}
@@ -208,7 +208,7 @@ function Ar() {
   );
 }
 
-function Ap() {
+export function Ap() {
   return (
     <DataTable
       title="AP aging · portfolio"
@@ -237,7 +237,7 @@ function cumulative(all: string[]) {
   return out;
 }
 
-function Reforecast() {
+export function Reforecast() {
   const { state } = useWf();
   const all = ids();
   const data = cumulative(all);
@@ -716,13 +716,13 @@ export const MODULES: Record<string, { title: string; tabs: Tab[] }> = {
   },
 };
 
-export function ModulePage({ id }: { id: keyof typeof MODULES }) {
+export function ModulePage({ id, tabsEnd }: { id: keyof typeof MODULES; tabsEnd?: React.ReactNode }) {
   const m = MODULES[id];
   const [tab, setTab] = useState(m.tabs[0].id);
   const [prop, setProp] = useState("a");
   const t = m.tabs.find((x) => x.id === tab)!;
   return (
-    <Page title={m.title} subtitle={`${MONTH_LONG[LAST]} 2026 close · ${PROPERTIES.length} properties`} tabs={<Tabs value={tab} onChange={setTab} tabs={m.tabs} />}>
+    <Page title={m.title} subtitle={`${MONTH_LONG[LAST]} 2026 close · ${PROPERTIES.length} properties`} tabs={<Tabs value={tab} onChange={setTab} tabs={m.tabs} />} tabsEnd={tabsEnd}>
       {t.perProperty && <PropertyPicker value={prop} onChange={setProp} />}
       {t.render(prop)}
       {t.perProperty && <A href={href.property(prop)} className="text-xs font-normal text-fg-3">{`Open ${property(prop)!.name}'s scorecard`}</A>}
