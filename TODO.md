@@ -30,6 +30,9 @@
 - [ ] Design system pass: bring the marketing illustrations' micro-animations (fade + 8px rise,
       check-ins, cycling highlights; `components/marketing/*-art.tsx`, `use-cycle.ts`) into the app.
 - [ ] Refined microinteractions (Rive-style, subtle), once the core flow is validated.
+- [ ] Text size setting (Default / Large) for readers who need larger text. First move type sizes onto
+      a few tokens (body, label, heading; today it's 12px body and literal `text-[13px]` etc.), then Large
+      scales every step together (about 12→13, 13→14, 14→16, 24→28) so hierarchy holds.
 - [ ] "Ask" interface for natural-language questions about the portfolio.
 - [ ] Quarterly investor report for each deal: an AI-drafted narrative the AM edits, PDF export,
       later uploads to investor portals (Juniper Square, AppFolio IM). All three of Brian's newer docs
