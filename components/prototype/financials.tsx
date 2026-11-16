@@ -50,7 +50,6 @@ function FinancialsB({ switcher, prop }: { switcher: React.ReactNode; prop: stri
     <Page
       title={id === ALL ? "Financials" : property(id)!.name}
       crumbs={id === ALL ? undefined : [{ label: "Financials", href: B_HREF }, { label: property(id)!.name }]}
-      subtitle={`${MONTH_LONG[LAST]} 2026 close · ${PROPERTIES.length} properties`}
       tabs={<Tabs value={tab} onChange={setTab} tabs={TABS} />}
       tabsEnd={switcher}
       actions={
