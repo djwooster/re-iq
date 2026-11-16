@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowDown, ArrowUp, ChevronRight } from "lucide-react";
+import { ArrowDown, ArrowUp, ArrowUpDown, ChevronRight } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { createContext, useContext } from "react";
@@ -90,13 +90,13 @@ export function Table({ columns, children, className, bare, sort, onSort }: { co
             {columns.map((c, i) => {
               const num = typeof c !== "string" && c.num;
               const active = sort?.col === i;
-              const Arrow = sort?.dir === "asc" ? ArrowUp : ArrowDown;
+              const Arrow = !active ? ArrowUpDown : sort.dir === "asc" ? ArrowUp : ArrowDown;
               return (
                 <th key={`${colLabel(c)}-${i}`} scope="col" aria-sort={active ? (sort.dir === "asc" ? "ascending" : "descending") : undefined} className={cn("text-xs font-medium text-fg-2 h-8 px-3 whitespace-nowrap first:pl-4 last:pr-4", num && "text-right")}>
                   {onSort && !(typeof c !== "string" && c.sort === false) ? (
                     <button type="button" onClick={() => onSort(i)} className={cn("inline-flex cursor-pointer items-center gap-1 transition-colors hover:text-fg", num && "flex-row-reverse", active && "text-fg")}>
                       {colLabel(c)}
-                      <Arrow className={cn("size-3", !active && "invisible")} />
+                      <Arrow className={cn("size-3", !active && "text-fg-3")} />
                     </button>
                   ) : (
                     colLabel(c)
