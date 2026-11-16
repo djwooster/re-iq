@@ -50,13 +50,13 @@ function FinancialsB({ switcher, prop }: { switcher: React.ReactNode; prop: stri
     <Page
       title={id === ALL ? "Financials" : property(id)!.name}
       crumbs={id === ALL ? undefined : [{ label: "Financials", href: B_HREF }, { label: property(id)!.name }]}
+      subtitle={picker && <div className="mt-2"><PropertySelect value={id} all={!one} onChange={setProp} /></div>}
       tabs={<Tabs value={tab} onChange={setTab} tabs={TABS} />}
       tabsEnd={switcher}
       actions={
         <>
           {tab === "t12" && <Segmented label="" value={view} onChange={setView} options={["Summary", "Months"] as const} />}
           {tab === "budget" && <Segmented label="" value={budget} onChange={setBudget} options={["This month", "Year end"] as const} />}
-          {picker && <PropertySelect value={id} all={!one} onChange={setProp} />}
         </>
       }
     >
