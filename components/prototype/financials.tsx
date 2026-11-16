@@ -1,6 +1,7 @@
 "use client";
 
 import { ChevronRight } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { cn } from "@/lib/cn";
 import { fmt } from "./metrics";
@@ -11,9 +12,9 @@ import { Page } from "./shell";
 import { ConceptSwitch, Delta, Segmented, Select, Sparkline, Table, Tabs, type Column } from "./ui";
 
 /** Financials in two concepts. A is the original page; B leads with a collapsed statement and an all-properties view. */
-export function Financials({ concept }: { concept: "a" | "b" }) {
-  const sw = <ConceptSwitch value={concept} options={["a", "b"] as const} base="/prototype/financials" />;
-  return concept === "b" ? <FinancialsB switcher={sw} /> : <ModulePage id="financials" tabsEnd={sw} />;
+export function Financials({ concept, property }: { concept: "a" | "b"; property?: string }) {
+  const sw = <ConceptSwitch value={concept} options={["a", "b"] as const} base={BASE} />;
+  return concept === "b" ? <FinancialsB switcher={sw} prop={property && IDS.includes(property) ? property : ALL} /> : <ModulePage id="financials" tabsEnd={sw} />;
 }
 
 // ---- Concept B ----
@@ -29,13 +30,17 @@ const TABS = [
 ] as const;
 type TabId = (typeof TABS)[number]["id"];
 
+const BASE = "/prototype/financials";
+const B_HREF = `${BASE}?concept=b`;
 const ALL = "all";
 const IDS = PROPERTIES.map((p) => p.id);
 const MS = MONTHS.map((_, m) => m);
 
-function FinancialsB({ switcher }: { switcher: React.ReactNode }) {
+/** The selected property lives in the URL, so the breadcrumb and Back return to all properties. */
+function FinancialsB({ switcher, prop }: { switcher: React.ReactNode; prop: string }) {
+  const router = useRouter();
+  const setProp = (id: string) => router.push(id === ALL ? B_HREF : `${B_HREF}&property=${id}`, { scroll: false });
   const [tab, setTab] = useState<TabId>("t12");
-  const [prop, setProp] = useState(ALL);
   const [view, setView] = useState<"Summary" | "Months">("Summary");
   const [budget, setBudget] = useState<"This month" | "Year end">("This month");
   const one = tab === "balance" || tab === "gl";
@@ -43,7 +48,8 @@ function FinancialsB({ switcher }: { switcher: React.ReactNode }) {
   const picker = tab === "t12" || one || (tab === "budget" && budget === "This month");
   return (
     <Page
-      title="Financials"
+      title={id === ALL ? "Financials" : property(id)!.name}
+      crumbs={id === ALL ? undefined : [{ label: "Financials", href: B_HREF }, { label: property(id)!.name }]}
       subtitle={`${MONTH_LONG[LAST]} 2026 close · ${PROPERTIES.length} properties`}
       tabs={<Tabs value={tab} onChange={setTab} tabs={TABS} />}
       tabsEnd={switcher}
@@ -90,7 +96,7 @@ function Tr({ label, kind = "line", depth = 0, open, onToggle, onClick, vals, ex
       onClick={go}
       onKeyDown={onClick ? (e) => e.key === "Enter" && onClick() : undefined}
       tabIndex={onClick ? 0 : undefined}
-      className={cn(strong && "border-t border-border", go && "cursor-pointer transition-colors duration-100 hover:bg-fg/[0.025] focus-visible:bg-fg/[0.04] focus-visible:outline-none")}
+      className={cn("group", strong && "border-t border-border", go && "cursor-pointer transition-colors duration-100 hover:bg-fg/[0.025] focus-visible:bg-fg/[0.04] focus-visible:outline-none")}
     >
       <td className={cn(TD, "whitespace-nowrap", depth ? "text-fg-2" : "text-fg", kind === "subtotal" && "font-medium", kind === "total" && "font-semibold")}>
         <span className={cn("flex items-center gap-1.5", depth > 0 && "pl-5")}>
@@ -110,7 +116,7 @@ function Tr({ label, kind = "line", depth = 0, open, onToggle, onClick, vals, ex
           ) : (
             <>
               <span className="w-3.5 shrink-0" />
-              {label}
+              {onClick ? <span className="text-property decoration-property/40 underline-offset-[3px] group-hover:underline">{label}</span> : label}
             </>
           )}
         </span>
@@ -213,8 +219,8 @@ function PortfolioVariance({ onPick }: { onPick: (id: string) => void }) {
   return (
     <Table columns={[`Property · ${MONTH_LONG[LAST]} NOI`, N("Actual"), N("Budget"), N("$ variance"), N("% variance")]}>
       {rows.map((r) => (
-        <tr key={r.id} onClick={() => onPick(r.id)} onKeyDown={(e) => e.key === "Enter" && onPick(r.id)} tabIndex={0} className="cursor-pointer transition-colors duration-100 hover:bg-fg/[0.025] focus-visible:bg-fg/[0.04] focus-visible:outline-none">
-          <td className={cn(TD, "text-fg")}>{property(r.id)!.name}</td>
+        <tr key={r.id} onClick={() => onPick(r.id)} onKeyDown={(e) => e.key === "Enter" && onPick(r.id)} tabIndex={0} className="group cursor-pointer transition-colors duration-100 hover:bg-fg/[0.025] focus-visible:bg-fg/[0.04] focus-visible:outline-none">
+          <td className={cn(TD, "text-property decoration-property/40 underline-offset-[3px] group-hover:underline")}>{property(r.id)!.name}</td>
           {r.a === null ? (
             <td colSpan={4} className={cn(TD, "text-right text-fg-3")}>
               Not received
