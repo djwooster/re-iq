@@ -87,7 +87,7 @@ const TD = "h-9 px-3 align-middle first:pl-4 last:pr-4";
 const NUM = "num text-right whitespace-nowrap";
 
 /** One statement row. Subtotals get a rule above; months stay muted so totals carry the weight. */
-function Tr({ label, kind = "line", depth = 0, open, onToggle, onClick, vals, extra = [], total, plan, good = "up", months }: { label: string; kind?: "line" | "subtotal" | "total"; depth?: number; open?: boolean; onToggle?: () => void; onClick?: () => void; vals: (number | null)[]; extra?: number[]; total: number; plan: number; good?: "up" | "down"; months: boolean }) {
+function Tr({ label, kind = "line", depth = 0, striped, open, onToggle, onClick, vals, extra = [], total, plan, good = "up", months }: { label: string; kind?: "line" | "subtotal" | "total"; depth?: number; striped?: boolean; open?: boolean; onToggle?: () => void; onClick?: () => void; vals: (number | null)[]; extra?: number[]; total: number; plan: number; good?: "up" | "down"; months: boolean }) {
   const strong = kind !== "line";
   const go = onClick ?? onToggle;
   return (
@@ -95,7 +95,7 @@ function Tr({ label, kind = "line", depth = 0, open, onToggle, onClick, vals, ex
       onClick={go}
       onKeyDown={onClick ? (e) => e.key === "Enter" && onClick() : undefined}
       tabIndex={onClick ? 0 : undefined}
-      className={cn("group", strong && "border-t border-border", go && "cursor-pointer transition-colors duration-100 hover:bg-fg/[0.025] focus-visible:bg-fg/[0.04] focus-visible:outline-none")}
+      className={cn("group", strong && "border-t border-border", striped && "bg-fg/[0.02]", go && "cursor-pointer transition-colors duration-100 hover:bg-fg/[0.045] focus-visible:bg-fg/[0.04] focus-visible:outline-none")}
     >
       <td className={cn(TD, "whitespace-nowrap", depth ? "text-fg-2" : "text-fg", kind === "subtotal" && "font-medium", kind === "total" && "font-semibold")}>
         <span className={cn("flex items-center gap-1.5", depth > 0 && "pl-5")}>
@@ -115,7 +115,7 @@ function Tr({ label, kind = "line", depth = 0, open, onToggle, onClick, vals, ex
           ) : (
             <>
               <span className="w-3.5 shrink-0" />
-              {onClick ? <span className="text-property decoration-property/40 underline-offset-[3px] group-hover:underline">{label}</span> : label}
+              {onClick ? <span className="font-medium text-property decoration-property/40 underline-offset-[3px] group-hover:underline">{label}</span> : label}
             </>
           )}
         </span>
@@ -189,8 +189,8 @@ function PortfolioT12({ months, onPick }: { months: boolean; onPick: (id: string
   const vals = MS.map((m) => (rows.every((r) => r.vals[m] !== null) ? rows.reduce((s, r) => s + r.vals[m]!, 0) : null));
   return (
     <Table columns={columns("Property", months, ["EGI", "Operating expenses"], "NOI")}>
-      {rows.map((r) => (
-        <Tr key={r.id} label={property(r.id)!.name} onClick={() => onPick(r.id)} vals={r.vals} extra={[r.a.egi, r.a.opex]} total={r.a.noi} plan={r.b.noi} months={months} />
+      {rows.map((r, i) => (
+        <Tr key={r.id} striped={i % 2 === 1} label={property(r.id)!.name} onClick={() => onPick(r.id)} vals={r.vals} extra={[r.a.egi, r.a.opex]} total={r.a.noi} plan={r.b.noi} months={months} />
       ))}
       <Tr label="Portfolio" kind="total" vals={vals} extra={[a.egi, a.opex]} total={a.noi} plan={b.noi} months={months} />
     </Table>
@@ -217,9 +217,9 @@ function PortfolioVariance({ onPick }: { onPick: (id: string) => void }) {
   );
   return (
     <Table columns={[`Property · ${MONTH_LONG[LAST]} NOI`, N("Actual"), N("Budget"), N("$ variance"), N("% variance")]}>
-      {rows.map((r) => (
-        <tr key={r.id} onClick={() => onPick(r.id)} onKeyDown={(e) => e.key === "Enter" && onPick(r.id)} tabIndex={0} className="group cursor-pointer transition-colors duration-100 hover:bg-fg/[0.025] focus-visible:bg-fg/[0.04] focus-visible:outline-none">
-          <td className={cn(TD, "text-property decoration-property/40 underline-offset-[3px] group-hover:underline")}>{property(r.id)!.name}</td>
+      {rows.map((r, i) => (
+        <tr key={r.id} onClick={() => onPick(r.id)} onKeyDown={(e) => e.key === "Enter" && onPick(r.id)} tabIndex={0} className={cn("group cursor-pointer transition-colors duration-100 hover:bg-fg/[0.045] focus-visible:bg-fg/[0.04] focus-visible:outline-none", i % 2 === 1 && "bg-fg/[0.02]")}>
+          <td className={cn(TD, "font-medium text-property decoration-property/40 underline-offset-[3px] group-hover:underline")}>{property(r.id)!.name}</td>
           {r.a === null ? (
             <td colSpan={4} className={cn(TD, "text-right text-fg-3")}>
               Not received
