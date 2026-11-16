@@ -27,7 +27,7 @@ export function Hero() {
           <span className="size-1.5 rounded-full bg-fg-2" aria-hidden />
           Early access · Multifamily asset management
         </span>
-        <h1 className="mt-5 text-[36px] font-semibold leading-[1.08] tracking-[-0.03em] text-balance text-fg sm:text-[56px]">
+        <h1 className="mt-5 text-[36px] font-semibold leading-[1.08] tracking-[-0.03em] text-balance text-favorable sm:text-[56px]">
           Property manager reports, checked and explained.
         </h1>
         <p className="mt-5 max-w-[560px] text-[16px] leading-[1.55] text-fg-2">
