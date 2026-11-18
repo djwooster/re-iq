@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { useActionState, useTransition } from "react";
+import { useActionState, useState, useTransition } from "react";
 import { Button } from "@/components/ui/button";
 import { Field, Input } from "@/components/ui/controls";
 import { requestPasswordReset, signIn, signInWithProvider, signUp, updatePassword, type AuthState, type Provider } from "@/lib/auth/actions";
@@ -24,7 +24,7 @@ const COPY: Record<Mode, { title: string; sub: string; submit: string }> = {
 const URL_ERRORS: Record<string, string> = {
   "confirm-link": "That confirmation link has expired or was already used. Sign in to get a new one.",
   "reset-link": "That reset link has expired or was already used. Request a new one.",
-  provider: "That sign-in didn't finish. Try again.",
+  provider: "That sign-in didn't finish. Try again, or use your email and password.",
   "use-password": "Sign in with your email and password.",
 };
 
@@ -34,6 +34,7 @@ export function AuthForm({ mode }: { mode: Mode }) {
   const params = useSearchParams();
   const next = params.get("next") ?? "";
   const [state, action, pending] = useActionState(ACTIONS[mode], IDLE);
+  const [providerError, setProviderError] = useState<string | null>(null);
   const error = state.status === "error" ? state.message : URL_ERRORS[params.get("error") ?? ""];
   const copy = COPY[mode];
 
@@ -69,8 +70,13 @@ export function AuthForm({ mode }: { mode: Mode }) {
       {(mode === "login" || mode === "signup") && (
         <>
           <div className="mt-6 flex flex-col gap-2">
-            <ProviderButton provider="google" next={next} />
-            <ProviderButton provider="azure" next={next} />
+            <ProviderButton provider="google" next={next} onError={setProviderError} />
+            <ProviderButton provider="azure" next={next} onError={setProviderError} />
+            {providerError && (
+              <p role="alert" className="text-xs text-unfavorable">
+                {providerError}
+              </p>
+            )}
           </div>
           <div className="my-5 flex items-center gap-3 text-[11px] text-fg-3">
             <span className="h-px flex-1 bg-border" />
@@ -144,10 +150,23 @@ export function AuthForm({ mode }: { mode: Mode }) {
   );
 }
 
-function ProviderButton({ provider, next }: { provider: Provider; next: string }) {
+const PROVIDER_ERROR = "We couldn't start that sign-in. Try again, or use your email and password.";
+
+/** On success the server action redirects to Google or Microsoft; anything else shows a message. */
+function ProviderButton({ provider, next, onError }: { provider: Provider; next: string; onError: (message: string | null) => void }) {
   const [pending, start] = useTransition();
+  const go = () =>
+    start(async () => {
+      onError(null);
+      try {
+        const res = await signInWithProvider(provider, next);
+        if (res?.status === "error") onError(PROVIDER_ERROR);
+      } catch {
+        onError(PROVIDER_ERROR);
+      }
+    });
   return (
-    <Button type="button" variant="secondary" loading={pending} className="w-full" icon={provider === "google" ? <GoogleMark /> : <MicrosoftMark />} onClick={() => start(() => signInWithProvider(provider, next).then(() => undefined))}>
+    <Button type="button" variant="secondary" loading={pending} className="w-full" icon={provider === "google" ? <GoogleMark /> : <MicrosoftMark />} onClick={go}>
       Continue with {provider === "google" ? "Google" : "Microsoft"}
     </Button>
   );
