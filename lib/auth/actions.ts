@@ -5,7 +5,7 @@ import { redirect } from "next/navigation";
 import { SESSION_COOKIE } from "./demo";
 import { AUTH_ENABLED } from "@/lib/supabase/env";
 import { createClient } from "@/lib/supabase/server";
-import { withinLimit } from "./rate-limit";
+import { checkLimit } from "./rate-limit";
 import { safeNext } from "./redirect";
 
 export type AuthState = { status: "idle" } | { status: "error"; message: string } | { status: "sent"; email: string };
@@ -14,6 +14,7 @@ export type Provider = "google" | "azure";
 
 const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const MIN_PASSWORD = 8;
+const TRY_AGAIN = "Something went wrong on our side. Try again shortly.";
 const str = (fd: FormData, key: string) => String(fd.get(key) ?? "").trim();
 
 /** The site's own origin, for links in auth emails and OAuth returns. Supabase only accepts allow-listed URLs. */
@@ -32,7 +33,8 @@ export async function signIn(_prev: AuthState, fd: FormData): Promise<AuthState>
   const next = safeNext(str(fd, "next"));
   if (!AUTH_ENABLED) return demoSession(next);
   const email = str(fd, "email").toLowerCase();
-  if (!(await withinLimit("signIn", email))) return { status: "error", message: "That email and password don't match an account." };
+  // Fails open when the limiter is down, so sign-in keeps working.
+  if ((await checkLimit("signIn", email)) !== "ok") return { status: "error", message: "That email and password don't match an account." };
   const supabase = await createClient();
   const { error } = await supabase.auth.signInWithPassword({ email, password: String(fd.get("password") ?? "") });
   if (error) {
@@ -56,7 +58,9 @@ export async function signUp(_prev: AuthState, fd: FormData): Promise<AuthState>
   if (!name || (!company && !invited)) return { status: "error", message: invited ? "Add your name." : "Add your name and company." };
   if (email.length > 254 || !EMAIL.test(email)) return { status: "error", message: "That doesn't look like an email address." };
   if (password.length < MIN_PASSWORD) return { status: "error", message: `Use at least ${MIN_PASSWORD} characters for your password.` };
-  if (!(await withinLimit("signUp", email))) return { status: "error", message: "We couldn't create your account just now. Please try again." };
+  const limit = await checkLimit("signUp", email);
+  if (limit === "unavailable") return { status: "error", message: TRY_AGAIN };
+  if (limit === "limited") return { status: "error", message: "We couldn't create your account just now. Please try again." };
 
   const supabase = await createClient();
   const { data, error } = await supabase.auth.signUp({
@@ -88,11 +92,14 @@ export async function signInWithProvider(provider: Provider, next: string): Prom
   redirect(data.url);
 }
 
-/** Always reports success, so the form can't be used to find out which emails have accounts. */
+/** Reports success whether or not the email has an account (or is rate-limited), so the form reveals nothing. */
 export async function requestPasswordReset(_prev: AuthState, fd: FormData): Promise<AuthState> {
   const email = str(fd, "email").toLowerCase();
   if (email.length > 254 || !EMAIL.test(email)) return { status: "error", message: "That doesn't look like an email address." };
-  if (AUTH_ENABLED && (await withinLimit("passwordReset", email))) {
+  if (!AUTH_ENABLED) return { status: "sent", email };
+  const limit = await checkLimit("passwordReset", email);
+  if (limit === "unavailable") return { status: "error", message: TRY_AGAIN };
+  if (limit === "ok") {
     const supabase = await createClient();
     await supabase.auth.resetPasswordForEmail(email, { redirectTo: `${await origin()}/auth/confirm?next=/reset-password` });
   }

@@ -1,5 +1,6 @@
 "use server";
 
+import { log } from "@/lib/logger";
 import { saveWaitlistEntry } from "@/lib/waitlist";
 
 export type WaitlistState = { status: "idle" } | { status: "error"; message: string } | { status: "done"; email: string };
@@ -19,8 +20,9 @@ export async function joinWaitlist(_prev: WaitlistState, formData: FormData): Pr
 
   try {
     await saveWaitlistEntry({ email, source, submitted_at: new Date().toISOString() });
-  } catch (err) {
-    console.error("[waitlist]", err);
+  } catch {
+    // The error can include Supabase's response body (the email), so only the event is logged.
+    log.error("waitlist.save_failed");
     return { status: "error", message: "We couldn't save that just now. Please try again in a minute." };
   }
   return { status: "done", email };
