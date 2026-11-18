@@ -24,7 +24,8 @@ manual steps that only DJ can do (dashboards, DNS, secrets).
   - emails are stored lowercased and trimmed, and acceptance requires the signed-in user's
     confirmed email to match (case-insensitive);
   - invites expire after 7 days, work once, and an owner of that org can revoke a pending one;
-  - any failure returns the same generic error.
+  - any failure returns the same generic error; refusing to create an invite (not the owner, or an
+    account that could never accept it) always says "This person can't be invited to your organization."
 - An uploader belongs to exactly one org, and no account is both an uploader and an owner/member.
   The database enforces this on `org_members` for every writer (unique index plus a trigger), and
   `create_org_invite` refuses invites that could never be accepted.
@@ -88,7 +89,9 @@ To re-check on a project: in the SQL editor,
   different project than auth): sign-in fails open; sign-up, password reset and invite acceptance
   fail closed with "Something went wrong on our side. Try again shortly." Each case is logged as
   `rate_limit.fail_open` / `rate_limit.fail_closed`, with the action name only.
-- A pg_cron job deletes rows older than 24 hours, hourly. Without pg_cron, run
+- A pg_cron job deletes rows older than 24 hours, hourly. The migration enables pg_cron itself
+  (`create extension pg_cron with schema pg_catalog`, Supabase's documented SQL route), so there's
+  no dashboard step; it shows under Integrations → Cron once the migration has run. Without pg_cron, run
   `delete from private.rate_limits where window_start < now() - interval '24 hours';` from any
   scheduled job (for example a Vercel cron route using the service role).
 
@@ -175,8 +178,11 @@ npx supabase link --project-ref <staging-ref>       # point the CLI back at stag
 - Apply the migrations with the Supabase CLI (above).
 - In `.env.local` and in Vercel's Preview environment (not Production), all for staging:
   `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`, `SUPABASE_URL`,
-  `SUPABASE_SECRET_KEY`, and `RATE_LIMIT_HMAC_SECRET` (`openssl rand -hex 32`; a different value per
-  environment). Optionally `TEST_SUPABASE_*` in `.env.local` to run the database tests against staging.
+  `SUPABASE_SECRET_KEY`, and `RATE_LIMIT_HMAC_SECRET` (`openssl rand -hex 32`). Optionally
+  `TEST_SUPABASE_*` in `.env.local` to run the database tests against staging.
+- `RATE_LIMIT_HMAC_SECRET` must be different in every environment (local, preview/staging,
+  production), so identifiers from one environment's table can't be matched in another's. Never
+  reuse it across environments or commit it; rotating it only resets the counters.
 - Restart the dev server.
 
 **2. Supabase Auth settings (staging now, production at launch)**
@@ -192,6 +198,9 @@ npx supabase link --project-ref <staging-ref>       # point the CLI back at stag
   - Reset password link: `{{ .RedirectTo }}&token_hash={{ .TokenHash }}&type=recovery`
 - Providers: enable Google (OAuth client from Google Cloud) and Azure for Microsoft (Entra app
   registration), each with the callback URL Supabase shows.
+- Before production: the Google OAuth consent screen and the Microsoft (Entra) app registration both
+  need live Privacy Policy and Terms of Service URLs on our domain. Google won't verify (and shows
+  an "unverified app" warning) without them; publish both pages first.
 
 **3. Email delivery before launch**
 - Supabase's built-in email is rate-limited and not for production. Set custom SMTP to Resend

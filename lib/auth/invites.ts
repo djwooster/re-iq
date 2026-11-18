@@ -11,7 +11,10 @@ import { checkLimit } from "./rate-limit";
  * wrappers add the session checks and keep tokens out of logs and URLs we store.
  */
 
-export type InviteResult = { ok: true; url: string } | { ok: false };
+export type InviteResult = { ok: true; url: string } | { ok: false; message: string };
+
+/** One message for every refusal, so an invite can't be used to learn about other accounts. */
+const INVITE_REFUSED = "This person can't be invited to your organization.";
 export type AcceptResult = { ok: true; orgId: string } | { ok: false };
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
@@ -21,7 +24,7 @@ export async function createInvite(orgId: string, email: string, role: "uploader
   await requireDashboardUser();
   const supabase = await createClient();
   const { data: token, error } = await supabase.rpc("create_org_invite", { target_org: orgId, invite_email: email.trim().toLowerCase(), invite_role: role });
-  if (error || typeof token !== "string") return { ok: false };
+  if (error || typeof token !== "string") return { ok: false, message: INVITE_REFUSED };
   const h = await headers();
   const origin = h.get("origin") ?? `https://${h.get("host")}`;
   return { ok: true, url: `${origin}/invite?token=${token}` };
