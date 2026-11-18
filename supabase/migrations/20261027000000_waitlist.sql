@@ -1,4 +1,5 @@
--- Early-access signups from the marketing site. Run once in the Supabase SQL editor.
+-- Early-access signups from the marketing site. Already live on production (created by hand on
+-- 2026-10-27); idempotent, and marked as applied there with `supabase migration repair` (SECURITY.md).
 -- The site writes with the secret key, which bypasses RLS; with RLS on and no
 -- policies, the public (anon/publishable) key can't read or write this table.
 create table if not exists public.waitlist (

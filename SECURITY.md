@@ -88,15 +88,45 @@ haven't run against a real Supabase project yet:
 - Uploader routing end to end (invite → sign up → accept → `/upload`, kept out of `/app`).
 - Rate limits against the real table.
 
+## Database migrations (Supabase CLI)
+
+Migrations live in `supabase/migrations/` and apply in filename order (`YYYYMMDDHHMMSS_name.sql`).
+The CLI is a dev dependency, so every command runs through `npx`. `supabase/config.toml` configures
+the local stack only; hosted projects' Auth settings are set in their dashboards (manual steps below).
+
+New migration: `npx supabase migration new <name>`, then edit the file it creates.
+
+Local (needs Docker):
+```sh
+npx supabase start          # local Postgres, Auth, API; applies every migration
+npx supabase db reset       # re-apply from scratch after editing migrations
+npx supabase status -o env  # local URL and keys, for TEST_SUPABASE_* when running npm test
+npx supabase stop
+```
+
+Staging:
+```sh
+npx supabase login                                  # once, opens the browser
+npx supabase link --project-ref <staging-ref>       # asks for the staging database password
+npx supabase db push --dry-run                      # lists what would run; check it
+npx supabase db push
+```
+
+Production (at launch, only after the same migrations ran clean on staging):
+```sh
+npx supabase link --project-ref dixlcrxxnmoivfrnvaqv
+# The waitlist table was created by hand before the CLI; record it as applied so push skips it.
+npx supabase migration repair --status applied 20261027000000
+npx supabase db push --dry-run
+npx supabase db push
+npx supabase link --project-ref <staging-ref>       # point the CLI back at staging
+```
+
 ## Manual steps (DJ)
 
 **1. Staging project**
 - Create a Supabase project for staging (free tier).
-- Run the migrations in order in its SQL editor (or `supabase db push`):
-  1. `20261118120000_orgs_and_members.sql`
-  2. `20261118130000_roles_and_invites.sql`
-  3. `20261118140000_lock_down_org_tables.sql`
-  4. `20261118150000_rate_limits.sql`
+- Apply the migrations with the Supabase CLI (see "Database migrations" below).
 - In `.env.local` and in Vercel's Preview environment (not Production): `NEXT_PUBLIC_SUPABASE_URL`,
   `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`, and `SUPABASE_URL` + `SUPABASE_SECRET_KEY` pointing at the
   same staging project. Add `TEST_SUPABASE_*` (staging) to `.env.local` to run the database tests.
