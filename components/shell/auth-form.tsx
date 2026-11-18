@@ -25,6 +25,7 @@ const URL_ERRORS: Record<string, string> = {
   "confirm-link": "That confirmation link has expired or was already used. Sign in to get a new one.",
   "reset-link": "That reset link has expired or was already used. Request a new one.",
   provider: "That sign-in didn't finish. Try again.",
+  "use-password": "Sign in with your email and password.",
 };
 
 const IDLE: AuthState = { status: "idle" };

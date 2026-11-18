@@ -35,16 +35,22 @@ export async function signIn(_prev: AuthState, fd: FormData): Promise<AuthState>
   if (error) {
     return { status: "error", message: error.code === "email_not_confirmed" ? "Confirm your email first. The link is in your inbox." : "That email and password don't match an account." };
   }
+  (await cookies()).delete(SESSION_COOKIE);
   redirect(next);
 }
 
+/**
+ * Self sign-up creates a new org with this person as owner (the handle_new_user trigger).
+ * From an invite link (invite=1), no org is created; acceptInvite adds them to the inviting org.
+ */
 export async function signUp(_prev: AuthState, fd: FormData): Promise<AuthState> {
   if (!AUTH_ENABLED) return demoSession("/app");
+  const invited = str(fd, "invite") === "1";
   const name = str(fd, "name").slice(0, 120);
   const company = str(fd, "company").slice(0, 120);
   const email = str(fd, "email").toLowerCase();
   const password = String(fd.get("password") ?? "");
-  if (!name || !company) return { status: "error", message: "Add your name and company." };
+  if (!name || (!company && !invited)) return { status: "error", message: invited ? "Add your name." : "Add your name and company." };
   if (email.length > 254 || !EMAIL.test(email)) return { status: "error", message: "That doesn't look like an email address." };
   if (password.length < MIN_PASSWORD) return { status: "error", message: `Use at least ${MIN_PASSWORD} characters for your password.` };
 
@@ -52,8 +58,8 @@ export async function signUp(_prev: AuthState, fd: FormData): Promise<AuthState>
   const { data, error } = await supabase.auth.signUp({
     email,
     password,
-    // Read by the handle_new_user trigger to name the new organization.
-    options: { data: { full_name: name, company }, emailRedirectTo: `${await origin()}/auth/confirm?next=/app` },
+    // Read by the handle_new_user trigger: company names the new org; signup_via=invite skips it.
+    options: { data: invited ? { full_name: name, signup_via: "invite" } : { full_name: name, company }, emailRedirectTo: `${await origin()}/auth/confirm?next=/app` },
   });
   if (error) {
     return { status: "error", message: error.code === "weak_password" ? "Choose a stronger password." : "We couldn't create your account just now. Please try again." };
