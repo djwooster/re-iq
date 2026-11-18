@@ -14,20 +14,32 @@ import { withinLimit } from "./rate-limit";
 export type InviteResult = { ok: true; url: string } | { ok: false };
 export type AcceptResult = { ok: true; orgId: string } | { ok: false };
 
+const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
+
 /** An owner invites a property manager (uploader by default). Returns the invite link, shown once. */
 export async function createInvite(orgId: string, email: string, role: "uploader" | "member" = "uploader"): Promise<InviteResult> {
   await requireDashboardUser();
   const supabase = await createClient();
-  const { data: token, error } = await supabase.rpc("create_org_invite", { target_org: orgId, invite_email: email, invite_role: role });
+  const { data: token, error } = await supabase.rpc("create_org_invite", { target_org: orgId, invite_email: email.trim().toLowerCase(), invite_role: role });
   if (error || typeof token !== "string") return { ok: false };
   const h = await headers();
   const origin = h.get("origin") ?? `https://${h.get("host")}`;
   return { ok: true, url: `${origin}/invite?token=${token}` };
 }
 
+/** An owner revokes a pending invite. The database checks ownership and that it's still pending. */
+export async function revokeInvite(inviteId: string): Promise<{ ok: boolean }> {
+  await requireDashboardUser();
+  if (!UUID.test(inviteId)) return { ok: false };
+  const supabase = await createClient();
+  const { data, error } = await supabase.rpc("revoke_org_invite", { invite_id: inviteId });
+  return { ok: !error && data === true };
+}
+
 /**
- * The signed-in invitee accepts. Their confirmed email must match the invite; they join that org
- * with the invite's role and no org is created. Invitees sign up with email and password, with
+ * The signed-in invitee accepts. Fails with no detail unless the invite is pending, unexpired
+ * (7 days), unrevoked, and sent to this user's confirmed email (case-insensitive). They join that
+ * org with the invite's role and no org is created. Invitees sign up with email and password, with
  * signup_via=invite (see signUp), so the sign-up trigger skips creating an org for them.
  */
 export async function acceptInvite(token: string): Promise<AcceptResult> {
