@@ -3,6 +3,7 @@
 import { headers } from "next/headers";
 import { createClient } from "@/lib/supabase/server";
 import { AccessDenied, getViewer, requireDashboardUser } from "./access";
+import { withinLimit } from "./rate-limit";
 
 /**
  * Invitations. No UI yet: the owner's "Invite uploader" screen and the /invite page call these.
@@ -32,7 +33,7 @@ export async function createInvite(orgId: string, email: string, role: "uploader
 export async function acceptInvite(token: string): Promise<AcceptResult> {
   const viewer = await getViewer();
   if (viewer.kind !== "user") throw new AccessDenied();
-  if (!/^[0-9a-f]{64}$/.test(token)) return { ok: false };
+  if (!(await withinLimit("acceptInvite", viewer.userId)) || !/^[0-9a-f]{64}$/.test(token)) return { ok: false };
   const supabase = await createClient();
   const { data, error } = await supabase.rpc("accept_org_invite", { raw_token: token });
   if (error || typeof data !== "string") return { ok: false };

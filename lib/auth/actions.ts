@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 import { SESSION_COOKIE } from "./demo";
 import { AUTH_ENABLED } from "@/lib/supabase/env";
 import { createClient } from "@/lib/supabase/server";
+import { withinLimit } from "./rate-limit";
 import { safeNext } from "./redirect";
 
 export type AuthState = { status: "idle" } | { status: "error"; message: string } | { status: "sent"; email: string };
@@ -30,8 +31,10 @@ async function demoSession(next: string): Promise<never> {
 export async function signIn(_prev: AuthState, fd: FormData): Promise<AuthState> {
   const next = safeNext(str(fd, "next"));
   if (!AUTH_ENABLED) return demoSession(next);
+  const email = str(fd, "email").toLowerCase();
+  if (!(await withinLimit("signIn", email))) return { status: "error", message: "That email and password don't match an account." };
   const supabase = await createClient();
-  const { error } = await supabase.auth.signInWithPassword({ email: str(fd, "email").toLowerCase(), password: String(fd.get("password") ?? "") });
+  const { error } = await supabase.auth.signInWithPassword({ email, password: String(fd.get("password") ?? "") });
   if (error) {
     return { status: "error", message: error.code === "email_not_confirmed" ? "Confirm your email first. The link is in your inbox." : "That email and password don't match an account." };
   }
@@ -53,6 +56,7 @@ export async function signUp(_prev: AuthState, fd: FormData): Promise<AuthState>
   if (!name || (!company && !invited)) return { status: "error", message: invited ? "Add your name." : "Add your name and company." };
   if (email.length > 254 || !EMAIL.test(email)) return { status: "error", message: "That doesn't look like an email address." };
   if (password.length < MIN_PASSWORD) return { status: "error", message: `Use at least ${MIN_PASSWORD} characters for your password.` };
+  if (!(await withinLimit("signUp", email))) return { status: "error", message: "We couldn't create your account just now. Please try again." };
 
   const supabase = await createClient();
   const { data, error } = await supabase.auth.signUp({
@@ -88,7 +92,7 @@ export async function signInWithProvider(provider: Provider, next: string): Prom
 export async function requestPasswordReset(_prev: AuthState, fd: FormData): Promise<AuthState> {
   const email = str(fd, "email").toLowerCase();
   if (email.length > 254 || !EMAIL.test(email)) return { status: "error", message: "That doesn't look like an email address." };
-  if (AUTH_ENABLED) {
+  if (AUTH_ENABLED && (await withinLimit("passwordReset", email))) {
     const supabase = await createClient();
     await supabase.auth.resetPasswordForEmail(email, { redirectTo: `${await origin()}/auth/confirm?next=/reset-password` });
   }
