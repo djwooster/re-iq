@@ -51,8 +51,9 @@ manual steps that only DJ can do (dashboards, DNS, secrets).
 **Rate limits** (`lib/auth/rate-limit.ts`, table `rate_limits`)
 - Sign-in 5 per email / 20 per IP per 15 minutes; sign-up and password reset 3 per email / 5 per IP
   per hour; invite acceptance 5 per account / 10 per IP per hour.
-- Stored in Supabase through `hit_rate_limit` (service role only); IPs and emails are stored as
-  hashes. Limited requests get the same generic messages. The limiter fails open if its store is
+- Stored in Supabase (`private.rate_limits`, reached only through `public.rate_limit_hit`, which only
+  the service role can execute). IPs and emails are stored as HMAC-SHA256 with the server-only
+  `RATE_LIMIT_HMAC_SECRET`, never in plain text or as plain hashes. Limited requests get the same generic messages. The limiter fails open if its store is
   unreachable, and switches off if `SUPABASE_SECRET_KEY` belongs to a different project than auth.
 
 **Secrets**
