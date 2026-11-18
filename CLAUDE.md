@@ -31,7 +31,8 @@ write-back, or AI calls. See `README.md`, `HANDOFF.md`, `TODO.md`.
 ## Architecture
 - Next.js 16 App Router (Cache Components on), React 19, Tailwind v4, Motion, Recharts.
 - Routes: `app/(app)/app/*` product, `app/(auth)` login/signup, `app/(marketing)` reserved.
-  `proxy.ts` (not middleware) gates `/app` on a mock session cookie.
+  `proxy.ts` (not middleware) gates `/app` on a Supabase session (`lib/supabase`, `lib/auth`) or the
+  `/demo` cookie; with `NEXT_PUBLIC_SUPABASE_*` unset, sign-in falls back to the demo. Data is still mock.
 - UI imports data only from `@/lib/data` (async, org-scoped). Never import `lib/data/mock/*`
   or `lib/data/core.ts` from components or pages.
 - `lib/types` mirrors future Supabase tables; every record has `org_id`.
