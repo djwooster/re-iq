@@ -5,9 +5,9 @@ import { defineConfig } from "vitest/config";
 export default defineConfig({
   resolve: {
     alias: {
-      "@": path.resolve(__dirname),
+      "@": path.resolve(import.meta.dirname),
       // Lets server modules be imported in tests; Next enforces the real guard at build time.
-      "server-only": path.resolve(__dirname, "tests/server-only-stub.ts"),
+      "server-only": path.resolve(import.meta.dirname, "tests/server-only-stub.ts"),
     },
   },
   test: {
