@@ -46,17 +46,16 @@ describe("auth when rate-limited", () => {
   });
 });
 
-describe.skipIf(!HAS_TEST_DB)("hit_rate_limit", () => {
+describe.skipIf(!HAS_TEST_DB)("rate_limit_hit", () => {
   it("allows up to the limit in a window, then refuses", async () => {
     const key = `test:${Math.random().toString(36).slice(2)}`;
-    const hit = async () => (await admin().rpc("hit_rate_limit", { p_key: key, p_limit: 2, p_window_seconds: 60 })).data;
+    const hit = async () => (await admin().rpc("rate_limit_hit", { p_key: key, p_limit: 2, p_window_seconds: 60 })).data;
     expect([await hit(), await hit(), await hit()]).toEqual([true, true, false]);
-    await admin().from("rate_limits").delete().eq("key", key);
   });
 
   it("can't be called or read with the public key", async () => {
     const anon = createClient(process.env.TEST_SUPABASE_URL!, process.env.TEST_SUPABASE_PUBLISHABLE_KEY!, { auth: { persistSession: false } });
-    expect((await anon.rpc("hit_rate_limit", { p_key: "x", p_limit: 1, p_window_seconds: 60 })).error).not.toBeNull();
+    expect((await anon.rpc("rate_limit_hit", { p_key: "x", p_limit: 1, p_window_seconds: 60 })).error).not.toBeNull();
     expect((await anon.from("rate_limits").select("*")).data ?? []).toEqual([]);
   });
 });

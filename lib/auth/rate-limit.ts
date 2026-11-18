@@ -4,7 +4,7 @@ import { headers } from "next/headers";
 import { createAdminClient } from "@/lib/supabase/admin";
 
 /**
- * Auth rate limits, per IP and per email (or account), stored in Supabase (hit_rate_limit).
+ * Auth rate limits, per IP and per email (or account), stored in Supabase (public.rate_limit_hit -> private.hit_rate_limit).
  * When limited, callers return their usual generic message, so limits reveal nothing.
  * If the store is unreachable or not configured, requests are allowed: an outage shouldn't lock
  * everyone out of signing in.
@@ -36,7 +36,7 @@ export async function withinLimit(action: Action, id: string): Promise<boolean> 
   if (!db) return true;
   const { ip, id: byId } = LIMITS[action];
   const hit = async (key: string, [limit, window]: [number, number]) => {
-    const { data, error } = await db.rpc("hit_rate_limit", { p_key: key, p_limit: limit, p_window_seconds: window });
+    const { data, error } = await db.rpc("rate_limit_hit", { p_key: key, p_limit: limit, p_window_seconds: window });
     return error ? true : data !== false;
   };
   const [ipOk, idOk] = await Promise.all([hit(`${action}:ip:${hash(await clientIp())}`, ip), hit(`${action}:id:${hash(id.toLowerCase())}`, byId)]);

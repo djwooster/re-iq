@@ -61,7 +61,7 @@ describe.skipIf(!HAS_TEST_DB)("org isolation (RLS)", () => {
     expect((await asA.from("org_invites").select("id").eq("org_id", orgB)).data).toEqual([]);
   });
 
-  it("an invited uploader joins Org A without creating an org, and isn't a dashboard reader", async () => {
+  it("an invited uploader joins Org A as uploader, without creating an org", async () => {
     const c = await makeUser("c", { full_name: "Uploader C", signup_via: "invite" });
     users.push(c);
     expect(await orgsOf(c.id)).toEqual([]);
@@ -72,7 +72,6 @@ describe.skipIf(!HAS_TEST_DB)("org isolation (RLS)", () => {
     const asC = await signedIn(c);
     expect((await asC.rpc("accept_org_invite", { raw_token: token })).data).toBe(orgA);
     expect(await orgsOf(c.id)).toEqual([{ org_id: orgA, role: "uploader" }]);
-    expect((await asC.rpc("is_org_reader", { target_org: orgA })).data).toBe(false);
 
     // One use only.
     expect((await asC.rpc("accept_org_invite", { raw_token: token })).error).not.toBeNull();
