@@ -1,0 +1,49 @@
+# Runs the full test suite, including the database tests, against a local Supabase started in the
+# runner from supabase/migrations. No staging or production secrets live in GitHub: the local
+# stack's keys are generated per run.
+name: Tests
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      - name: Start local Supabase (applies every migration)
+        run: npx supabase start
+
+      - name: Point the database tests at it
+        run: |
+          eval "$(npx supabase status -o env)"
+          # Newer CLIs name the keys PUBLISHABLE_KEY / SECRET_KEY, older ones ANON_KEY / SERVICE_ROLE_KEY.
+          url="${API_URL:?supabase status gave no API_URL}"
+          publishable="${PUBLISHABLE_KEY:-${ANON_KEY:?no publishable or anon key}}"
+          secret="${SECRET_KEY:-${SERVICE_ROLE_KEY:?no secret or service role key}}"
+          {
+            echo "TEST_SUPABASE_URL=$url"
+            echo "TEST_SUPABASE_PUBLISHABLE_KEY=$publishable"
+            echo "TEST_SUPABASE_SECRET_KEY=$secret"
+          } >> "$GITHUB_ENV"
+
+      - run: npx tsc --noEmit
+
+      - run: npm test
+
+      - if: always()
+        run: npx supabase stop --no-backup
