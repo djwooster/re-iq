@@ -1,6 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { HOME, fetchRoles, resolveAccess, viaOAuth } from "@/lib/auth/access-rules";
 import { SESSION_COOKIE, isDemoSession, isSupabaseAuthCookie } from "@/lib/auth/demo";
+import { demoTarget } from "@/lib/auth/redirect";
 import { updateSession } from "@/lib/supabase/proxy";
 
 /**
@@ -16,13 +17,16 @@ export async function proxy(request: NextRequest) {
 
   if (pathname === "/demo") {
     const fresh = request.nextUrl.searchParams.has("fresh");
-    const to = request.nextUrl.searchParams.get("to");
-    // Only plain in-app paths, so the parameter can't redirect anywhere else.
-    const target = to && /^\/app(\/[\w-]+)*$/.test(to) ? to : "/app";
+    const target = demoTarget(request.nextUrl.searchParams.get("to"));
+    // Signed in for real: a GET never signs anyone out. Ask first; the page posts to enterDemo.
+    if (request.cookies.getAll().some((c) => isSupabaseAuthCookie(c.name))) {
+      const confirm = new URL("/demo/switch", request.url);
+      confirm.searchParams.set("to", target);
+      if (fresh) confirm.searchParams.set("fresh", "1");
+      return NextResponse.redirect(confirm);
+    }
     const response = NextResponse.redirect(new URL(fresh ? `${target}#fresh` : target, request.url));
     response.cookies.set(SESSION_COOKIE, "demo", { path: "/", maxAge: 60 * 60 * 24 * 30, sameSite: "lax" });
-    // A demo never carries a Supabase session: entering it signs out of any real one in this browser.
-    request.cookies.getAll().forEach((c) => isSupabaseAuthCookie(c.name) && response.cookies.delete(c.name));
     return response;
   }
 

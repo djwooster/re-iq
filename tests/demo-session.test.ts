@@ -62,12 +62,19 @@ describe("demo session, on the server", () => {
     expect(supabaseCalls.updateSession).toBe(0);
   });
 
-  it("entering /demo drops any Supabase session cookies", async () => {
-    const res = await proxy(request("/demo", [{ name: "sb-ref-auth-token", value: "x" }, { name: "sb-ref-auth-token.0", value: "y" }]));
-    const set = res.cookies.getAll();
-    expect(set.find((c) => c.name === "reiq_session")?.value).toBe("demo");
-    expect(set.filter((c) => c.name.startsWith("sb-")).every((c) => c.value === "")).toBe(true);
-    expect(set.filter((c) => c.name.startsWith("sb-"))).toHaveLength(2);
+  it("opening /demo while signed in asks first, and changes no cookies", async () => {
+    const res = await proxy(request("/demo?to=/app/properties&fresh=1", [{ name: "sb-ref-auth-token", value: "x" }]));
+    const to = new URL(res.headers.get("location")!);
+    expect(to.pathname).toBe("/demo/switch");
+    expect(to.searchParams.get("to")).toBe("/app/properties");
+    expect(to.searchParams.get("fresh")).toBe("1");
+    expect(res.cookies.getAll()).toEqual([]);
+  });
+
+  it("opening /demo signed out starts the demo, and ignores off-site targets", async () => {
+    const res = await proxy(request("/demo?to=https://evil.example", []));
+    expect(new URL(res.headers.get("location")!).pathname).toBe("/app");
+    expect(res.cookies.get("reiq_session")?.value).toBe("demo");
   });
 
   it("server data access sees a demo and creates no Supabase client", async () => {

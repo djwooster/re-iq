@@ -2,11 +2,11 @@
 
 import { cookies, headers } from "next/headers";
 import { redirect } from "next/navigation";
-import { SESSION_COOKIE } from "./demo";
+import { SESSION_COOKIE, isSupabaseAuthCookie } from "./demo";
 import { AUTH_ENABLED } from "@/lib/supabase/env";
 import { createClient } from "@/lib/supabase/server";
 import { checkLimit } from "./rate-limit";
-import { safeNext } from "./redirect";
+import { demoTarget, safeNext } from "./redirect";
 
 export type AuthState = { status: "idle" } | { status: "error"; message: string } | { status: "sent"; email: string };
 
@@ -116,6 +116,19 @@ export async function updatePassword(_prev: AuthState, fd: FormData): Promise<Au
     return { status: "error", message: error.code === "same_password" ? "Choose a password you haven't used here before." : "That reset link has expired. Request a new one." };
   }
   redirect("/app");
+}
+
+/**
+ * From the /demo confirmation page: sign out of the real session, then start the demo. A POST,
+ * so following a link can never sign anyone out.
+ */
+export async function enterDemo(fd: FormData): Promise<void> {
+  const target = demoTarget(str(fd, "to"));
+  if (AUTH_ENABLED) await (await createClient()).auth.signOut();
+  const jar = await cookies();
+  jar.getAll().forEach((c) => isSupabaseAuthCookie(c.name) && jar.delete(c.name));
+  jar.set(SESSION_COOKIE, "demo", { path: "/", maxAge: 60 * 60 * 24 * 30, sameSite: "lax" });
+  redirect(str(fd, "fresh") === "1" ? `${target}#fresh` : target);
 }
 
 export async function signOut(): Promise<void> {
