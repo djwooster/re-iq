@@ -37,6 +37,7 @@ export function SiteFooter() {
             ["/privacy", "Privacy"],
             ["/terms", "Terms"],
             ["/security", "Security"],
+            ["/docs/security", "Docs"],
           ].map(([href, label]) => (
             <Link key={href} href={href} className="transition-colors hover:text-fg">
               {label}
