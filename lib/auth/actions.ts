@@ -67,13 +67,13 @@ export async function signUp(_prev: AuthState, fd: FormData): Promise<AuthState>
     email,
     password,
     // Read by the handle_new_user trigger: company names the new org; signup_via=invite skips it.
-    options: { data: invited ? { full_name: name, signup_via: "invite" } : { full_name: name, company }, emailRedirectTo: `${await origin()}/auth/confirm?next=/app` },
+    options: { data: invited ? { full_name: name, signup_via: "invite" } : { full_name: name, company }, emailRedirectTo: `${await origin()}/auth/confirm?next=${invited ? "/invite" : "/app"}` },
   });
   if (error) {
     return { status: "error", message: error.code === "weak_password" ? "Choose a stronger password." : "We couldn't create your account just now. Please try again." };
   }
   // With email confirmation off (local only), Supabase signs the user straight in.
-  if (data.session) redirect("/app");
+  if (data.session) redirect(invited ? "/invite" : "/app");
   return { status: "sent", email };
 }
 

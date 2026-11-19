@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { CalendarClock, FileSearch, Gauge, Tag } from "lucide-react";
 import { FadeIn } from "@/components/ui/motion";
 import { cn } from "@/lib/cn";
@@ -34,6 +35,15 @@ export function Hero() {
           RE-IQ reads every manager&apos;s monthly package, checks the math, and tells you what&apos;s wrong, why, and what to do about it.
         </p>
         <WaitlistForm source="hero" className="mt-8 text-left" />
+        <p className="mt-4 text-[13px] text-fg-2">
+          <Link href="/signup" className="text-fg underline-offset-2 hover:underline">
+            Create an account
+          </Link>
+          <span className="mx-2 text-fg-3" aria-hidden>·</span>
+          <Link href="/login" className="text-fg underline-offset-2 hover:underline">
+            Sign in
+          </Link>
+        </p>
       </FadeIn>
       <FadeIn delay={0.1} className="mt-12 sm:mt-14">
         <HeroFlow />

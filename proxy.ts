@@ -1,6 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { HOME, fetchRoles, resolveAccess, viaOAuth } from "@/lib/auth/access-rules";
-import { SESSION_COOKIE, isDemoSession, isSupabaseAuthCookie } from "@/lib/auth/demo";
+import { INVITE_COOKIE, SESSION_COOKIE, isDemoSession, isSupabaseAuthCookie } from "@/lib/auth/demo";
 import { demoTarget } from "@/lib/auth/redirect";
 import { updateSession } from "@/lib/supabase/proxy";
 
@@ -27,6 +27,17 @@ export async function proxy(request: NextRequest) {
     }
     const response = NextResponse.redirect(new URL(fresh ? `${target}#fresh` : target, request.url));
     response.cookies.set(SESSION_COOKIE, "demo", { path: "/", maxAge: 60 * 60 * 24 * 30, sameSite: "lax" });
+    return response;
+  }
+
+  // Invite links: keep the token in an HTTP-only cookie and continue at a clean /invite URL, so the
+  // token never sits in the address bar, a confirmation email's link or a log.
+  if (pathname === "/invite" && request.nextUrl.searchParams.has("token")) {
+    const token = request.nextUrl.searchParams.get("token") ?? "";
+    const response = NextResponse.redirect(new URL("/invite", request.url));
+    if (/^[0-9a-f]{64}$/.test(token)) {
+      response.cookies.set(INVITE_COOKIE, token, { path: "/invite", httpOnly: true, sameSite: "lax", secure: request.nextUrl.protocol === "https:", maxAge: 60 * 60 * 24 * 7 });
+    }
     return response;
   }
 
@@ -70,5 +81,5 @@ function redirectKeepingCookies(url: URL, from: NextResponse) {
 }
 
 export const config = {
-  matcher: ["/demo", "/app/:path*", "/upload", "/login", "/signup", "/forgot-password", "/reset-password", "/auth/:path*"],
+  matcher: ["/demo", "/app/:path*", "/upload", "/invite", "/login", "/signup", "/forgot-password", "/reset-password", "/auth/:path*"],
 };

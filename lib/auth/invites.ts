@@ -1,49 +1,24 @@
 "use server";
 
-import { headers } from "next/headers";
+import { cookies } from "next/headers";
+import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import { AccessDenied, getViewer, requireDashboardUser } from "./access";
+import { AccessDenied, getViewer } from "./access";
+import { INVITE_COOKIE } from "./demo";
 import { checkLimit } from "./rate-limit";
 
 /**
- * Invitations. No UI yet: the owner's "Invite uploader" screen and the /invite page call these.
- * The database functions (create_org_invite, accept_org_invite) re-check everything; these
- * wrappers add the session checks and keep tokens out of logs and URLs we store.
+ * Accepting invitations. Owners create, revoke and manage invites from /app/workspace/managers
+ * (lib/workspace/actions.ts). accept_org_invite re-checks everything in the database: a pending,
+ * unexpired, unrevoked invite for this user's confirmed email.
  */
 
-export type InviteResult = { ok: true; url: string } | { ok: false; message: string };
-
-/** One message for every refusal, so an invite can't be used to learn about other accounts. */
-const INVITE_REFUSED = "This person can't be invited to your organization.";
 export type AcceptResult = { ok: true; orgId: string } | { ok: false };
 
-const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
-
-/** An owner invites a property manager (uploader by default). Returns the invite link, shown once. */
-export async function createInvite(orgId: string, email: string, role: "uploader" | "member" = "uploader"): Promise<InviteResult> {
-  await requireDashboardUser();
-  const supabase = await createClient();
-  const { data: token, error } = await supabase.rpc("create_org_invite", { target_org: orgId, invite_email: email.trim().toLowerCase(), invite_role: role });
-  if (error || typeof token !== "string") return { ok: false, message: INVITE_REFUSED };
-  const h = await headers();
-  const origin = h.get("origin") ?? `https://${h.get("host")}`;
-  return { ok: true, url: `${origin}/invite?token=${token}` };
-}
-
-/** An owner revokes a pending invite. The database checks ownership and that it's still pending. */
-export async function revokeInvite(inviteId: string): Promise<{ ok: boolean }> {
-  await requireDashboardUser();
-  if (!UUID.test(inviteId)) return { ok: false };
-  const supabase = await createClient();
-  const { data, error } = await supabase.rpc("revoke_org_invite", { invite_id: inviteId });
-  return { ok: !error && data === true };
-}
-
 /**
- * The signed-in invitee accepts. Fails with no detail unless the invite is pending, unexpired
- * (7 days), unrevoked, and sent to this user's confirmed email (case-insensitive). They join that
- * org with the invite's role and no org is created. Invitees sign up with email and password, with
- * signup_via=invite (see signUp), so the sign-up trigger skips creating an org for them.
+ * The signed-in invitee accepts. They join the org with the invite's role, get its properties, and
+ * no org is created. Invitees sign up with email and password, with signup_via=invite (see signUp),
+ * so the sign-up trigger skips creating an org for them.
  */
 export async function acceptInvite(token: string): Promise<AcceptResult> {
   const viewer = await getViewer();
@@ -53,4 +28,13 @@ export async function acceptInvite(token: string): Promise<AcceptResult> {
   const { data, error } = await supabase.rpc("accept_org_invite", { raw_token: token });
   if (error || typeof data !== "string") return { ok: false };
   return { ok: true, orgId: data };
+}
+
+/** The /invite page's Accept button: accepts the invite held in the cookie, then opens the upload page. */
+export async function acceptInviteFromCookie(): Promise<{ ok: false; message: string }> {
+  const jar = await cookies();
+  const result = await acceptInvite(jar.get(INVITE_COOKIE)?.value ?? "");
+  if (!result.ok) return { ok: false, message: "This invite can't be used. It may have expired, been revoked or used already, or be for a different email. Ask for a new one." };
+  jar.delete({ name: INVITE_COOKIE, path: "/invite" });
+  redirect("/upload");
 }

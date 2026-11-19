@@ -1,6 +1,9 @@
 /** The demo session cookie, set by /demo or by signing in while real auth is off. */
 export const SESSION_COOKIE = "reiq_session";
 
+/** Holds an invite token between opening the link and accepting (HTTP-only, /invite only, 7 days). */
+export const INVITE_COOKIE = "reiq_invite";
+
 /** Supabase keeps its session in sb-<project>-auth-token cookies (sometimes split into .0, .1). */
 export const isSupabaseAuthCookie = (name: string) => name.startsWith("sb-") && name.includes("-auth-token");
 

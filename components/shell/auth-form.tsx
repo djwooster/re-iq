@@ -30,9 +30,13 @@ const URL_ERRORS: Record<string, string> = {
 
 const IDLE: AuthState = { status: "idle" };
 
-export function AuthForm({ mode }: { mode: Mode }) {
+/**
+ * With `invite`, the form is for a property manager accepting an invite: email and password only
+ * (no Google or Microsoft), sign-up creates no org, and both paths come back to /invite.
+ */
+export function AuthForm({ mode, invite }: { mode: Mode; invite?: boolean }) {
   const params = useSearchParams();
-  const next = params.get("next") ?? "";
+  const next = invite ? "/invite" : (params.get("next") ?? "");
   const [state, action, pending] = useActionState(ACTIONS[mode], IDLE);
   const [providerError, setProviderError] = useState<string | null>(null);
   const error = state.status === "error" ? state.message : URL_ERRORS[params.get("error") ?? ""];
@@ -45,7 +49,7 @@ export function AuthForm({ mode }: { mode: Mode }) {
         <p className="mt-1 text-xs text-fg-2">
           {mode === "signup" ? (
             <>
-              We sent a confirmation link to <span className="font-medium text-fg">{state.email}</span>. Open it to finish creating your workspace.
+              We sent a confirmation link to <span className="font-medium text-fg">{state.email}</span>. Open it to {invite ? "accept your invitation" : "finish creating your workspace"}.
             </>
           ) : (
             <>
@@ -54,7 +58,7 @@ export function AuthForm({ mode }: { mode: Mode }) {
           )}
         </p>
         <p className="mt-6 text-xs text-fg-3">
-          <Link href="/login" className="text-fg-2 underline-offset-2 hover:text-fg hover:underline">
+          <Link href={invite ? "/invite?mode=login" : "/login"} className="text-fg-2 underline-offset-2 hover:text-fg hover:underline">
             Back to sign in
           </Link>
         </p>
@@ -64,10 +68,10 @@ export function AuthForm({ mode }: { mode: Mode }) {
 
   return (
     <div>
-      <h1 className="text-[15px] font-semibold text-fg">{copy.title}</h1>
-      <p className="mt-1 text-xs text-fg-3">{copy.sub}</p>
+      <h1 className="text-[15px] font-semibold text-fg">{invite ? (mode === "signup" ? "Create your account" : "Sign in to accept") : copy.title}</h1>
+      <p className="mt-1 text-xs text-fg-3">{invite ? "You've been invited to upload monthly reports. Use the email address the invite was sent to." : copy.sub}</p>
 
-      {(mode === "login" || mode === "signup") && (
+      {(mode === "login" || mode === "signup") && !invite && (
         <>
           <div className="mt-6 flex flex-col gap-2">
             <ProviderButton provider="google" next={next} onError={setProviderError} />
@@ -86,12 +90,13 @@ export function AuthForm({ mode }: { mode: Mode }) {
         </>
       )}
 
-      <form action={action} className={mode === "forgot" || mode === "reset" ? "mt-6 flex flex-col gap-3" : "flex flex-col gap-3"}>
+      <form action={action} className={mode === "forgot" || mode === "reset" || invite ? "mt-6 flex flex-col gap-3" : "flex flex-col gap-3"}>
         <input type="hidden" name="next" value={next} />
+        {invite && <input type="hidden" name="invite" value="1" />}
         {mode === "signup" && (
           <>
             <Field label="Full name">{(id) => <Input id={id} name="name" autoComplete="name" placeholder="Jordan Reyes" required />}</Field>
-            <Field label="Company">{(id) => <Input id={id} name="company" autoComplete="organization" placeholder="Alder Peak Capital" required />}</Field>
+            {!invite && <Field label="Company">{(id) => <Input id={id} name="company" autoComplete="organization" placeholder="Alder Peak Capital" required />}</Field>}
           </>
         )}
         {mode !== "reset" && <Field label="Work email">{(id) => <Input id={id} name="email" type="email" autoComplete="email" placeholder="you@company.com" required />}</Field>}
@@ -139,7 +144,23 @@ export function AuthForm({ mode }: { mode: Mode }) {
       )}
 
       <p className="mt-6 text-xs text-fg-3">
-        {mode === "login" ? (
+        {invite ? (
+          mode === "signup" ? (
+            <>
+              Already have an account?{" "}
+              <Link href="/invite?mode=login" className="text-fg-2 underline-offset-2 hover:text-fg hover:underline">
+                Sign in
+              </Link>
+            </>
+          ) : (
+            <>
+              New here?{" "}
+              <Link href="/invite" className="text-fg-2 underline-offset-2 hover:text-fg hover:underline">
+                Create your account
+              </Link>
+            </>
+          )
+        ) : mode === "login" ? (
           <>
             New to {PRODUCT_NAME}?{" "}
             <Link href="/signup" className="text-fg-2 underline-offset-2 hover:text-fg hover:underline">

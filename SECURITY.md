@@ -35,8 +35,38 @@ manual steps that only DJ can do (dashboards, DNS, secrets).
 - Uploaders can't open `/app`: `proxy.ts` sends them to `/upload`, and server functions call
   `requireDashboardUser()` before touching real data. In the database, customer-data policies use
   `private.is_org_reader()` (owners and members only).
-- Server functions for invites, no UI yet: `createInvite()`, `revokeInvite()`, `acceptInvite()` in
-  `lib/auth/invites.ts`.
+- Owners invite property managers from `/app/workspace/managers`, choosing the properties they may
+  upload to; they can change that access per property (effective immediately), revoke pending invites
+  and remove uploaders. Removals and revocations take two clicks.
+- An invite link's token is moved by `proxy.ts` into an HTTP-only cookie scoped to `/invite` and the
+  browser continues at a clean `/invite` URL, so the token isn't left in the address bar, a
+  confirmation email or a log. `/invite` offers email-and-password sign-up or sign-in only.
+
+**Properties and uploads** (`lib/uploads`, `lib/workspace`, `/app/workspace/*`, `/upload`)
+- Owners create, edit and archive properties (`properties`: org, name, address, unit count). Owners and
+  members read them; an uploader reads only the properties they're granted.
+- Uploaders see a dropdown of their granted properties, pick a report type (Brian's report list by
+  category, plus property photos and Other) and the month, and drop files.
+- Files never pass through our server's request body (Vercel limits those to 4.5 MB):
+  1. `startUpload` checks access (`can_upload`), the per-uploader rate limit and the per-org daily cap
+     (500 files in 24 hours), then signs a one-time upload URL into the private **`incoming`** bucket.
+  2. The browser uploads there. No client can read, list or write `incoming` otherwise.
+  3. `finalizeUpload` reads the file back, checks its **actual contents** (PDF, Excel .xlsx/.xls, CSV,
+     JPEG, PNG, HEIC; the extension must match the contents; macro workbooks (`vbaProject.bin`,
+     `_VBA_PROJECT`) are refused however they're named; 25 MB maximum), strips photo metadata (EXIF
+     including GPS, XMP, IPTC, comments), writes the result to the private **`reports`** bucket, and
+     records it with `record_upload`, which re-checks access and that the file is in place. The
+     `incoming` copy is deleted on success and on failure.
+- Paths are `{org_id}/{property_id}/{upload_id}/{file name}`; file names are sanitized. The same file
+  name for the same property, report type and month becomes a new version; nothing is overwritten.
+- Downloads are 60-second signed URLs with `Content-Disposition: attachment`, created as the signed-in
+  user, so the storage policy decides: owners and members of the org, or the uploader who uploaded the
+  file while they still have access to its property.
+- Owners and members see every upload for their org's properties (`/app/workspace/properties/[id]`,
+  by month, with who uploaded and download); uploaders see only their own, per property, any month.
+- Trade-off: a photo's original metadata exists for seconds in `incoming` (server-readable only)
+  before it's stripped. Removing metadata also removes the photo's rotation flag, so some photos may
+  display sideways.
 
 **Row-level security** (final policies; RLS is on for every table)
 
@@ -45,6 +75,11 @@ manual steps that only DJ can do (dashboards, DNS, secrets).
 | `orgs` | members read their orgs | authenticated, SELECT | `private.is_org_member(id)` |
 | `org_members` | users read their own memberships | authenticated, SELECT | `user_id = auth.uid()` |
 | `org_invites` | owners read their org's invites | authenticated, SELECT | `private.is_org_owner(org_id)` |
+| `properties` | readers and granted uploaders read; owners create and edit | authenticated | `is_org_reader(org_id)` or `has_property_access(id)`; writes `is_org_owner(org_id)`, limited columns, no deletes |
+| `uploader_property_access` | readers and the uploader read | authenticated, SELECT | `is_org_reader(org_id)` or `user_id = auth.uid()` |
+| `uploads` | readers see the org's; uploaders their own | authenticated, SELECT | `is_org_reader(org_id)` or (`uploaded_by = auth.uid()` and `has_property_access(property_id)`) |
+| `storage.objects` (`reports`) | readers and the uploading uploader read | authenticated, SELECT | `private.can_read_report_object(name)`; no client insert, update or delete |
+| `storage.objects` (`incoming`) | none | none | server only |
 | `waitlist` | none | none | only the server's secret key writes it |
 | `private.rate_limits` | none | none | not exposed by the API; service role only |
 
@@ -61,9 +96,13 @@ which it doesn't expose. New functions in `public` get no EXECUTE by default.
 
 | Function | Schema | Security definer | EXECUTE | Called by |
 |---|---|---|---|---|
-| `create_org_invite(uuid, text, text)` | public | yes | authenticated | `createInvite` |
-| `revoke_org_invite(uuid)` | public | yes | authenticated | `revokeInvite` |
-| `accept_org_invite(text)` | public | yes | authenticated | `acceptInvite` |
+| `create_org_invite(uuid, text, text, uuid[])` | public | yes | authenticated (owners) | `inviteUploader` |
+| `revoke_org_invite(uuid)` | public | yes | authenticated (owners) | `revokePendingInvite` |
+| `accept_org_invite(text)` | public | yes | authenticated (matching email) | `acceptInvite` |
+| `set_uploader_access(uuid, uuid, uuid[])`, `remove_uploader(uuid, uuid)` | public | yes | authenticated (owners) | `setUploaderAccess`, `removeUploader` |
+| `org_people(uuid)` | public | yes | authenticated (owners, members) | manager and report screens |
+| `can_upload(uuid)`, `record_upload(…)` | public | yes | authenticated (granted uploaders) | `startUpload`, `finalizeUpload` |
+| `has_property_access(uuid)`, `can_read_report_object(text)`, `try_uuid(text)`, `org_upload_cap()` | private | mixed | authenticated (policies run as the user) | policies and the functions above |
 | `rate_limit_hit(text, int, int)` | public | yes | service_role | `lib/auth/rate-limit.ts` |
 | `is_org_member(uuid)`, `is_org_owner(uuid)`, `is_org_reader(uuid)` | private | yes | authenticated (RLS runs as the user) | policies |
 | `handle_new_user()` | private | yes | nobody (trigger only) | `auth.users` insert |
@@ -179,11 +218,16 @@ Sentry verified end to end on 2026-11-19: a test error thrown by a temporary rou
 build reached the `re-iq` project (issue RE-IQ-1, environment `local`) with only the request method and
 URL, no headers, cookies or body. Its stack trace was minified, as expected without source maps.
 
+Uploads verified on 2026-11-20 against a local Supabase: 87 tests pass, including the real
+`startUpload` → `incoming` → `finalizeUpload` path (a photo stored without its GPS data, a disguised
+file rejected with nothing stored, `incoming` cleared either way).
+
 ## Untested until staging
 
 - The sign-up → confirm email → sign in → reset password loop with real emails, and Google and
   Microsoft sign-in.
 - Uploader routing end to end in the browser (invite → sign up → accept → `/upload`, kept out of `/app`).
+- Uploading from a real browser, including large files and real phone photos (HEIC from an iPhone).
 - Sentry from a Vercel deployment: `preview`/`production` environments, a browser error, and source-map
   upload (readable stack traces) once `SENTRY_AUTH_TOKEN` is set.
 - HSTS over HTTPS (browsers ignore it on `http://localhost`).
@@ -300,14 +344,16 @@ email change on; redirect URLs set as above.
 
 ## Backlog
 
-- Invite and uploader UI: the `/invite` page and the uploader's sign-in offer email and password
-  only, never Google or Microsoft buttons. Owners get an "Invite uploader" screen with revoke.
-- Confirmation required for every destructive action (revoking invites, removing members, deleting
-  data), with a POST, never a GET.
+- Confirmation required for every destructive action, with a POST, never a GET (in place for
+  revoking invites, removing uploaders and archiving properties; keep it for anything new).
 - Append-only `audit_log` wired into sign-in, sign-up, invites, uploads, exports, settings and
   mapping approvals.
-- Private storage with `{org_id}/{property_id}/…` paths, org-scoped storage policies, and
-  short-lived signed URLs; upload size and count quotas per org.
+- Delete originals 90 days after a customer cancels: `orgs.cancelled_at` exists (and blocks new
+  uploads); the deletion job isn't built yet (TODO, once billing exists).
+- Sweep `incoming` for files left behind by an interrupted upload (the server deletes them in the
+  normal path; a scheduled cleanup through the Storage API is TODO).
+- At parsing (next feature): payroll is stored as totals only, never per employee; resident names and
+  bank account numbers are stripped from parsed data.
 - Bot protection on sign-up (Cloudflare Turnstile recommended; Supabase Auth verifies it).
 - From the security plan, needing no auth: a lint guard on `NEXT_PUBLIC_` secrets, CI lint and build
   with Dependabot, CodeQL and gitleaks, and the provider-agnostic `lib/ai`.
@@ -325,3 +371,39 @@ email change on; redirect URLs set as above.
 - Moving rate limiting to a dedicated store (e.g. Upstash Redis via the Vercel Marketplace) if load
   requires it.
 - A faster CI database job (excluding unused Supabase services) if `supabase start` gets slow.
+
+## Log
+
+What changed, newest first. PR numbers are github.com/djwooster/re-iq pull requests.
+
+**2026-11-20**
+- Upload flow built on `feature/uploads` (not yet pushed or migrated): properties, per-property access
+  for invited property managers, `/invite`, `/upload`, private `incoming` and `reports` buckets,
+  content checks, photo metadata removal, versions. Migration `20261120120000_properties_and_uploads.sql`
+  applied locally only. 87 tests pass locally.
+- Public docs page `/docs/security` ("Security & data") built on `marketing/docs` (not yet pushed);
+  uploads are labeled "Not yet live" there until this flow merges.
+
+**2026-11-19**
+- Production database: waitlist table checked against its migration and its rows backed up outside the
+  repo; migration history repaired; 8 migrations applied. Checks and the security advisor match staging.
+- Supabase Auth as code (`supabase/config.toml` remotes) pushed to staging and production: site URLs,
+  redirect URLs (vercel.app preview wildcard on staging only; production exactly `re-iq.vercel.app`),
+  email confirmation, secure email change, 8-character passwords, RE-IQ email templates. PR #5.
+- Leaked-password protection turned on in both projects' dashboards (DJ).
+- Staging project `re-iq-staging` created and migrated; Vercel Preview pointed at it; secrets set
+  without printing them.
+- `/privacy`, `/terms`, `/security` (draft legal text) and footer links. PRs #3/#4, merged.
+- Basic security headers (HSTS, nosniff, Referrer-Policy, X-Frame-Options) and Sentry (scrubbed, user
+  and org ID only, no replay, logs on); verified end to end; org and project scrubbing on. PR #2, merged.
+- Verified every migration and test against a local Supabase (OrbStack) before pushing.
+
+**2026-11-18**
+- Live Supabase auth: email and password, Google, Microsoft, confirmation, password reset. PR #1, merged.
+- Orgs and roles (owner, member, uploader), invites (hashed, single-use, 7 days, email-bound,
+  revocable), one org per uploader, uploaders kept out of `/app`.
+- Org tables SELECT-only for users; internal functions moved to an unexposed `private` schema.
+- Demo sessions isolated from real data; `/demo` asks before signing out a real session.
+- Rate limits on sign-in, sign-up, password reset and invite acceptance (HMAC-keyed; sign-in fails
+  open, the rest closed), with hourly cleanup.
+- Next.js 16.4.6 security patch; Vitest suite; CI running the database tests against local Supabase.
