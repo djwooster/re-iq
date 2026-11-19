@@ -2,11 +2,12 @@
 
 import { Building2, ChartNoAxesColumn, ClipboardCheck, Database, FileText, LayoutGrid, ListChecks, LogOut, MessageSquareText, Settings } from "lucide-react";
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
 import { useState } from "react";
 import { Dot } from "@/components/ui/badge";
 import { cn } from "@/lib/cn";
-import { getCloseStatus, getCurrentMember, getOrganization, listActions, listQuestions, SESSION_COOKIE } from "@/lib/data";
+import { getCloseStatus, getCurrentMember, getOrganization, listActions, listQuestions } from "@/lib/data";
+import { signOut } from "@/lib/auth/actions";
 import { useData } from "@/lib/hooks/use-data";
 import { PRODUCT_NAME } from "@/lib/labels";
 import { SHOW_DEV_TOOLS, useApp } from "./app-context";
@@ -50,7 +51,6 @@ const NAV: { label: string; items: NavItem[] }[] = [
 
 export function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
   const pathname = usePathname();
-  const router = useRouter();
   const { orgId } = useApp();
   const { data: org } = useData(() => getOrganization(orgId), [orgId]);
   const { data: me } = useData(() => getCurrentMember(), []);
@@ -61,11 +61,6 @@ export function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
   const newActions = actions?.filter((a) => a.status === "new").length ?? 0;
   const closeBlocked = (close?.review_count ?? 0) + (close?.outstanding_count ?? 0) > 0;
   const questionsForYou = questions?.filter((q) => q.status === "draft" || q.status === "answered").length ?? 0;
-
-  const signOut = () => {
-    document.cookie = `${SESSION_COOKIE}=; path=/; max-age=0; samesite=lax`;
-    router.push("/login");
-  };
 
   return (
     <nav className="flex h-full w-[220px] flex-col border-r border-border bg-bg" aria-label="Primary">
@@ -137,7 +132,7 @@ export function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
             >
               <Settings className="size-3.5" strokeWidth={1.75} /> Settings
             </Link>
-            <button type="button" onClick={signOut} className="flex h-7 w-full cursor-pointer items-center gap-2 rounded px-2 text-xs text-fg-2 hover:bg-fg/[0.04] hover:text-fg">
+            <button type="button" onClick={() => signOut()} className="flex h-7 w-full cursor-pointer items-center gap-2 rounded px-2 text-xs text-fg-2 hover:bg-fg/[0.04] hover:text-fg">
               <LogOut className="size-3.5" strokeWidth={1.75} /> Sign out
             </button>
           </div>

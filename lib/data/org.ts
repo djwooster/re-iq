@@ -3,7 +3,7 @@ import { delay } from "./core";
 import { CURRENT_MEMBER_ID, ORG_ID, members, organization } from "./mock/catalog";
 import { readOverlay, resetOverlay, writeOverlay } from "./store";
 
-export const SESSION_COOKIE = "reiq_session";
+export { SESSION_COOKIE } from "@/lib/auth/demo";
 
 /** Mock session: the demo always signs in as the same member of the same org. */
 export function getSession(): Session {

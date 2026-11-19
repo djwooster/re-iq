@@ -1,6 +1,6 @@
 "use client";
 
-import { ChevronRight } from "lucide-react";
+import { ArrowDown, ArrowUp, ArrowUpDown, ChevronRight } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { createContext, useContext } from "react";
@@ -73,23 +73,37 @@ export function A({ href, children, className }: { href: string; children: React
   );
 }
 
-/** A column is a label, or a label that right-aligns (numbers). */
-export type Column = string | { label: string; num?: boolean };
+/** A column is a label, or a label that right-aligns (numbers). `sort: false` opts it out of a sortable table. */
+export type Column = string | { label: string; num?: boolean; sort?: false };
 const colLabel = (c: Column) => (typeof c === "string" ? c : c.label);
 
-/** A table. Inside a flush Card it drops its own border. */
-export function Table({ columns, children, className, bare }: { columns: Column[]; children: React.ReactNode; className?: string; bare?: boolean }) {
+export type Sort = { col: number; dir: "asc" | "desc" } | null;
+
+/** A table. Inside a flush Card it drops its own border. With `onSort`, headers sort. */
+export function Table({ columns, children, className, bare, sort, onSort }: { columns: Column[]; children: React.ReactNode; className?: string; bare?: boolean; sort?: Sort; onSort?: (col: number) => void }) {
   const inCard = useContext(InCard);
   return (
     <div className={cn("overflow-x-auto", !bare && !inCard && "rounded-lg border border-border bg-surface", inCard === "padded" && "-mx-4 -mb-4 border-t border-border", className)}>
       <table className="w-full border-collapse text-left text-xs">
         <thead>
           <tr className="border-b border-border">
-            {columns.map((c, i) => (
-              <th key={`${colLabel(c)}-${i}`} scope="col" className={cn("text-xs font-medium text-fg-2 h-8 px-3 whitespace-nowrap first:pl-4 last:pr-4", typeof c !== "string" && c.num && "text-right")}>
-                {colLabel(c)}
-              </th>
-            ))}
+            {columns.map((c, i) => {
+              const num = typeof c !== "string" && c.num;
+              const active = sort?.col === i;
+              const Arrow = !active ? ArrowUpDown : sort.dir === "asc" ? ArrowUp : ArrowDown;
+              return (
+                <th key={`${colLabel(c)}-${i}`} scope="col" aria-sort={active ? (sort.dir === "asc" ? "ascending" : "descending") : undefined} className={cn("text-xs font-medium text-fg-2 h-8 px-3 whitespace-nowrap first:pl-4 last:pr-4", num && "text-right")}>
+                  {onSort && !(typeof c !== "string" && c.sort === false) ? (
+                    <button type="button" onClick={() => onSort(i)} className={cn("inline-flex cursor-pointer items-center gap-1 transition-colors hover:text-fg", num && "flex-row-reverse", active && "text-fg")}>
+                      {colLabel(c)}
+                      <Arrow className={cn("size-3", !active && "text-fg-3")} />
+                    </button>
+                  ) : (
+                    colLabel(c)
+                  )}
+                </th>
+              );
+            })}
           </tr>
         </thead>
         <tbody>{children}</tbody>
@@ -211,6 +225,17 @@ export function Segmented<T extends string>({ value, options, onChange, label }:
     <div className="flex items-center gap-2">
       {label && <span className="text-xs text-fg-3">{label}</span>}
       <UiSegmented label={label || "Options"} value={value} onChange={onChange} options={options.map((o) => ({ id: o, label: o }))} />
+    </div>
+  );
+}
+
+/** Side-by-side design concepts for one page, kept in the URL (`?concept=b`). Concept A is the page as it was. */
+export function ConceptSwitch<T extends string>({ value, options, base }: { value: T; options: readonly T[]; base: string }) {
+  const router = useRouter();
+  return (
+    <div className="flex items-center gap-2">
+      <span className="text-xs text-fg-3">Concept</span>
+      <UiSegmented label="Concept" value={value} onChange={(c) => router.replace(c === options[0] ? base : `${base}?concept=${c}`, { scroll: false })} options={options.map((o) => ({ id: o, label: o.toUpperCase() }))} />
     </div>
   );
 }

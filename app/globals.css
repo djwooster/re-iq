@@ -22,7 +22,7 @@
   --data: #0e7490;
   --data-soft: rgb(14 116 144 / 0.14);
   /* Properties are marked in this blue across the app: Shepherd Fairey's poster blue, deepened to read at 10px. */
-  --property: #4f7d8c;
+  --property: #3f6d9e;
   /* Links that navigate: Apple's interactive blue. */
   --link: #0071e3;
   /* Brand blue: calm and cool, for the selected nav item. Not for data, state or links. */
@@ -63,7 +63,7 @@
   --warning: #d9a95b;
   --data: #6c9bad;
   --data-soft: rgb(34 77 95 / 0.6);
-  --property: #8fb2bd;
+  --property: #93b1d8;
   --link: #2997ff;
   --brand: #8eaee6;
   --brand-soft: rgb(142 174 230 / 0.12);

@@ -12,7 +12,7 @@ const LOCAL_FILE = path.join(process.cwd(), ".data", "waitlist.jsonl");
 
 /**
  * Where waitlist signups go. With SUPABASE_URL and SUPABASE_SECRET_KEY set, each
- * entry is inserted into the `waitlist` table (supabase/waitlist.sql); signing
+ * entry is inserted into the `waitlist` table (supabase/migrations/20261027000000_waitlist.sql); signing
  * up twice with the same email is a no-op. Without them, development appends to
  * .data/waitlist.jsonl; production refuses rather than silently dropping signups.
  */

@@ -1,6 +1,6 @@
 "use client";
 
-import { AlertCircle, Building2, CalendarCheck, ChartNoAxesColumn, ClipboardCheck, FileText, HardHat, Landmark, LayoutGrid, ListChecks, LogOut, Menu, RotateCcw, ScrollText, Settings, Users, Wrench, X } from "lucide-react";
+import { AlertCircle, Building2, CalendarCheck, ChartNoAxesColumn, ClipboardCheck, FileText, HardHat, Landmark, LayoutGrid, ListChecks, LogOut, Menu, RotateCcw, Settings, Users, Wrench, X } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
@@ -31,7 +31,7 @@ const NAV: { group?: string; items: Item[] }[] = [
       { href: `${B}/exceptions`, label: "Exceptions", icon: AlertCircle, badge: "exceptions" },
       { href: `${B}/tasks`, label: "Tasks", icon: ListChecks, badge: "tasks" },
       { href: `${B}/owner-report`, label: "Owner report", icon: FileText },
-      { href: `${B}/decisions`, label: "Decision log", icon: ScrollText },
+      // { href: `${B}/decisions`, label: "Decision log", icon: ScrollText },
     ],
   },
   {
@@ -212,8 +212,8 @@ export interface Crumb {
   href?: string;
 }
 
-/** Page frame. `controls` adds the period and compare-to controls used on data pages; `tabs` sit on the header's bottom edge. */
-export function Page({ title, subtitle, crumbs, controls, actions, tabs, children }: { title: React.ReactNode; subtitle?: React.ReactNode; crumbs?: Crumb[]; controls?: boolean; actions?: React.ReactNode; tabs?: React.ReactNode; children: React.ReactNode }) {
+/** Page frame. `controls` adds the period and compare-to controls used on data pages; `tabs` sit on the header's bottom edge, with `tabsEnd` (a concept switch) at the row's right. */
+export function Page({ title, subtitle, crumbs, controls, actions, tabs, tabsEnd, children }: { title: React.ReactNode; subtitle?: React.ReactNode; crumbs?: Crumb[]; controls?: boolean; actions?: React.ReactNode; tabs?: React.ReactNode; tabsEnd?: React.ReactNode; children: React.ReactNode }) {
   return (
     <>
       <header className={cn("px-6 pt-6", tabs ? "mb-5 border-b border-border" : "pb-4")}>
@@ -235,7 +235,7 @@ export function Page({ title, subtitle, crumbs, controls, actions, tabs, childre
         )}
         <div className="flex flex-wrap items-end justify-between gap-3">
           <div className="min-w-0">
-            <h1 className="text-[20px] leading-7 font-semibold tracking-tight text-fg">{title}</h1>
+            <h1 className="text-[24px] leading-8 font-semibold tracking-tight text-fg">{title}</h1>
             {subtitle && <div className="mt-0.5 text-xs text-fg-3">{subtitle}</div>}
           </div>
           <div className="flex flex-wrap items-center gap-3">
@@ -243,7 +243,12 @@ export function Page({ title, subtitle, crumbs, controls, actions, tabs, childre
             {actions}
           </div>
         </div>
-        {tabs && <div className="mt-5 [&>[role=tablist]]:border-b-0">{tabs}</div>}
+        {tabs && (
+          <div className="mt-5 flex items-end justify-between gap-4 [&>[role=tablist]]:border-b-0">
+            {tabs}
+            {tabsEnd && <div className="shrink-0 pb-1.5">{tabsEnd}</div>}
+          </div>
+        )}
       </header>
       <FadeIn className="flex min-w-0 flex-col gap-6 px-6 pb-12">{children}</FadeIn>
     </>

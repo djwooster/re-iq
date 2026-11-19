@@ -5,7 +5,7 @@ Sections live in `components/marketing`; the page only composes them.
 
 Signups go through the `joinWaitlist` server action (`actions.ts`) to
 `lib/waitlist.ts`, which inserts a row into the Supabase `waitlist` table
-(`supabase/waitlist.sql`: email, source, submitted_at; one row per email). Set
+(`supabase/migrations/20261027000000_waitlist.sql`: email, source, submitted_at; one row per email). Set
 `SUPABASE_URL` and `SUPABASE_SECRET_KEY` (server-only). Without them, development
 appends to `.data/waitlist.jsonl` (gitignored) and production returns an error
 instead of dropping the signup.
