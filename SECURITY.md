@@ -250,9 +250,13 @@ npx supabase link --project-ref <staging-ref>       # point the CLI back at stag
   - Redirect URLs `http://localhost:3000/**` and our own preview pattern
     `https://re-iq-*-dwoosty.vercel.app/**`. This vercel.app wildcard is acceptable on staging only,
     because staging holds test data.
-- URL configuration, **production**: Site URL is our custom domain, and Redirect URLs list only our
-  custom domain, exactly (e.g. `https://<domain>/**`). Never a vercel.app pattern, never localhost,
-  and never a broad wildcard such as `https://*.vercel.app/**`.
+- URL configuration, **production**: until we have a custom domain, Site URL `https://re-iq.vercel.app`
+  and Redirect URLs exactly `https://re-iq.vercel.app/**` (production's own site, no wildcard in the
+  host). Once the domain exists, both switch to it exactly (e.g. `https://<domain>/**`). Never a
+  vercel.app pattern such as `re-iq-*`, never localhost, never a broad wildcard.
+- These settings and both email templates live in `supabase/config.toml` (`[remotes.staging]`,
+  `[remotes.production]`) and are applied with `npx supabase config diff --remote=<ref>`, then
+  `npx supabase config push --remote=<ref>`. Leaked-password protection is a dashboard-only toggle.
 
 Staging, done 2026-11-19: confirm email, 8-character minimum, leaked-password protection and secure
 email change on; redirect URLs set as above.

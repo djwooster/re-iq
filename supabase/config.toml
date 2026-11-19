@@ -483,10 +483,10 @@ enabled = false
 project_id = "dixlcrxxnmoivfrnvaqv"
 
 [remotes.production.auth]
-# Production's real URL until we have a custom domain. Redirect URLs list only the custom domain,
-# exactly, once it exists: never localhost, a vercel.app pattern or a broad wildcard.
+# Production's own URL until we have a custom domain; then both switch to the domain, exactly.
+# Never localhost, a vercel.app pattern (re-iq-*…) or a broad wildcard here.
 site_url = "https://re-iq.vercel.app"
-additional_redirect_urls = []
+additional_redirect_urls = ["https://re-iq.vercel.app/**"]
 minimum_password_length = 8
 
 [remotes.production.auth.email]
