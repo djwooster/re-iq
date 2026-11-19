@@ -1,12 +1,11 @@
 "use client";
 
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useActionState, useState, useTransition } from "react";
 import { Button } from "@/components/ui/button";
-import { Field, Input } from "@/components/ui/controls";
+import { Field, Input, Tabs } from "@/components/ui/controls";
 import { requestPasswordReset, signIn, signInWithProvider, signUp, updatePassword, type AuthState, type Provider } from "@/lib/auth/actions";
-import { PRODUCT_NAME } from "@/lib/labels";
 import { AUTH_ENABLED } from "@/lib/supabase/env";
 
 type Mode = "login" | "signup" | "forgot" | "reset";
@@ -68,6 +67,7 @@ export function AuthForm({ mode, invite }: { mode: Mode; invite?: boolean }) {
 
   return (
     <div>
+      {(mode === "login" || mode === "signup") && <AuthTabs mode={mode} invite={invite} />}
       <h1 className="text-[15px] font-semibold text-fg">{invite ? (mode === "signup" ? "Create your account" : "Sign in to accept") : copy.title}</h1>
       <p className="mt-1 text-xs text-fg-3">{invite ? "You've been invited to upload monthly reports. Use the email address the invite was sent to." : copy.sub}</p>
 
@@ -143,43 +143,13 @@ export function AuthForm({ mode, invite }: { mode: Mode; invite?: boolean }) {
         </p>
       )}
 
-      <p className="mt-6 text-xs text-fg-3">
-        {invite ? (
-          mode === "signup" ? (
-            <>
-              Already have an account?{" "}
-              <Link href="/invite?mode=login" className="text-fg-2 underline-offset-2 hover:text-fg hover:underline">
-                Sign in
-              </Link>
-            </>
-          ) : (
-            <>
-              New here?{" "}
-              <Link href="/invite" className="text-fg-2 underline-offset-2 hover:text-fg hover:underline">
-                Create your account
-              </Link>
-            </>
-          )
-        ) : mode === "login" ? (
-          <>
-            New to {PRODUCT_NAME}?{" "}
-            <Link href="/signup" className="text-fg-2 underline-offset-2 hover:text-fg hover:underline">
-              Create a workspace
-            </Link>
-          </>
-        ) : mode === "signup" ? (
-          <>
-            Already have an account?{" "}
-            <Link href="/login" className="text-fg-2 underline-offset-2 hover:text-fg hover:underline">
-              Sign in
-            </Link>
-          </>
-        ) : (
+      {(mode === "forgot" || mode === "reset") && (
+        <p className="mt-6 text-xs text-fg-3">
           <Link href="/login" className="text-fg-2 underline-offset-2 hover:text-fg hover:underline">
             Back to sign in
           </Link>
-        )}
-      </p>
+        </p>
+      )}
     </div>
   );
 }
@@ -226,5 +196,28 @@ function MicrosoftMark() {
       <path fill="#00A4EF" d="M1 11h9v9H1z" />
       <path fill="#FFB900" d="M11 11h9v9h-9z" />
     </svg>
+  );
+}
+
+/** Switches between sign-in and sign-up, keeping where the person was headed (`next`). */
+function AuthTabs({ mode, invite }: { mode: "login" | "signup"; invite?: boolean }) {
+  const router = useRouter();
+  const params = useSearchParams();
+  const go = (to: "login" | "signup") => {
+    if (to === mode) return;
+    if (invite) return router.replace(to === "login" ? "/invite?mode=login" : "/invite");
+    const next = params.get("next");
+    router.replace(`/${to}${next ? `?next=${encodeURIComponent(next)}` : ""}`);
+  };
+  return (
+    <Tabs
+      value={mode}
+      onChange={go}
+      tabs={[
+        { id: "login", label: "Sign in" },
+        { id: "signup", label: invite ? "Create account" : "Sign up" },
+      ]}
+      className="mb-6"
+    />
   );
 }
