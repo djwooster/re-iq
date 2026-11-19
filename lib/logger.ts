@@ -1,7 +1,9 @@
 import "server-only";
+import * as Sentry from "@sentry/nextjs";
 
 /**
- * Structured server logs: one JSON line per event, ready to forward to Sentry later.
+ * Structured server logs: one JSON line per event. Warnings and errors also go to Sentry (a no-op
+ * without SENTRY_DSN), with the same redacted fields.
  * Never pass personal data, financial figures, file contents, tokens or cookies. As a backstop,
  * fields whose names look sensitive are redacted.
  */
@@ -14,6 +16,7 @@ const SENSITIVE = /email|password|token|secret|cookie|authorization|session|phon
 function write(level: "info" | "warn" | "error", event: string, fields: Fields = {}) {
   const safe = Object.fromEntries(Object.entries(fields).map(([k, v]) => [k, SENSITIVE.test(k) ? "[redacted]" : v]));
   console[level](JSON.stringify({ level, event, time: new Date().toISOString(), ...safe }));
+  if (level !== "info") Sentry.captureMessage(event, { level: level === "warn" ? "warning" : "error", extra: safe });
 }
 
 export const log = {

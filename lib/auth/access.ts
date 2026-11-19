@@ -1,8 +1,9 @@
 import "server-only";
+import * as Sentry from "@sentry/nextjs";
 import { cookies } from "next/headers";
 import { AUTH_ENABLED } from "@/lib/supabase/env";
 import { createClient } from "@/lib/supabase/server";
-import { fetchRoles, resolveAccess, viaOAuth, type Access } from "./access-rules";
+import { fetchMemberships, resolveAccess, viaOAuth, type Access } from "./access-rules";
 import { isDemoSession } from "./demo";
 
 /** Who is asking. A demo is decided from cookies alone, before any Supabase client exists. */
@@ -16,7 +17,11 @@ export async function getViewer(): Promise<Viewer> {
   const { data } = await supabase.auth.getClaims();
   const userId = data?.claims.sub;
   if (!userId) return { kind: "anonymous" };
-  return { kind: "user", userId, access: resolveAccess(await fetchRoles(supabase, userId), viaOAuth(data.claims)) };
+  const memberships = await fetchMemberships(supabase, userId);
+  // Errors in this request carry the user ID, and the org ID when there's exactly one. Never names or emails.
+  Sentry.setUser({ id: userId });
+  Sentry.setTag("org_id", memberships.length === 1 ? memberships[0].orgId : undefined);
+  return { kind: "user", userId, access: resolveAccess(memberships.map((m) => m.role), viaOAuth(data.claims)) };
 }
 
 export class AccessDenied extends Error {

@@ -1,12 +1,14 @@
+import type { NextConfig } from "next";
 import { describe, expect, it } from "vitest";
-import nextConfig, { SECURITY_HEADERS } from "@/next.config";
+import config, { SECURITY_HEADERS } from "@/next.config";
 
 /** Every route, pages and API alike, gets the basic security headers. */
 describe("security headers", () => {
   it("apply to every path", async () => {
-    const rules = (await nextConfig.headers?.()) ?? [];
-    const all = rules.find((r) => r.source === "/:path*");
-    expect(all?.headers).toEqual(SECURITY_HEADERS);
+    // withSentryConfig may return the config or a function of the build phase.
+    const resolved: NextConfig = typeof config === "function" ? await (config as (phase: string, ctx: object) => Promise<NextConfig>)("phase-test", {}) : config;
+    const rules = (await resolved.headers?.()) ?? [];
+    expect(rules.find((r) => r.source === "/:path*")?.headers).toEqual(SECURITY_HEADERS);
   });
 
   it("are the four agreed headers, with HSTS for two years and subdomains, no preload", () => {

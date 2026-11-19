@@ -20,10 +20,14 @@ export function resolveAccess(roles: Role[], oauth: boolean): Access {
   return "none";
 }
 
-/** The signed-in user's roles across their orgs. RLS returns only their own membership rows. */
+/** The signed-in user's memberships. RLS returns only their own rows. */
+export async function fetchMemberships(supabase: SupabaseClient, userId: string): Promise<{ orgId: string; role: Role }[]> {
+  const { data } = await supabase.from("org_members").select("org_id, role").eq("user_id", userId);
+  return (data ?? []).map((r) => ({ orgId: r.org_id as string, role: r.role as Role }));
+}
+
 export async function fetchRoles(supabase: SupabaseClient, userId: string): Promise<Role[]> {
-  const { data } = await supabase.from("org_members").select("role").eq("user_id", userId);
-  return (data ?? []).map((r) => r.role as Role);
+  return (await fetchMemberships(supabase, userId)).map((m) => m.role);
 }
 
 export const HOME: Record<Access, string> = { dashboard: "/app", uploader: "/upload", none: "/upload" };
