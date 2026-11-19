@@ -1,6 +1,7 @@
 "use client";
 
 import { createContext, useContext, useEffect, useMemo, useState } from "react";
+import { useAccount } from "./account";
 import {
   APPROVALS,
   DEFAULT_NAMES,
@@ -306,7 +307,13 @@ export function WfStore({ children }: { children: React.ReactNode }) {
     } catch {}
   }, [state, hydrated]);
 
-  const value = useMemo(() => ({ state, act, hydrated }), [state, act, hydrated]);
+  // Signed in for real: the person's name, email and org replace the sample ones on every screen.
+  const account = useAccount();
+  const shown = useMemo(
+    () => (account ? { ...state, user: { name: account.name || account.email, email: account.email }, org: account.orgName || state.org } : state),
+    [state, account],
+  );
+  const value = useMemo(() => ({ state: shown, act, hydrated }), [shown, act, hydrated]);
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
 }
 

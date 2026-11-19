@@ -106,3 +106,14 @@ export async function removeUploader(userId: string): Promise<Result> {
   refresh();
   return { ok: true };
 }
+
+/** Changes the signed-in person's own name (Supabase user metadata, as set at sign-up). */
+export async function updateMyName(name: string): Promise<Result> {
+  const ws = await getWorkspace();
+  const value = name.trim();
+  if (!value || value.length > 100) return { ok: false, message: "Enter your name (up to 100 characters)." };
+  const { error } = await ws.supabase.auth.updateUser({ data: { full_name: value } });
+  if (error) return TRY_AGAIN;
+  revalidatePath("/prototype", "layout");
+  return { ok: true };
+}

@@ -9,6 +9,7 @@ import { FadeIn } from "@/components/ui/motion";
 import { cn } from "@/lib/cn";
 import { PRODUCT_NAME } from "@/lib/labels";
 import { managerState } from "./derive";
+import { ROLE_LABELS, useAccount } from "./account";
 import { Notifications } from "./notifications";
 import { MANAGERS } from "./seed";
 import { openExceptions, useWf, type Compare, type Period } from "./store";
@@ -90,6 +91,7 @@ function Nav({ onNavigate }: { onNavigate?: () => void }) {
 
 function UserMenu() {
   const { state, act } = useWf();
+  const account = useAccount();
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
@@ -132,7 +134,7 @@ function UserMenu() {
         <span className="num flex size-6 shrink-0 items-center justify-center rounded-full border border-border bg-surface text-[11px] text-fg-2">{initials}</span>
         <span className="min-w-0 flex-1">
           <span className="block truncate text-xs font-medium text-fg">{state.user.name}</span>
-          <span className="block truncate text-xs text-fg-3">Asset manager</span>
+          <span className="block truncate text-xs text-fg-3">{account ? ROLE_LABELS[account.role] : "Asset manager"}</span>
         </span>
       </button>
     </div>

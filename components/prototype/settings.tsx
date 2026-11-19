@@ -1,8 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { useState, useTransition } from "react";
 import { useToast } from "@/components/ui/toast";
 import { useTheme } from "@/components/theme/theme-provider";
+import { updateMyName } from "@/lib/workspace/actions";
+import { ROLE_LABELS, useAccount } from "./account";
 import { uploadUrl } from "./close";
 import { profile } from "./numbers";
 import { CHART_OF_ACCOUNTS, KPIS, MANAGERS, PROPERTIES, manager } from "./seed";
@@ -10,11 +13,12 @@ import { Page } from "./shell";
 import { useWf } from "./store";
 import { Button, Card, Chip, Field, Input, Row, Segmented, Select, Table, Tabs, Td } from "./ui";
 
-type Tab = "thresholds" | "properties" | "accounts" | "team" | "workspace";
+type Tab = "profile" | "thresholds" | "properties" | "accounts" | "team" | "workspace";
 
 export function Settings() {
   const { state } = useWf();
-  const [tab, setTab] = useState<Tab>("thresholds");
+  const account = useAccount();
+  const [tab, setTab] = useState<Tab>(account ? "profile" : "thresholds");
   return (
     <Page
       title="Settings"
@@ -24,6 +28,7 @@ export function Settings() {
           value={tab}
           onChange={setTab}
           tabs={[
+            ...(account ? [{ id: "profile" as const, label: "Profile" }] : []),
             { id: "thresholds", label: "Thresholds and targets" },
             { id: "properties", label: "Properties and managers" },
             { id: "accounts", label: "Chart of accounts" },
@@ -32,6 +37,7 @@ export function Settings() {
           ]}
         />
       }>
+      {tab === "profile" && account && <Profile />}
       {tab === "thresholds" && <Thresholds />}
       {tab === "properties" && (
         <Table columns={["Property", { label: "Units", num: true }, "Manager", "Reports email", "Upload link"]}>
@@ -67,6 +73,17 @@ export function Settings() {
         </Table>
       )}
       {tab === "team" && (
+        account ? (
+          <Table columns={["Name", "Email", "Role"]}>
+            {account.team.map((p) => (
+              <Row key={p.userId}>
+                <Td className="font-medium">{p.name || "—"}</Td>
+                <Td className="text-fg-2">{p.email}</Td>
+                <Td className="text-fg-2">{ROLE_LABELS[p.role]}</Td>
+              </Row>
+            ))}
+          </Table>
+        ) : (
         <Table columns={["Name", "Role", "Sees"]}>
           {[
             [state.user.email, "Asset manager", "Everything; decides and assigns"],
@@ -80,9 +97,57 @@ export function Settings() {
             </Row>
           ))}
         </Table>
+        )
       )}
       {tab === "workspace" && <Workspace />}
     </Page>
+  );
+}
+
+/** The signed-in person's own details. Name saves to their account; email and role are shown as they are. */
+function Profile() {
+  const account = useAccount()!;
+  const toast = useToast();
+  const router = useRouter();
+  const [name, setName] = useState(account.name);
+  const [error, setError] = useState<string | null>(null);
+  const [saving, startSaving] = useTransition();
+  const save = () =>
+    startSaving(async () => {
+      const result = await updateMyName(name);
+      if (!result.ok) return setError(result.message);
+      setError(null);
+      toast("Name saved");
+      router.refresh();
+    });
+  return (
+    <Card title="Profile">
+      <div className="flex max-w-lg flex-col gap-4 text-xs">
+        <Field label="Name">
+          <Input value={name} onChange={(e) => setName(e.target.value)} />
+        </Field>
+        {error && (
+          <p role="alert" className="text-xs text-unfavorable">
+            {error}
+          </p>
+        )}
+        <dl className="flex flex-col gap-4">
+          <div className="flex items-center justify-between gap-3">
+            <dt className="text-fg-2">Email</dt>
+            <dd className="font-medium">{account.email}</dd>
+          </div>
+          <div className="flex items-center justify-between gap-3">
+            <dt className="text-fg-2">Role</dt>
+            <dd className="font-medium">{ROLE_LABELS[account.role]}</dd>
+          </div>
+        </dl>
+        <div>
+          <Button onClick={save} disabled={saving || name.trim() === account.name}>
+            {saving ? "Saving…" : "Save"}
+          </Button>
+        </div>
+      </div>
+    </Card>
   );
 }
 
