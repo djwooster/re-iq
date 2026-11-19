@@ -167,6 +167,14 @@ Staging (`re-iq-staging`, `rtmtepejzkflhbmznbgo`), 2026-11-19: all 9 migrations 
 security advisor reports only the three intended client-callable invite functions (each checks the
 caller itself).
 
+Production (`dixlcrxxnmoivfrnvaqv`), 2026-11-19: the hand-made waitlist table matched
+`20261027000000_waitlist.sql` exactly (columns, constraints, RLS, no policies); its 2 rows were
+exported to a private file outside the repo first. Migration history repaired (old `20261028023558
+create_waitlist` entry marked reverted, `20261027000000` marked applied; history only), then the other 8
+migrations applied with `db push --remote`. History 9 of 9 in sync; tables, RLS, policies, function
+grants and the cleanup job match staging; waitlist rows intact; the advisor reports only the three
+intended invite functions.
+
 Sentry verified end to end on 2026-11-19: a test error thrown by a temporary route in the production
 build reached the `re-iq` project (issue RE-IQ-1, environment `local`) with only the request method and
 URL, no headers, cookies or body. Its stack trace was minified, as expected without source maps.
@@ -210,8 +218,8 @@ project: `npx supabase db query --remote --read-only "<sql>"` and
 Production (at launch, only after the same migrations ran clean on staging):
 ```sh
 npx supabase link --project-ref dixlcrxxnmoivfrnvaqv
-# The waitlist table was created by hand before the CLI; record it as applied so push skips it.
-npx supabase migration repair --remote --status applied 20261027000000
+# Done once on 2026-11-19: production's hand-made waitlist migration (20261028023558) was marked
+# reverted and 20261027000000 marked applied. Future production pushes need no repair.
 npx supabase db push --remote --dry-run
 npx supabase db push --remote
 npx supabase link --project-ref <staging-ref>       # point the CLI back at staging
@@ -243,13 +251,23 @@ npx supabase link --project-ref <staging-ref>       # point the CLI back at stag
 | `TEST_SUPABASE_*` | optional (local or staging) | no | no |
 
 **2. Supabase Auth settings (staging now, production at launch)**
-- Email: keep "Confirm email" on.
+- Email: keep "Confirm email" and "Secure email change" on.
 - Passwords: minimum length 8, and turn on leaked-password protection (checks HaveIBeenPwned).
-- URL configuration: Site URL is the app's URL. Redirect URLs only:
-  - `http://localhost:3000/**`
-  - our own Vercel preview pattern, e.g. `https://re-iq-*-<vercel-scope>.vercel.app/**`
-  - the production domain once it exists.
-  No broad wildcards (not `https://*.vercel.app/**`).
+- URL configuration, **staging** (test data only):
+  - Site URL `http://localhost:3000`.
+  - Redirect URLs `http://localhost:3000/**` and our own preview pattern
+    `https://re-iq-*-dwoosty.vercel.app/**`. This vercel.app wildcard is acceptable on staging only,
+    because staging holds test data.
+- URL configuration, **production**: until we have a custom domain, Site URL `https://re-iq.vercel.app`
+  and Redirect URLs exactly `https://re-iq.vercel.app/**` (production's own site, no wildcard in the
+  host). Once the domain exists, both switch to it exactly (e.g. `https://<domain>/**`). Never a
+  vercel.app pattern such as `re-iq-*`, never localhost, never a broad wildcard.
+- These settings and both email templates live in `supabase/config.toml` (`[remotes.staging]`,
+  `[remotes.production]`) and are applied with `npx supabase config diff --remote=<ref>`, then
+  `npx supabase config push --remote=<ref>`. Leaked-password protection is a dashboard-only toggle.
+
+Staging, done 2026-11-19: confirm email, 8-character minimum, leaked-password protection and secure
+email change on; redirect URLs set as above.
 - Email templates:
   - Confirm signup link: `{{ .RedirectTo }}&token_hash={{ .TokenHash }}&type=email`
   - Reset password link: `{{ .RedirectTo }}&token_hash={{ .TokenHash }}&type=recovery`
