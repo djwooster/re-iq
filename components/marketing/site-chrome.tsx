@@ -15,9 +15,9 @@ export function SiteHeader() {
           <Link href="/wireframe" className="rounded-md px-2.5 py-1.5 text-fg-2 transition-colors hover:bg-surface-2 hover:text-fg">
             Wireframe
           </Link>
-          <a href="#early-access" className="rounded-md bg-inverted px-3 py-1.5 font-medium text-inverted-fg transition-opacity hover:opacity-90">
+          <Link href="/#early-access" className="rounded-md bg-inverted px-3 py-1.5 font-medium text-inverted-fg transition-opacity hover:opacity-90">
             Early access
-          </a>
+          </Link>
         </nav>
       </div>
     </header>
@@ -27,9 +27,22 @@ export function SiteHeader() {
 export function SiteFooter() {
   return (
     <footer className="border-t border-border">
-      <div className="mx-auto flex max-w-[1280px] flex-col gap-2 px-4 py-6 text-[11px] text-fg-3 sm:flex-row sm:items-center sm:justify-between sm:px-6">
-        <span className="num tracking-[0.06em]">{PRODUCT_NAME}</span>
-        <span>Portfolio intelligence for multifamily owners and asset managers.</span>
+      <div className="mx-auto flex max-w-[1280px] flex-col gap-3 px-4 py-6 text-[11px] text-fg-3 sm:flex-row sm:items-center sm:justify-between sm:px-6">
+        <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:gap-4">
+          <span className="num tracking-[0.06em]">{PRODUCT_NAME}</span>
+          <span>Portfolio intelligence for multifamily owners and asset managers.</span>
+        </div>
+        <nav aria-label="Legal" className="flex items-center gap-4">
+          {[
+            ["/privacy", "Privacy"],
+            ["/terms", "Terms"],
+            ["/security", "Security"],
+          ].map(([href, label]) => (
+            <Link key={href} href={href} className="transition-colors hover:text-fg">
+              {label}
+            </Link>
+          ))}
+        </nav>
       </div>
     </footer>
   );
