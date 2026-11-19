@@ -243,13 +243,19 @@ npx supabase link --project-ref <staging-ref>       # point the CLI back at stag
 | `TEST_SUPABASE_*` | optional (local or staging) | no | no |
 
 **2. Supabase Auth settings (staging now, production at launch)**
-- Email: keep "Confirm email" on.
+- Email: keep "Confirm email" and "Secure email change" on.
 - Passwords: minimum length 8, and turn on leaked-password protection (checks HaveIBeenPwned).
-- URL configuration: Site URL is the app's URL. Redirect URLs only:
-  - `http://localhost:3000/**`
-  - our own Vercel preview pattern, e.g. `https://re-iq-*-<vercel-scope>.vercel.app/**`
-  - the production domain once it exists.
-  No broad wildcards (not `https://*.vercel.app/**`).
+- URL configuration, **staging** (test data only):
+  - Site URL `http://localhost:3000`.
+  - Redirect URLs `http://localhost:3000/**` and our own preview pattern
+    `https://re-iq-*-dwoosty.vercel.app/**`. This vercel.app wildcard is acceptable on staging only,
+    because staging holds test data.
+- URL configuration, **production**: Site URL is our custom domain, and Redirect URLs list only our
+  custom domain, exactly (e.g. `https://<domain>/**`). Never a vercel.app pattern, never localhost,
+  and never a broad wildcard such as `https://*.vercel.app/**`.
+
+Staging, done 2026-11-19: confirm email, 8-character minimum, leaked-password protection and secure
+email change on; redirect URLs set as above.
 - Email templates:
   - Confirm signup link: `{{ .RedirectTo }}&token_hash={{ .TokenHash }}&type=email`
   - Reset password link: `{{ .RedirectTo }}&token_hash={{ .TokenHash }}&type=recovery`
