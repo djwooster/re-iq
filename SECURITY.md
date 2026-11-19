@@ -167,6 +167,14 @@ Staging (`re-iq-staging`, `rtmtepejzkflhbmznbgo`), 2026-11-19: all 9 migrations 
 security advisor reports only the three intended client-callable invite functions (each checks the
 caller itself).
 
+Production (`dixlcrxxnmoivfrnvaqv`), 2026-11-19: the hand-made waitlist table matched
+`20261027000000_waitlist.sql` exactly (columns, constraints, RLS, no policies); its 2 rows were
+exported to a private file outside the repo first. Migration history repaired (old `20261028023558
+create_waitlist` entry marked reverted, `20261027000000` marked applied; history only), then the other 8
+migrations applied with `db push --remote`. History 9 of 9 in sync; tables, RLS, policies, function
+grants and the cleanup job match staging; waitlist rows intact; the advisor reports only the three
+intended invite functions.
+
 Sentry verified end to end on 2026-11-19: a test error thrown by a temporary route in the production
 build reached the `re-iq` project (issue RE-IQ-1, environment `local`) with only the request method and
 URL, no headers, cookies or body. Its stack trace was minified, as expected without source maps.
@@ -210,8 +218,8 @@ project: `npx supabase db query --remote --read-only "<sql>"` and
 Production (at launch, only after the same migrations ran clean on staging):
 ```sh
 npx supabase link --project-ref dixlcrxxnmoivfrnvaqv
-# The waitlist table was created by hand before the CLI; record it as applied so push skips it.
-npx supabase migration repair --remote --status applied 20261027000000
+# Done once on 2026-11-19: production's hand-made waitlist migration (20261028023558) was marked
+# reverted and 20261027000000 marked applied. Future production pushes need no repair.
 npx supabase db push --remote --dry-run
 npx supabase db push --remote
 npx supabase link --project-ref <staging-ref>       # point the CLI back at staging
