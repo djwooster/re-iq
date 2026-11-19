@@ -117,6 +117,19 @@ export function AuthForm({ mode }: { mode: Mode }) {
         <Button type="submit" variant="primary" loading={pending} className="mt-2 w-full">
           {copy.submit}
         </Button>
+        {mode === "signup" && (
+          <p className="text-[11px] text-fg-3">
+            By creating an account you agree to the{" "}
+            <Link href="/terms" className="text-fg-2 underline underline-offset-2 hover:text-fg">
+              Terms
+            </Link>{" "}
+            and{" "}
+            <Link href="/privacy" className="text-fg-2 underline underline-offset-2 hover:text-fg">
+              Privacy Policy
+            </Link>
+            .
+          </p>
+        )}
       </form>
 
       {!AUTH_ENABLED && (
