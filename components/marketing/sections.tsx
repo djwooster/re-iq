@@ -2,7 +2,9 @@ import Link from "next/link";
 import { CalendarClock, FileSearch, Gauge, Tag } from "lucide-react";
 import { FadeIn } from "@/components/ui/motion";
 import { cn } from "@/lib/cn";
+import { BOOKING_URL } from "@/lib/marketing";
 import { HeroFlow } from "./hero-flow";
+import { BookCall } from "./book-call";
 import { BridgeArt } from "./bridge-art";
 import { IngestArt } from "./ingest-art";
 import { SectionCta } from "./section-cta";
@@ -34,7 +36,7 @@ export function Hero() {
         <p className="mt-5 max-w-[560px] text-[16px] leading-[1.55] text-fg-2">
           RE-IQ reads every manager&apos;s monthly package, checks the math, and tells you what&apos;s wrong, why, and what to do about it.
         </p>
-        <WaitlistForm source="hero" className="mt-8 text-left" />
+        <BookCall className="mt-8" />
         <p className="mt-4 text-[13px] text-fg-2">
           <Link href="/signup" className="text-fg underline-offset-2 hover:underline">
             Create an account
@@ -190,18 +192,21 @@ export function WhoItsFor() {
 
 export function FinalCta() {
   return (
-    <section id="early-access" className="scroll-mt-16 border-t border-border bg-surface">
+    <section id="book-a-call" className="scroll-mt-16 border-t border-border bg-surface">
       <div className="mx-auto flex max-w-[1280px] flex-col gap-8 px-4 py-16 sm:px-6 sm:py-20 lg:flex-row lg:items-end lg:justify-between">
         <div className="max-w-[480px]">
           <h2 className={H2}>See your portfolio this week.</h2>
           <p className={cn(BODY, "mt-3")}>
-            Request early access, then forward last quarter&apos;s packages. We&apos;ll send back a free portfolio review: a ranked list of issues and NOI opportunities.{" "}
+            Book a call, then forward last quarter&apos;s packages. We&apos;ll send back a free portfolio review: a ranked list of issues and NOI opportunities.{" "}
             <a href="/demo" className="text-fg underline-offset-2 hover:underline">
               Or explore the sample portfolio.
             </a>
           </p>
         </div>
-        <WaitlistForm source="footer" />
+        <div className="flex w-full max-w-[420px] flex-col gap-4">
+          {BOOKING_URL && <BookCall className="self-start" />}
+          <WaitlistForm source="footer" />
+        </div>
       </div>
     </section>
   );
