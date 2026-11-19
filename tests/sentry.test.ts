@@ -1,13 +1,17 @@
 import type { ErrorEvent } from "@sentry/nextjs";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { scrubBreadcrumb, scrubEvent } from "@/lib/sentry/scrub";
+import { scrubBreadcrumb, scrubEvent, scrubLog } from "@/lib/sentry/scrub";
 
 /** What reaches Sentry: no bodies, cookies, headers, query strings or emails; the user as an ID only. */
 
-const sent = vi.hoisted(() => ({ messages: [] as { event: string; options: { level: string; extra: Record<string, unknown> } }[] }));
-vi.mock("@sentry/nextjs", () => ({
-  captureMessage: (event: string, options: { level: string; extra: Record<string, unknown> }) => void sent.messages.push({ event, options }),
-}));
+const sent = vi.hoisted(() => ({ messages: [] as { event: string; options: { level: string; extra: Record<string, unknown> } }[], logs: [] as [string, string, Record<string, unknown>][] }));
+vi.mock("@sentry/nextjs", () => {
+  const logAt = (level: string) => (event: string, attrs: Record<string, unknown>) => void sent.logs.push([level, event, attrs]);
+  return {
+    captureMessage: (event: string, options: { level: string; extra: Record<string, unknown> }) => void sent.messages.push({ event, options }),
+    logger: { info: logAt("info"), warn: logAt("warn"), error: logAt("error") },
+  };
+});
 
 const { log } = await import("@/lib/logger");
 
@@ -35,9 +39,10 @@ describe("scrubEvent", () => {
     expect(scrubEvent(event()).request).toEqual({ method: "POST", url: "https://app.re-iq.example/auth/confirm" });
   });
 
-  it("reduces the user to an ID and keeps the org tag", () => {
+  it("reduces the user to an ID, with no IP to infer a location from, and keeps the org tag", () => {
     const e = scrubEvent(event());
-    expect(e.user).toEqual({ id: "user-1" });
+    expect(e.user).toEqual({ id: "user-1", ip_address: null });
+    expect(scrubEvent({ type: undefined } as ErrorEvent).user).toEqual({ ip_address: null });
     expect(e.tags).toEqual({ org_id: "org-1" });
   });
 
@@ -53,21 +58,34 @@ describe("scrubEvent", () => {
   });
 });
 
+describe("scrubLog", () => {
+  it("masks emails in log messages and attributes", () => {
+    const log = scrubLog({ level: "warn", message: "failed for a@b.co", attributes: { who: "jordan@alderpeak.com", action: "signIn" } });
+    expect(log).toEqual({ level: "warn", message: "failed for [email]", attributes: { who: "[email]", action: "signIn" } });
+  });
+});
+
 describe("logger → Sentry", () => {
   beforeEach(() => {
     sent.messages = [];
+    sent.logs = [];
     vi.spyOn(console, "warn").mockImplementation(() => {});
     vi.spyOn(console, "error").mockImplementation(() => {});
     vi.spyOn(console, "info").mockImplementation(() => {});
   });
 
-  it("sends warnings and errors with the same redacted fields, and not info", () => {
+  it("sends every level to Sentry Logs, and opens issues for warnings and errors only, all redacted", () => {
     log.info("something.ok", { action: "signIn" });
     log.warn("rate_limit.fail_open", { action: "signIn", email: "jordan@alderpeak.com" });
     log.error("waitlist.save_failed");
     expect(sent.messages).toEqual([
       { event: "rate_limit.fail_open", options: { level: "warning", extra: { action: "signIn", email: "[redacted]" } } },
       { event: "waitlist.save_failed", options: { level: "error", extra: {} } },
+    ]);
+    expect(sent.logs).toEqual([
+      ["info", "something.ok", { action: "signIn" }],
+      ["warn", "rate_limit.fail_open", { action: "signIn", email: "[redacted]" }],
+      ["error", "waitlist.save_failed", {}],
     ]);
   });
 });

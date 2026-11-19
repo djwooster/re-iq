@@ -1,9 +1,10 @@
-import type { Breadcrumb, Event } from "@sentry/nextjs";
+import type { Breadcrumb, Event, Log } from "@sentry/nextjs";
 
 /**
  * What leaves the app for Sentry. Request bodies, cookies, headers and query strings are dropped;
- * email addresses are masked anywhere in the event; the user is reduced to an ID. Org IDs travel
- * as a tag. Runs in the browser and on the server (beforeSend, beforeBreadcrumb).
+ * email addresses are masked anywhere in the event; the user is reduced to an ID, and Sentry is told
+ * not to infer an IP address or location. Org IDs travel
+ * as a tag. Runs in the browser and on the server (beforeSend, beforeBreadcrumb, beforeSendLog).
  */
 
 const EMAIL = /[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/gi;
@@ -25,7 +26,8 @@ export function scrubEvent<T extends Event>(event: T): T {
     const url = event.request.url ? stripQuery(event.request.url) : undefined;
     event.request = { method: event.request.method, url };
   }
-  event.user = event.user?.id ? { id: event.user.id } : undefined;
+  // ip_address: null tells Sentry not to infer an IP (and from it, a location) from the connection.
+  event.user = event.user?.id ? { id: event.user.id, ip_address: null } : { ip_address: null };
   if (event.message) event.message = maskEmails(event.message);
   event.exception = scrub(event.exception) as T["exception"];
   event.extra = scrub(event.extra) as T["extra"];
@@ -33,6 +35,10 @@ export function scrubEvent<T extends Event>(event: T): T {
   event.tags = scrub(event.tags) as T["tags"];
   event.breadcrumbs = event.breadcrumbs?.map(scrubBreadcrumb);
   return event;
+}
+
+export function scrubLog(log: Log): Log {
+  return { ...log, message: typeof log.message === "string" ? maskEmails(log.message) : log.message, attributes: scrub(log.attributes) as Log["attributes"] };
 }
 
 export function scrubBreadcrumb(crumb: Breadcrumb): Breadcrumb {

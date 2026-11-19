@@ -102,13 +102,18 @@ To re-check on a project: in the SQL editor,
   rate-limit `fail_open` / `fail_closed` events.
 
 **Error tracking: Sentry** (`instrumentation.ts`, `instrumentation-client.ts`, `lib/sentry`)
-- Free plan, US region. Browser, Node and edge runtimes share one set of options. Without
-  `SENTRY_DSN`, Sentry never starts, so local development works without it.
+- Free plan, US region: org `re-iq`, project `re-iq` (Next.js). Browser, Node and edge runtimes share
+  one set of options. Without `SENTRY_DSN`, Sentry never starts.
 - Privacy: `sendDefaultPii: false`. Before anything is sent (`beforeSend`, `beforeBreadcrumb`), request
   bodies, cookies, all headers and query strings are dropped, email addresses are masked anywhere in
-  the event, and the user is reduced to an ID. Events carry the user ID and, when the user belongs to
-  exactly one org, an `org_id` tag; never names or emails.
-- No session replay. Performance tracing samples 10% of requests.
+  the event, and the user is reduced to an ID with `ip_address: null`. Events carry the user ID and,
+  when the user belongs to exactly one org, an `org_id` tag; never names or emails. Browser events
+  tell Sentry never to infer an IP; server events can only show the server's location (Vercel's region).
+- The `re-iq` project has Sentry's server-side data scrubber (with defaults) and "Prevent Storing of IP
+  Addresses" turned on, as a second net behind our own scrubbing.
+- Errors, tracing and logs. Our logger sends every event to Sentry Logs (redacted, and emails masked
+  again by `beforeSendLog`); warnings and errors also open issues. No session replay.
+- Tracing keeps every trace locally and 10% on preview and production.
 - Every event is tagged with its environment: `local`, `preview` or `production` (from Vercel).
 - Source maps upload at build time when `SENTRY_AUTH_TOKEN`, `SENTRY_ORG` and `SENTRY_PROJECT` are set,
   then are deleted from the deployment. The token is build-time only and never reaches the browser.
@@ -148,21 +153,26 @@ Supabase (`.github/workflows/test.yml`).
 - `rate-limit`, `rate-limit-store`: limited requests return the usual messages without calling
   Supabase Auth; an unreachable store fails open for sign-in and closed for the rest, logged without
   email or IP; `rate_limit_hit` counts correctly and is closed to the public key.
-- `sentry`: request bodies, cookies, headers, query strings and emails never reach Sentry, the user is
-  an ID only; `log.warn`/`log.error` forward with redacted fields and `log.info` doesn't.
+- `sentry`: request bodies, cookies, headers, query strings and emails never reach Sentry (events,
+  breadcrumbs, logs); the user is an ID only, with no IP; every log level reaches Sentry Logs and only
+  warnings and errors open issues, all with redacted fields.
 - `security-headers`: the four headers apply to every path (pages and API routes alike).
 
 Verified on 2026-11-19 against a local Supabase (`npx supabase start`): all 10 migrations apply
 cleanly, all 50 tests pass, the cleanup cron job is scheduled, and function grants match the table
 above. The production build serves every route with the headers.
 
+Sentry verified end to end on 2026-11-19: a test error thrown by a temporary route in the production
+build reached the `re-iq` project (issue RE-IQ-1, environment `local`) with only the request method and
+URL, no headers, cookies or body. Its stack trace was minified, as expected without source maps.
+
 ## Untested until staging
 
 - The sign-up → confirm email → sign in → reset password loop with real emails, and Google and
   Microsoft sign-in.
 - Uploader routing end to end in the browser (invite → sign up → accept → `/upload`, kept out of `/app`).
-- Sentry receiving events (needs a DSN): scrubbing is unit-tested, but not yet checked on a real event
-  in the Sentry UI; source-map upload on a Vercel build.
+- Sentry from a Vercel deployment: `preview`/`production` environments, a browser error, and source-map
+  upload (readable stack traces) once `SENTRY_AUTH_TOKEN` is set.
 - HSTS over HTTPS (browsers ignore it on `http://localhost`).
 
 ## Database migrations (Supabase CLI)
@@ -251,14 +261,15 @@ npx supabase link --project-ref <staging-ref>       # point the CLI back at stag
   `v=DMARC1; p=none; rua=mailto:<reports address>`, then tighten to `p=quarantine` once reports
   show only Resend sending for the domain.
 
-**4. Sentry**
-- Create a Sentry account on the free (Developer) plan, choosing the **US** data region.
-- Create one project, platform **Next.js**. Copy its DSN into `SENTRY_DSN` in Vercel (Preview and
-  Production), and optionally `.env.local` to test locally.
-- Create an organization auth token (Settings → Auth Tokens) with source-map upload rights. Put it in
-  `SENTRY_AUTH_TOKEN` in Vercel only (Preview and Production), with `SENTRY_ORG` and
-  `SENTRY_PROJECT` set to the org and project slugs. Never in `.env.local` or a `NEXT_PUBLIC_` variable.
-- In the project's settings, turn on "Prevent Storing of IP Addresses" and leave session replay off.
+**4. Sentry** (account, org `re-iq` in the US region, and project `re-iq` already exist; the DSN is in
+`.env.local`; project-level scrubbing is on)
+- Org settings → Security & Privacy: turn on "Data Scrubber" and "Prevent Storing of IP Addresses" for
+  the whole org (the CLI token can't change org settings).
+- In Vercel, Preview and Production: `SENTRY_DSN` (the same DSN as `.env.local`), `SENTRY_ORG=re-iq`,
+  `SENTRY_PROJECT=re-iq`.
+- Create an organization auth token (Settings → Auth Tokens) for source-map upload and put it in
+  `SENTRY_AUTH_TOKEN` in Vercel only (Preview and Production). Never in `.env.local`, chat, or a
+  `NEXT_PUBLIC_` variable. Without it, production stack traces stay minified.
 - Optional: an alert rule on events named `rate_limit.fail_open` / `rate_limit.fail_closed`.
 
 ## Backlog
