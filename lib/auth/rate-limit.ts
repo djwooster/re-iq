@@ -13,7 +13,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
  * sign-up, password reset and invite acceptance fail closed. Both are logged, without personal data.
  */
 
-type Action = "signIn" | "signUp" | "passwordReset" | "acceptInvite";
+type Action = "signIn" | "signUp" | "passwordReset" | "acceptInvite" | "upload";
 export type Verdict = "ok" | "limited" | "unavailable";
 
 const MINUTE = 60;
@@ -25,6 +25,8 @@ export const LIMITS: Record<Action, { ip: [number, number]; id: [number, number]
   signUp: { ip: [5, HOUR], id: [3, HOUR] },
   passwordReset: { ip: [5, HOUR], id: [3, HOUR] },
   acceptInvite: { ip: [10, HOUR], id: [5, HOUR] },
+  // Per uploader (by user ID); each file counts once. The per-org daily cap is in the database.
+  upload: { ip: [300, HOUR], id: [150, HOUR] },
 };
 
 const FAIL_OPEN: ReadonlySet<Action> = new Set(["signIn"]);

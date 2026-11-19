@@ -1,6 +1,6 @@
 "use client";
 
-import { Building2, ChartNoAxesColumn, ClipboardCheck, Database, FileText, LayoutGrid, ListChecks, LogOut, MessageSquareText, Settings } from "lucide-react";
+import { Building2, ChartNoAxesColumn, ClipboardCheck, Database, FileText, FolderUp, LayoutGrid, ListChecks, LogOut, MessageSquareText, Settings, UserPlus } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
@@ -38,6 +38,14 @@ const NAV: { label: string; items: NavItem[] }[] = [
       { href: "/app/questions", label: "Questions", icon: MessageSquareText, badge: "questions" },
       { href: "/app/actions", label: "Actions", icon: ListChecks, badge: "actions" },
       { href: "/app/report", label: "Owner report", icon: FileText },
+    ],
+  },
+  {
+    // Real data (not the demo): properties, the reports managers upload, and who can upload.
+    label: "Reports",
+    items: [
+      { href: "/app/workspace/properties", label: "Properties and reports", icon: FolderUp },
+      { href: "/app/workspace/managers", label: "Property managers", icon: UserPlus },
     ],
   },
   {
