@@ -34,7 +34,8 @@ export default function SecurityPage() {
       intro={
         <p>
           You trust us with your properties&apos; financials. This page explains, in plain English, how we protect them today and what we&apos;re working on next. It describes
-          only what is actually in place; everything else is labeled as roadmap.
+          only what is actually in place; everything else is labeled as roadmap.{" "}
+          <Link href="/docs/security">Read the full security docs</Link>.
         </p>
       }
     >
