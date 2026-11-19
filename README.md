@@ -11,7 +11,7 @@ parsing, integrations or AI calls yet.
 
 ```bash
 npm install
-cp .env.example .env.local   # then fill it in (see SECURITY.md, "Environment variables")
+cp .env.example .env.local   # then fill it in (see SECURITY.md, "Environments")
 npm run dev                  # http://localhost:3000
 ```
 
@@ -23,8 +23,8 @@ falls back to the demo too.
 1. `npm run dev`, fix things on localhost.
 2. Commit and push to `main`. GitHub runs the tests; Vercel deploys to production.
 3. **Only when a change touches the database** (a new file in `supabase/migrations/`): apply the
-   migration to production *before* pushing the code that needs it (SECURITY.md, "Database
-   migrations"). Code that expects a table the database doesn't have yet breaks the live site.
+   migration to staging, then production, *before* pushing the code that needs it (SECURITY.md, "Database changes").
+   Code that expects a table the database doesn't have yet breaks the live site.
 
 Checks before pushing: `npx tsc --noEmit`, `npm run lint`, `npm run build`. `npm test` runs the
 tests; the database tests skip unless `TEST_SUPABASE_*` are set (CI always runs them).

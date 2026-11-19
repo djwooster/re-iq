@@ -1,8 +1,8 @@
 # Security
 
 RE-IQ holds owners' financials, residents' and employees' personal data, and bank details. This file
-says what protects them today, what still has to be checked once a staging project exists, and the
-manual steps that only DJ can do (dashboards, DNS, secrets).
+says what protects them today, how database changes ship, and the manual steps only DJ can do
+(dashboards, DNS, secrets).
 
 ## In place
 
@@ -197,150 +197,81 @@ Supabase (`.github/workflows/test.yml`).
   warnings and errors open issues, all with redacted fields.
 - `security-headers`: the four headers apply to every path (pages and API routes alike).
 
-Verified on 2026-11-19 against a local Supabase (`npx supabase start`): all 9 migrations apply
-cleanly, all 50 tests pass, the cleanup cron job is scheduled, and function grants match the table
-above. The production build serves every route with the headers.
+Last verified 2026-11-19: all 10 migrations apply on local, staging and production; 91 tests pass
+locally and in CI; staging and production match (tables, RLS, private buckets, function grants,
+cleanup job). The security advisor flags only the eight client-callable functions in the table above,
+each of which checks the caller itself. A test error reached Sentry with no headers, cookies or body.
 
-Staging (`re-iq-staging`, `rtmtepejzkflhbmznbgo`), 2026-11-19: all 9 migrations applied with
-`db push --remote`; tables, RLS, function grants and the cleanup job match the local database. The
-security advisor reports only the three intended client-callable invite functions (each checks the
-caller itself).
+## Not yet tested in a browser
 
-Production (`dixlcrxxnmoivfrnvaqv`), 2026-11-19: the hand-made waitlist table matched
-`20261027000000_waitlist.sql` exactly (columns, constraints, RLS, no policies); its 2 rows were
-exported to a private file outside the repo first. Migration history repaired (old `20261028023558
-create_waitlist` entry marked reverted, `20261027000000` marked applied; history only), then the other 8
-migrations applied with `db push --remote`. History 9 of 9 in sync; tables, RLS, policies, function
-grants and the cleanup job match staging; waitlist rows intact; the advisor reports only the three
-intended invite functions.
+- Sign-up → confirm email → sign in → reset password with real emails; Google and Microsoft sign-in.
+- Uploader routing end to end (invite → sign up → accept → `/upload`, kept out of `/app`).
+- Real uploads: large files and iPhone photos (HEIC).
+- Sentry from Vercel (`preview`/`production` tags, a browser error, readable stack traces once
+  `SENTRY_AUTH_TOKEN` is set) and HSTS over HTTPS.
 
-Sentry verified end to end on 2026-11-19: a test error thrown by a temporary route in the production
-build reached the `re-iq` project (issue RE-IQ-1, environment `local`) with only the request method and
-URL, no headers, cookies or body. Its stack trace was minified, as expected without source maps.
+## Environments
 
-Uploads verified on 2026-11-20 against a local Supabase: 87 tests pass, including the real
-`startUpload` → `incoming` → `finalizeUpload` path (a photo stored without its GPS data, a disguised
-file rejected with nothing stored, `incoming` cleared either way).
+| | Database | Used by |
+|---|---|---|
+| Local | `npx supabase start` (Docker via OrbStack, API port 55321) | the database tests; trying a migration |
+| Staging | `re-iq-staging` (`rtmtepejzkflhbmznbgo`), test data only | `npm run dev` (`.env.local`), Vercel previews |
+| Production | `dixlcrxxnmoivfrnvaqv`, real customer data | `re-iq.vercel.app` |
 
-## Untested until staging
-
-- The sign-up → confirm email → sign in → reset password loop with real emails, and Google and
-  Microsoft sign-in.
-- Uploader routing end to end in the browser (invite → sign up → accept → `/upload`, kept out of `/app`).
-- Uploading from a real browser, including large files and real phone photos (HEIC from an iPhone).
-- Sentry from a Vercel deployment: `preview`/`production` environments, a browser error, and source-map
-  upload (readable stack traces) once `SENTRY_AUTH_TOKEN` is set.
-- HSTS over HTTPS (browsers ignore it on `http://localhost`).
-
-## Database migrations (Supabase CLI)
-
-Migrations live in `supabase/migrations/` and apply in filename order (`YYYYMMDDHHMMSS_name.sql`).
-The CLI is a dev dependency, so every command runs through `npx`. `supabase/config.toml` configures
-the local stack only; hosted projects' Auth settings are set in their dashboards (manual steps below).
-
-New migration: `npx supabase migration new <name>`, then edit the file it creates.
-
-Local (needs Docker):
-```sh
-npx supabase start          # local Postgres, Auth, API (port 55321; 54321 clashes with CleanMyMac)
-npx supabase db reset       # re-apply from scratch after editing migrations
-npx supabase status -o env  # local URL and keys, for TEST_SUPABASE_* when running npm test
-npx supabase stop
-```
-
-Staging:
-```sh
-npx supabase login                                  # once, opens the browser
-npx supabase link --project-ref <staging-ref>       # asks for the staging database password
-npx supabase db push --remote --dry-run             # lists what would run; check it
-npx supabase db push --remote
-```
-CLI 3.x targets the local database unless you pass `--remote`. Read-only checks against a hosted
-project: `npx supabase db query --remote --read-only "<sql>"` and
-`npx supabase db advisors --remote --type security`.
-
-Production (at launch, only after the same migrations ran clean on staging):
-```sh
-npx supabase link --project-ref dixlcrxxnmoivfrnvaqv
-# Done once on 2026-11-19: production's hand-made waitlist migration (20261028023558) was marked
-# reverted and 20261027000000 marked applied. Future production pushes need no repair.
-npx supabase db push --remote --dry-run
-npx supabase db push --remote
-npx supabase link --project-ref <staging-ref>       # point the CLI back at staging
-```
-
-## Manual steps (DJ)
-
-**1. Staging project**
-- Create a Supabase project for staging (free tier).
-- Apply the migrations with the Supabase CLI (above).
-- In `.env.local` and in Vercel's Preview environment (not Production), all for staging:
-  `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`, `SUPABASE_URL`,
-  `SUPABASE_SECRET_KEY`, and `RATE_LIMIT_HMAC_SECRET` (`openssl rand -hex 32`). Optionally
-  `TEST_SUPABASE_*` in `.env.local` to run the database tests against staging.
-- `RATE_LIMIT_HMAC_SECRET` must be different in every environment (local, preview/staging,
-  production), so identifiers from one environment's table can't be matched in another's. Never
-  reuse it across environments or commit it; rotating it only resets the counters.
-- Restart the dev server.
-
-**Environment variables, where each goes**
+Never point localhost at production, and never copy production data into staging or local.
 
 | Variable | `.env.local` | Vercel Preview | Vercel Production |
 |---|---|---|---|
 | `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | staging | staging | production |
 | `SUPABASE_URL`, `SUPABASE_SECRET_KEY` | staging | staging | production |
-| `RATE_LIMIT_HMAC_SECRET` | its own value | its own value | its own value |
-| `SENTRY_DSN` | optional (leave empty to keep Sentry off locally) | yes | yes |
+| `RATE_LIMIT_HMAC_SECRET` (`openssl rand -hex 32`) | its own value | its own value | its own value |
+| `SENTRY_DSN` | optional (empty keeps Sentry off) | yes | yes |
 | `SENTRY_ORG`, `SENTRY_PROJECT`, `SENTRY_AUTH_TOKEN` | no | yes | yes |
-| `TEST_SUPABASE_*` | optional (local or staging) | no | no |
+| `TEST_SUPABASE_*` | optional (local) | no | no |
 
-**2. Supabase Auth settings (staging now, production at launch)**
-- Email: keep "Confirm email" and "Secure email change" on.
-- Passwords: minimum length 8, and turn on leaked-password protection (checks HaveIBeenPwned).
-- URL configuration, **staging** (test data only):
-  - Site URL `http://localhost:3000`.
-  - Redirect URLs `http://localhost:3000/**` and our own preview pattern
-    `https://re-iq-*-dwoosty.vercel.app/**`. This vercel.app wildcard is acceptable on staging only,
-    because staging holds test data.
-- URL configuration, **production**: until we have a custom domain, Site URL `https://re-iq.vercel.app`
-  and Redirect URLs exactly `https://re-iq.vercel.app/**` (production's own site, no wildcard in the
-  host). Once the domain exists, both switch to it exactly (e.g. `https://<domain>/**`). Never a
-  vercel.app pattern such as `re-iq-*`, never localhost, never a broad wildcard.
-- These settings and both email templates live in `supabase/config.toml` (`[remotes.staging]`,
-  `[remotes.production]`) and are applied with `npx supabase config diff --remote=<ref>`, then
-  `npx supabase config push --remote=<ref>`. Leaked-password protection is a dashboard-only toggle.
+`RATE_LIMIT_HMAC_SECRET` differs per environment so identifiers can't be matched across them; rotating
+it only resets the counters. Secrets never go in chat, commits or `NEXT_PUBLIC_` variables.
 
-Staging, done 2026-11-19: confirm email, 8-character minimum, leaked-password protection and secure
-email change on; redirect URLs set as above.
-- Email templates:
-  - Confirm signup link: `{{ .RedirectTo }}&token_hash={{ .TokenHash }}&type=email`
-  - Reset password link: `{{ .RedirectTo }}&token_hash={{ .TokenHash }}&type=recovery`
-- Providers: enable Google (OAuth client from Google Cloud) and Azure for Microsoft (Entra app
-  registration), each with the callback URL Supabase shows.
-- Before production: the Google OAuth consent screen and the Microsoft (Entra) app registration both
-  need live Privacy Policy and Terms of Service URLs on our domain. Google won't verify (and shows
-  an "unverified app" warning) without them; publish both pages first.
+## Database changes
 
-**3. Email delivery before launch**
-- Supabase's built-in email is rate-limited and not for production. Set custom SMTP to Resend
-  (Authentication → SMTP settings) once Resend is set up.
-- Resend asks for DNS records on the sending domain: an SPF TXT record and an MX record on its
-  `send` subdomain, and a DKIM TXT record (`resend._domainkey`). Add them in Vercel DNS exactly as
-  Resend shows them.
-- Add a DMARC TXT record at `_dmarc.<domain>`: start with
-  `v=DMARC1; p=none; rua=mailto:<reports address>`, then tighten to `p=quarantine` once reports
-  show only Resend sending for the domain.
+Migrations live in `supabase/migrations/` and apply in filename order. Every command runs through
+`npx`; CLI 3.x needs `--remote=<ref>` to target a hosted project (otherwise it targets local).
 
-**4. Sentry** (account, org `re-iq` in the US region, and project `re-iq` already exist; the DSN is in
-`.env.local`; project-level scrubbing is on)
-- Org settings → Security & Privacy: turn on "Data Scrubber" and "Prevent Storing of IP Addresses" for
-  the whole org (the CLI token can't change org settings).
-- In Vercel, Preview and Production: `SENTRY_DSN` (the same DSN as `.env.local`), `SENTRY_ORG=re-iq`,
-  `SENTRY_PROJECT=re-iq`.
-- Create an organization auth token (Settings → Auth Tokens) for source-map upload and put it in
-  `SENTRY_AUTH_TOKEN` in Vercel only (Preview and Production). Never in `.env.local`, chat, or a
-  `NEXT_PUBLIC_` variable. Without it, production stack traces stay minified.
-- Optional: an alert rule on events named `rate_limit.fail_open` / `rate_limit.fail_closed`.
+1. `npx supabase migration new <name>`, then write the SQL. New tables get RLS and `org_id`.
+2. Try it locally: `npx supabase start` (or `npx supabase db reset` to re-apply from scratch), then
+   `npm test` with `TEST_SUPABASE_*` from `npx supabase status -o env`.
+3. Staging: `npx supabase db push --remote=rtmtepejzkflhbmznbgo --dry-run`, read the list, then run it
+   without `--dry-run`. Check `npx supabase db advisors --remote=<ref> --type security`.
+4. Production, the same two commands with `--remote=dixlcrxxnmoivfrnvaqv`.
+5. Then push the code that uses it. Code that expects a table the database doesn't have breaks the site.
+
+Read-only checks: `npx supabase db query --remote=<ref> --read-only "<sql>"`.
+
+Auth settings and email templates live in `supabase/config.toml` (`[remotes.staging]`,
+`[remotes.production]`): `npx supabase config diff --remote=<ref>`, then `config push`. Leaked-password
+protection is a dashboard toggle (on in both).
+
+## Manual steps (DJ)
+
+Done: staging project, Auth settings and templates on both projects, leaked-password protection,
+Sentry project and scrubbing.
+
+**Once there's a domain**
+- Supabase production Auth: Site URL and Redirect URLs switch to exactly `https://<domain>/**` (in
+  `config.toml`, then `config push`). Never a vercel.app pattern, localhost or broad wildcard in
+  production; the `re-iq-*-dwoosty.vercel.app` wildcard is for staging only.
+- Resend: add the domain, then its DNS records in Vercel exactly as shown (SPF TXT and MX on the `send`
+  subdomain, DKIM TXT at `resend._domainkey`), plus DMARC at `_dmarc.<domain>`:
+  `v=DMARC1; p=none; rua=mailto:<reports address>`, tightened to `p=quarantine` once reports show only
+  Resend sending. Then Supabase → Authentication → SMTP settings → Resend, on both projects.
+  Supabase's built-in email is rate-limited and not for production.
+- Google OAuth client and Microsoft (Entra) app registration, each with the callback URL Supabase shows.
+  Both need live Privacy and Terms URLs on the domain or Google shows an "unverified app" warning.
+
+**Sentry**
+- Org settings → Security & Privacy: "Data Scrubber" and "Prevent Storing of IP Addresses" for the org.
+- Vercel Preview and Production: `SENTRY_DSN`, `SENTRY_ORG=re-iq`, `SENTRY_PROJECT=re-iq`, and an org
+  auth token in `SENTRY_AUTH_TOKEN` (Vercel only). Without it, production stack traces stay minified.
 
 ## Backlog
 
@@ -374,36 +305,12 @@ email change on; redirect URLs set as above.
 
 ## Log
 
-What changed, newest first. PR numbers are github.com/djwooster/re-iq pull requests.
+Newest first. Git history has the detail.
 
-**2026-11-20**
-- Upload flow built on `feature/uploads` (not yet pushed or migrated): properties, per-property access
-  for invited property managers, `/invite`, `/upload`, private `incoming` and `reports` buckets,
-  content checks, photo metadata removal, versions. Migration `20261120120000_properties_and_uploads.sql`
-  applied locally only. 87 tests pass locally.
-- Public docs page `/docs/security` ("Security & data") built on `marketing/docs` (not yet pushed);
-  uploads are labeled "Not yet live" there until this flow merges.
-
-**2026-11-19**
-- Production database: waitlist table checked against its migration and its rows backed up outside the
-  repo; migration history repaired; 8 migrations applied. Checks and the security advisor match staging.
-- Supabase Auth as code (`supabase/config.toml` remotes) pushed to staging and production: site URLs,
-  redirect URLs (vercel.app preview wildcard on staging only; production exactly `re-iq.vercel.app`),
-  email confirmation, secure email change, 8-character passwords, RE-IQ email templates. PR #5.
-- Leaked-password protection turned on in both projects' dashboards (DJ).
-- Staging project `re-iq-staging` created and migrated; Vercel Preview pointed at it; secrets set
-  without printing them.
-- `/privacy`, `/terms`, `/security` (draft legal text) and footer links. PRs #3/#4, merged.
-- Basic security headers (HSTS, nosniff, Referrer-Policy, X-Frame-Options) and Sentry (scrubbed, user
-  and org ID only, no replay, logs on); verified end to end; org and project scrubbing on. PR #2, merged.
-- Verified every migration and test against a local Supabase (OrbStack) before pushing.
-
-**2026-11-18**
-- Live Supabase auth: email and password, Google, Microsoft, confirmation, password reset. PR #1, merged.
-- Orgs and roles (owner, member, uploader), invites (hashed, single-use, 7 days, email-bound,
-  revocable), one org per uploader, uploaders kept out of `/app`.
-- Org tables SELECT-only for users; internal functions moved to an unexposed `private` schema.
-- Demo sessions isolated from real data; `/demo` asks before signing out a real session.
-- Rate limits on sign-in, sign-up, password reset and invite acceptance (HMAC-keyed; sign-in fails
-  open, the rest closed), with hourly cleanup.
-- Next.js 16.4.6 security patch; Vitest suite; CI running the database tests against local Supabase.
+- **2026-11-19 (evening)**: properties and uploads migration applied to staging, then production (advisor
+  checked on both); upload flow and `/docs/security` merged and pushed to `main`. Branches cleaned up;
+  the old `testing` branch kept as tag `archive/testing-2026-11-02`. CI runs lint too.
+- **2026-11-19**: production migrated (waitlist rows backed up, history repaired, 8 migrations); Auth as
+  code pushed to both projects; staging created; legal pages; security headers and Sentry. PRs #2–#5.
+- **2026-11-18**: live Supabase auth, orgs and roles, invites, RLS lock-down, private schema, demo
+  isolation, rate limits, Vitest and CI. PR #1.
