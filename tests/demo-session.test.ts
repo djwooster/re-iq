@@ -58,11 +58,18 @@ describe("demo session, on the server", () => {
 
   it("is sent away from the uploader page without touching Supabase", async () => {
     const res = await proxy(request("/upload", [DEMO]));
-    expect(new URL(res.headers.get("location")!).pathname).toBe("/app");
+    expect(new URL(res.headers.get("location")!).pathname).toBe("/prototype/overview");
     expect(supabaseCalls.updateSession).toBe(0);
   });
 
-  it("opening /demo while signed in asks first, and changes no cookies", async () => {
+  it("/demo is parked: it sends visitors home and sets no cookie", async () => {
+    const res = await proxy(request("/demo?to=/app/properties", []));
+    expect(new URL(res.headers.get("location")!).pathname).toBe("/");
+    expect(res.cookies.getAll()).toEqual([]);
+  });
+
+  // Parked with the demo (proxy.ts); unskip when it comes back.
+  it.skip("opening /demo while signed in asks first, and changes no cookies", async () => {
     const res = await proxy(request("/demo?to=/app/properties&fresh=1", [{ name: "sb-ref-auth-token", value: "x" }]));
     const to = new URL(res.headers.get("location")!);
     expect(to.pathname).toBe("/demo/switch");
@@ -71,7 +78,7 @@ describe("demo session, on the server", () => {
     expect(res.cookies.getAll()).toEqual([]);
   });
 
-  it("opening /demo signed out starts the demo, and ignores off-site targets", async () => {
+  it.skip("opening /demo signed out starts the demo, and ignores off-site targets", async () => {
     const res = await proxy(request("/demo?to=https://evil.example", []));
     expect(new URL(res.headers.get("location")!).pathname).toBe("/app");
     expect(res.cookies.get("reiq_session")?.value).toBe("demo");

@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 import { SESSION_COOKIE, isSupabaseAuthCookie } from "./demo";
 import { AUTH_ENABLED } from "@/lib/supabase/env";
 import { createClient } from "@/lib/supabase/server";
+import { HOME } from "./access-rules";
 import { checkLimit } from "./rate-limit";
 import { demoTarget, safeNext } from "./redirect";
 
@@ -49,7 +50,7 @@ export async function signIn(_prev: AuthState, fd: FormData): Promise<AuthState>
  * From an invite link (invite=1), no org is created; acceptInvite adds them to the inviting org.
  */
 export async function signUp(_prev: AuthState, fd: FormData): Promise<AuthState> {
-  if (!AUTH_ENABLED) return demoSession("/app");
+  if (!AUTH_ENABLED) return demoSession(HOME.dashboard);
   const invited = str(fd, "invite") === "1";
   const name = str(fd, "name").slice(0, 120);
   const company = str(fd, "company").slice(0, 120);
@@ -67,13 +68,13 @@ export async function signUp(_prev: AuthState, fd: FormData): Promise<AuthState>
     email,
     password,
     // Read by the handle_new_user trigger: company names the new org; signup_via=invite skips it.
-    options: { data: invited ? { full_name: name, signup_via: "invite" } : { full_name: name, company }, emailRedirectTo: `${await origin()}/auth/confirm?next=${invited ? "/invite" : "/app"}` },
+    options: { data: invited ? { full_name: name, signup_via: "invite" } : { full_name: name, company }, emailRedirectTo: `${await origin()}/auth/confirm?next=${invited ? "/invite" : HOME.dashboard}` },
   });
   if (error) {
     return { status: "error", message: error.code === "weak_password" ? "Choose a stronger password." : "We couldn't create your account just now. Please try again." };
   }
   // With email confirmation off (local only), Supabase signs the user straight in.
-  if (data.session) redirect(invited ? "/invite" : "/app");
+  if (data.session) redirect(invited ? "/invite" : HOME.dashboard);
   return { status: "sent", email };
 }
 
@@ -115,7 +116,7 @@ export async function updatePassword(_prev: AuthState, fd: FormData): Promise<Au
   if (error) {
     return { status: "error", message: error.code === "same_password" ? "Choose a password you haven't used here before." : "That reset link has expired. Request a new one." };
   }
-  redirect("/app");
+  redirect(HOME.dashboard);
 }
 
 /**

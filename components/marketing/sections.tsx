@@ -197,10 +197,11 @@ export function FinalCta() {
         <div className="max-w-[480px]">
           <h2 className={H2}>See your portfolio this week.</h2>
           <p className={cn(BODY, "mt-3")}>
-            Book a call, then forward last quarter&apos;s packages. We&apos;ll send back a free portfolio review: a ranked list of issues and NOI opportunities.{" "}
+            Book a call, then forward last quarter&apos;s packages. We&apos;ll send back a free portfolio review: a ranked list of issues and NOI opportunities.
+            {/* Demo parked (see proxy.ts).{" "}
             <a href="/demo" className="text-fg underline-offset-2 hover:underline">
               Or explore the sample portfolio.
-            </a>
+            </a> */}
           </p>
         </div>
         <div className="flex w-full max-w-[420px] flex-col gap-4">

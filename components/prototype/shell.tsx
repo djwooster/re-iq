@@ -1,6 +1,7 @@
 "use client";
 
 import { AlertCircle, Building2, CalendarCheck, ChartNoAxesColumn, ClipboardCheck, FileText, HardHat, Landmark, LayoutGrid, ListChecks, LogOut, Menu, RotateCcw, Settings, Users, Wrench, X } from "lucide-react";
+import { signOut } from "@/lib/auth/actions";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
@@ -122,9 +123,9 @@ function UserMenu() {
           >
             <RotateCcw className="size-3.5" strokeWidth={1.75} /> Start over
           </button>
-          <Link href={B} className="flex h-7 items-center gap-2 rounded-md px-2 text-xs text-fg-2 hover:bg-fg/[0.04] hover:text-fg">
+          <button type="button" onClick={() => signOut()} className="flex h-7 w-full items-center gap-2 rounded-md px-2 text-left text-xs text-fg-2 hover:bg-fg/[0.04] hover:text-fg">
             <LogOut className="size-3.5" strokeWidth={1.75} /> Sign out
-          </Link>
+          </button>
         </div>
       )}
       <button type="button" onClick={() => setOpen((v) => !v)} aria-expanded={open} className="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-left transition-colors hover:bg-fg/[0.03]">

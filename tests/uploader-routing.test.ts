@@ -32,14 +32,15 @@ beforeEach(() => {
 describe("routing by role", () => {
   it("sends uploaders from every /app page to /upload", async () => {
     session.roles = ["uploader"];
-    for (const path of ["/app", "/app/workspace/properties", "/app/workspace/managers", "/app/properties"]) expect(await go(path)).toBe("/upload");
+    for (const path of ["/app", "/app/workspace/properties", "/app/workspace/managers", "/app/properties", "/prototype", "/prototype/overview"]) expect(await go(path)).toBe("/upload");
     expect(await go("/upload")).toBeNull();
   });
 
   it("lets owners into /app and sends them away from /upload", async () => {
     session.roles = ["owner"];
     expect(await go("/app/workspace/properties")).toBeNull();
-    expect(await go("/upload")).toBe("/app");
+    expect(await go("/prototype/overview")).toBeNull();
+    expect(await go("/upload")).toBe("/prototype/overview");
   });
 
   it("gives an uploader nothing through a Google or Microsoft session", async () => {

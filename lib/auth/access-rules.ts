@@ -30,4 +30,4 @@ export async function fetchRoles(supabase: SupabaseClient, userId: string): Prom
   return (await fetchMemberships(supabase, userId)).map((m) => m.role);
 }
 
-export const HOME: Record<Access, string> = { dashboard: "/app", uploader: "/upload", none: "/upload" };
+export const HOME: Record<Access, string> = { dashboard: "/prototype/overview", uploader: "/upload", none: "/upload" };
