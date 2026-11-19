@@ -98,11 +98,32 @@ To re-check on a project: in the SQL editor,
 **Logging** (`lib/logger.ts`)
 - One JSON line per event; callers pass event names and non-personal fields only, and field names
   that look sensitive (email, token, password, IP, name, amounts…) are redacted as a backstop.
+- `log.warn` and `log.error` also go to Sentry with the same redacted fields, including the
+  rate-limit `fail_open` / `fail_closed` events.
+
+**Error tracking: Sentry** (`instrumentation.ts`, `instrumentation-client.ts`, `lib/sentry`)
+- Free plan, US region. Browser, Node and edge runtimes share one set of options. Without
+  `SENTRY_DSN`, Sentry never starts, so local development works without it.
+- Privacy: `sendDefaultPii: false`. Before anything is sent (`beforeSend`, `beforeBreadcrumb`), request
+  bodies, cookies, all headers and query strings are dropped, email addresses are masked anywhere in
+  the event, and the user is reduced to an ID. Events carry the user ID and, when the user belongs to
+  exactly one org, an `org_id` tag; never names or emails.
+- No session replay. Performance tracing samples 10% of requests.
+- Every event is tagged with its environment: `local`, `preview` or `production` (from Vercel).
+- Source maps upload at build time when `SENTRY_AUTH_TOKEN`, `SENTRY_ORG` and `SENTRY_PROJECT` are set,
+  then are deleted from the deployment. The token is build-time only and never reaches the browser.
+
+**Security headers** (`next.config.ts`, every route including API routes)
+- `Strict-Transport-Security: max-age=63072000; includeSubDomains` (no preload yet)
+- `X-Content-Type-Options: nosniff`
+- `Referrer-Policy: strict-origin-when-cross-origin`
+- `X-Frame-Options: DENY`
+- No Content-Security-Policy yet (see Deferred).
 
 **Secrets**
-- Server-only: `SUPABASE_SECRET_KEY` (read in `lib/supabase/admin.ts` and `lib/waitlist.ts`) and
-  `RATE_LIMIT_HMAC_SECRET`. The only `NEXT_PUBLIC_` values are the Supabase URL, the publishable key
-  and a dev-tools flag.
+- Server-only: `SUPABASE_SECRET_KEY` (read in `lib/supabase/admin.ts` and `lib/waitlist.ts`),
+  `RATE_LIMIT_HMAC_SECRET`, and the build-time `SENTRY_AUTH_TOKEN`. The only `NEXT_PUBLIC_` values are
+  the Supabase URL, the publishable key, the Sentry DSN (not a secret) and a dev-tools flag.
 
 **Dependencies**
 - Next.js 16.4.6 (patched for the `use cache` advisories).
@@ -127,15 +148,22 @@ Supabase (`.github/workflows/test.yml`).
 - `rate-limit`, `rate-limit-store`: limited requests return the usual messages without calling
   Supabase Auth; an unreachable store fails open for sign-in and closed for the rest, logged without
   email or IP; `rate_limit_hit` counts correctly and is closed to the public key.
+- `sentry`: request bodies, cookies, headers, query strings and emails never reach Sentry, the user is
+  an ID only; `log.warn`/`log.error` forward with redacted fields and `log.info` doesn't.
+- `security-headers`: the four headers apply to every path (pages and API routes alike).
 
-## Untested until a database is connected
+Verified on 2026-11-19 against a local Supabase (`npx supabase start`): all 10 migrations apply
+cleanly, all 50 tests pass, the cleanup cron job is scheduled, and function grants match the table
+above. The production build serves every route with the headers.
 
-Built, type-checked, and covered by the tests that don't need a database. Not yet run against a real
-Supabase (local or staging):
-- The migrations themselves, and all database tests.
-- The sign-up → confirm email → sign in → reset password loop, and Google and Microsoft sign-in.
-- Uploader routing end to end (invite → sign up → accept → `/upload`, kept out of `/app`).
-- Rate limits and the cleanup job against real tables.
+## Untested until staging
+
+- The sign-up → confirm email → sign in → reset password loop with real emails, and Google and
+  Microsoft sign-in.
+- Uploader routing end to end in the browser (invite → sign up → accept → `/upload`, kept out of `/app`).
+- Sentry receiving events (needs a DSN): scrubbing is unit-tested, but not yet checked on a real event
+  in the Sentry UI; source-map upload on a Vercel build.
+- HSTS over HTTPS (browsers ignore it on `http://localhost`).
 
 ## Database migrations (Supabase CLI)
 
@@ -185,6 +213,17 @@ npx supabase link --project-ref <staging-ref>       # point the CLI back at stag
   reuse it across environments or commit it; rotating it only resets the counters.
 - Restart the dev server.
 
+**Environment variables, where each goes**
+
+| Variable | `.env.local` | Vercel Preview | Vercel Production |
+|---|---|---|---|
+| `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | staging | staging | production |
+| `SUPABASE_URL`, `SUPABASE_SECRET_KEY` | staging | staging | production |
+| `RATE_LIMIT_HMAC_SECRET` | its own value | its own value | its own value |
+| `SENTRY_DSN` | optional (leave empty to keep Sentry off locally) | yes | yes |
+| `SENTRY_ORG`, `SENTRY_PROJECT`, `SENTRY_AUTH_TOKEN` | no | yes | yes |
+| `TEST_SUPABASE_*` | optional (local or staging) | no | no |
+
 **2. Supabase Auth settings (staging now, production at launch)**
 - Email: keep "Confirm email" on.
 - Passwords: minimum length 8, and turn on leaked-password protection (checks HaveIBeenPwned).
@@ -212,6 +251,16 @@ npx supabase link --project-ref <staging-ref>       # point the CLI back at stag
   `v=DMARC1; p=none; rua=mailto:<reports address>`, then tighten to `p=quarantine` once reports
   show only Resend sending for the domain.
 
+**4. Sentry**
+- Create a Sentry account on the free (Developer) plan, choosing the **US** data region.
+- Create one project, platform **Next.js**. Copy its DSN into `SENTRY_DSN` in Vercel (Preview and
+  Production), and optionally `.env.local` to test locally.
+- Create an organization auth token (Settings → Auth Tokens) with source-map upload rights. Put it in
+  `SENTRY_AUTH_TOKEN` in Vercel only (Preview and Production), with `SENTRY_ORG` and
+  `SENTRY_PROJECT` set to the org and project slugs. Never in `.env.local` or a `NEXT_PUBLIC_` variable.
+- In the project's settings, turn on "Prevent Storing of IP Addresses" and leave session replay off.
+- Optional: an alert rule on events named `rate_limit.fail_open` / `rate_limit.fail_closed`.
+
 ## Backlog
 
 - Invite and uploader UI: the `/invite` page and the uploader's sign-in offer email and password
@@ -223,13 +272,19 @@ npx supabase link --project-ref <staging-ref>       # point the CLI back at stag
 - Private storage with `{org_id}/{property_id}/…` paths, org-scoped storage policies, and
   short-lived signed URLs; upload size and count quotas per org.
 - Bot protection on sign-up (Cloudflare Turnstile recommended; Supabase Auth verifies it).
-- From the security plan, needing no auth: Sentry with scrubbing, `/api/health`, a lint guard on
-  `NEXT_PUBLIC_` secrets, security headers and CSP, CI typecheck/lint/build with Dependabot, CodeQL
-  and gitleaks, and the provider-agnostic `lib/ai`.
+- From the security plan, needing no auth: a lint guard on `NEXT_PUBLIC_` secrets, CI lint and build
+  with Dependabot, CodeQL and gitleaks, and the provider-agnostic `lib/ai`.
 
 ## Deferred
 
-- Sentry alerts on `rate_limit.fail_open` / `rate_limit.fail_closed` (needs Sentry first).
+- Content-Security-Policy. Nonces would make every page render per request (Next.js 16 can't nonce a
+  prebuilt page or a Partial Prerendering shell), so it waits until we decide between nonces on the
+  signed-in routes only and a static policy elsewhere.
+- Audit log (`audit_events`): append-only, owners read their org's events, wired into auth and invite
+  actions, one-year retention.
+- Health endpoint (`/api/health`, ok/not ok after a database check) and an uptime monitor pointed at it.
+- Sentry alerts on `rate_limit.fail_open` / `rate_limit.fail_closed`.
+- `Strict-Transport-Security` preload, once every subdomain is HTTPS-only.
 - Moving rate limiting to a dedicated store (e.g. Upstash Redis via the Vercel Marketplace) if load
   requires it.
 - A faster CI database job (excluding unused Supabase services) if `supabase start` gets slow.
