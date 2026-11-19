@@ -147,7 +147,7 @@ New migration: `npx supabase migration new <name>`, then edit the file it create
 
 Local (needs Docker):
 ```sh
-npx supabase start          # local Postgres, Auth, API; applies every migration
+npx supabase start          # local Postgres, Auth, API (port 55321; 54321 clashes with CleanMyMac)
 npx supabase db reset       # re-apply from scratch after editing migrations
 npx supabase status -o env  # local URL and keys, for TEST_SUPABASE_* when running npm test
 npx supabase stop
