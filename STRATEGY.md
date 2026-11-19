@@ -69,7 +69,7 @@ company drifts into consulting.
 - **Code.** No customer-specific branches, forks, or hard-coded org IDs. A customer that needs
   something different gets it through plan entitlements or org settings available to every
   customer.
-- **People.** Write down how things work: README, HANDOFF, this file, runbooks. Hire heads of
+- **People.** Write down how things work: README, this file, runbooks. Hire heads of
   product, sales, and engineering early enough that the company runs for a month without the
   founder.
 

@@ -2,7 +2,7 @@
 
 Multi-tenant AI asset-management dashboard for multifamily owners and asset managers.
 Phase 1: read-only intelligence layer on mock data. No real parsing, integrations,
-write-back, or AI calls. See `README.md`, `HANDOFF.md`, `TODO.md`.
+write-back, or AI calls. See `README.md`, `TODO.md`, `docs/product.md`.
 
 @AGENTS.md
 

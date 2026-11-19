@@ -1,83 +1,59 @@
 # RE-IQ
 
-AI asset-management dashboard for multifamily owners and asset managers. Phase 1 is a
-read-only intelligence layer running entirely on realistic mock data: no real parsing,
-integrations, write-back, or AI calls.
+AI asset-management dashboard for multifamily owners and asset managers. Sign-in, orgs, invites and
+file uploads are real (Supabase). The dashboards still run on deterministic mock data: no real
+parsing, integrations or AI calls yet.
+
+- `TODO.md`: what's next. `STRATEGY.md`: why. `SECURITY.md`: how data is protected, and setup steps.
+- `docs/product.md`: how the product works. `docs/design-system.md`: the UI rules.
 
 ## Run it
 
 ```bash
 npm install
-npm run dev        # http://localhost:3000
+cp .env.example .env.local   # then fill it in (see SECURITY.md, "Environment variables")
+npm run dev                  # http://localhost:3000
 ```
 
-Sign in with any credentials (the form is prefilled), or open `/demo` to skip the form. You land in the Alder Peak Capital
-sample portfolio: 14 properties, 3,790 units, 6 markets, 4 property managers, 24 months
-of history through Sep 30, 2026. The demo clock is fixed at Oct 18, 2026 (`lib/dates.ts`).
+`/demo` opens the sample portfolio without an account. With the Supabase variables unset, sign-in
+falls back to the demo too.
 
-Other scripts: `npm run build`, `npm run lint`.
+## Workflow
 
-## Usability testing
+1. `npm run dev`, fix things on localhost.
+2. Commit and push to `main`. GitHub runs the tests; Vercel deploys to production.
+3. **Only when a change touches the database** (a new file in `supabase/migrations/`): apply the
+   migration to production *before* pushing the code that needs it (SECURITY.md, "Database
+   migrations"). Code that expects a table the database doesn't have yet breaks the live site.
 
-Sessions run on the `testing` branch, which Vercel deploys to its own preview URL, so
-changes there never touch production (`main`). Merge what tests well back into `main`.
+Checks before pushing: `npx tsc --noEmit`, `npm run lint`, `npm run build`. `npm test` runs the
+tests; the database tests skip unless `TEST_SUPABASE_*` are set (CI always runs them).
 
-Start each participant at `/demo?fresh=1`: it signs in and clears every change earlier
-participants made in that browser (uploads, mappings, action status, invites, theme).
+## Where things are
+
+- `app/(app)/app/*`: the product demo. `app/(auth)`: sign-in, sign-up, invites, `/upload`.
+  `app/(marketing)`: the public site and waitlist. `app/prototype`, `app/wireframe`: design work
+  (`docs/product.md`).
+- `proxy.ts`: gates `/app` on a Supabase session or the demo cookie; keeps uploaders out of `/app`.
+- `lib/data/index.ts`: the only data import for UI code. Async and org-scoped, so the mock internals
+  can move to Supabase without UI changes. `lib/types` mirrors the tables; every record has `org_id`.
+- `lib/data/mock/*`: the deterministic generator and seed. `lib/data/insights.ts`: issues and AI
+  summaries, computed from the same records as the tables so numbers agree everywhere.
+- `lib/data/store.ts`: demo changes, kept in `localStorage`.
+- `lib/supabase`, `lib/auth`, `lib/uploads`: the real backend. `supabase/migrations`: the schema.
+- `components/ui`: primitives. Design tokens are CSS variables in `app/globals.css`.
 
 ## Dev tools
 
-Set `NEXT_PUBLIC_SHOW_DEV_TOOLS=true` in `.env.local` (see `.env.example`) and restart the
-dev server. The sidebar footer then shows an internal panel with:
+`NEXT_PUBLIC_SHOW_DEV_TOOLS=true` in `.env.local`, then restart. The sidebar footer gets a role
+preview (Asset Manager, Owner / Investor, Executive) and **Reset demo data**.
 
-- **Role preview**: Asset Manager (default), Owner / Investor, Executive. Changes the
-  Overview's summary, headline metrics, and secondary panels.
-- **Reset demo data**: clears everything changed in this browser (uploads, confirmed
-  mappings, action status, invites).
+## Gotchas
 
-## Where the data lives
-
-- `lib/data/index.ts` is the data access layer. UI code imports only from here. Every
-  function is async and org-scoped (`getPortfolioSummary(orgId, period)`,
-  `getProperty(id)`, `uploadReport(file)`, ...), so the internals can move to Supabase and
-  a real parsing pipeline without UI changes.
-- `lib/types` mirrors the future Supabase tables; every record carries `org_id`.
-- `lib/data/mock/catalog.ts`: organization, team, property managers, properties, vendors,
-  data sources. Story knobs (`story: "hvac"`, etc.) live on each property seed.
-- `lib/data/mock/generate.ts`: deterministic generator for monthly budget and actual GL
-  lines, month-end occupancy and delinquency, rent roll and leases, and work orders.
-- `lib/data/mock/imports.ts`: seeded import history and per-PMS chart-of-accounts
-  templates used for mapping. `mock/detect.ts` is the mock "parser" (reads file names).
-- `lib/data/insights.ts`: issues, opportunities, and AI summaries, computed from the same
-  records the tables use, so every number agrees across views.
-- `lib/data/store.ts`: demo persistence. Only user changes are stored, in
-  `localStorage`; the seeded portfolio is regenerated on each load.
-
-Freshness is derived, not stored: an upload-fed property's "data through" date is its
-latest processed T12. Confirming an upload or a review moves it forward everywhere.
-
-## Seeded stories
-
-- Lakeline Flats (Frisco): vacancy and concessions drive most of the portfolio's gap.
-- Mesa Verde (Mesa): R&M over budget from repeat HVAC calls to the same units.
-- Brookstone Park (Charlotte): many below-market leases with renewals coming up.
-- Crestline properties: landscaping spend above benchmark.
-- Magnolia Court: delinquency rising; September T12 in **Needs review** (2 mappings).
-- Hickory Station: September T12 upload **Failed** (scanned PDF).
-- Peachtree Landing utilities and Willow Bend contract labor as smaller issues.
-
-To try the upload flow, drop a file named like
-`Hickory Station - 12 Month Income Statement - Sep 2026.xlsx`. Detection reads the
-property, report type, and period from the name; anything it can't tell, you choose.
-
-## Structure
-
-- `app/(app)/app/*`: the product. `app/(auth)`: login and signup. `app/(marketing)`:
-  the public landing page and waitlist (see its README).
-- `proxy.ts`: mock auth gate (a session cookie).
-- `components/ui`: primitives (buttons, tables, drawers, toasts, metrics).
-- Design tokens are CSS variables in `app/globals.css`, exposed to Tailwind v4 via
-  `@theme`. Theme is applied before first paint by an inline script
-  (`components/theme`).
-
-See `TODO.md` for what comes next.
+- A running `npm run dev` doesn't pick up `app/globals.css` changes; restart it.
+- The demo clock is fixed (`lib/dates.ts`, Oct 18, 2026); never `new Date()` in render.
+- Cache Components is on: components using pathname hooks sit under `<Suspense>`, dynamic routes use
+  `generateStaticParams`, and a `generateMetadata` that awaits data breaks prerender.
+- When a property is missing a month, its budget is left out for that month too.
+- Own theme provider instead of next-themes (React 19 warns on its script tag).
+- ESLint 9 and TypeScript 6 are pinned until eslint-config-next supports newer.

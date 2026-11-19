@@ -10,7 +10,7 @@
 - [ ] Click through `/prototype` from setup to Overview (DJ, in the browser) and list refinements.
 - [ ] Prototype follow-ups: sortable tables, remember mapping choices per label, a period picker
       for past closes, and whether the marketing nav links to `/prototype` instead of `/wireframe`.
-- [ ] Review the wireframe (`/wireframe`, `WIREFRAME.md`) with Brian; collect his corrections.
+- [ ] Review the wireframe (`/wireframe`, `docs/product.md`) with Brian; collect his corrections.
 - [ ] Restart the dev server and check the hero's file-tag colors (XLS green, PDF red, CSV blue);
       the running server doesn't pick up `app/globals.css` edits.
 - [ ] Usability sessions: turn off Vercel preview protection for `testing`, run the first
