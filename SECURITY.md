@@ -371,3 +371,39 @@ email change on; redirect URLs set as above.
 - Moving rate limiting to a dedicated store (e.g. Upstash Redis via the Vercel Marketplace) if load
   requires it.
 - A faster CI database job (excluding unused Supabase services) if `supabase start` gets slow.
+
+## Log
+
+What changed, newest first. PR numbers are github.com/djwooster/re-iq pull requests.
+
+**2026-11-20**
+- Upload flow built on `feature/uploads` (not yet pushed or migrated): properties, per-property access
+  for invited property managers, `/invite`, `/upload`, private `incoming` and `reports` buckets,
+  content checks, photo metadata removal, versions. Migration `20261120120000_properties_and_uploads.sql`
+  applied locally only. 87 tests pass locally.
+- Public docs page `/docs/security` ("Security & data") built on `marketing/docs` (not yet pushed);
+  uploads are labeled "Not yet live" there until this flow merges.
+
+**2026-11-19**
+- Production database: waitlist table checked against its migration and its rows backed up outside the
+  repo; migration history repaired; 8 migrations applied. Checks and the security advisor match staging.
+- Supabase Auth as code (`supabase/config.toml` remotes) pushed to staging and production: site URLs,
+  redirect URLs (vercel.app preview wildcard on staging only; production exactly `re-iq.vercel.app`),
+  email confirmation, secure email change, 8-character passwords, RE-IQ email templates. PR #5.
+- Leaked-password protection turned on in both projects' dashboards (DJ).
+- Staging project `re-iq-staging` created and migrated; Vercel Preview pointed at it; secrets set
+  without printing them.
+- `/privacy`, `/terms`, `/security` (draft legal text) and footer links. PRs #3/#4, merged.
+- Basic security headers (HSTS, nosniff, Referrer-Policy, X-Frame-Options) and Sentry (scrubbed, user
+  and org ID only, no replay, logs on); verified end to end; org and project scrubbing on. PR #2, merged.
+- Verified every migration and test against a local Supabase (OrbStack) before pushing.
+
+**2026-11-18**
+- Live Supabase auth: email and password, Google, Microsoft, confirmation, password reset. PR #1, merged.
+- Orgs and roles (owner, member, uploader), invites (hashed, single-use, 7 days, email-bound,
+  revocable), one org per uploader, uploaders kept out of `/app`.
+- Org tables SELECT-only for users; internal functions moved to an unexposed `private` schema.
+- Demo sessions isolated from real data; `/demo` asks before signing out a real session.
+- Rate limits on sign-in, sign-up, password reset and invite acceptance (HMAC-keyed; sign-in fails
+  open, the rest closed), with hourly cleanup.
+- Next.js 16.4.6 security patch; Vitest suite; CI running the database tests against local Supabase.
