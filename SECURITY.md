@@ -158,9 +158,14 @@ Supabase (`.github/workflows/test.yml`).
   warnings and errors open issues, all with redacted fields.
 - `security-headers`: the four headers apply to every path (pages and API routes alike).
 
-Verified on 2026-11-19 against a local Supabase (`npx supabase start`): all 10 migrations apply
+Verified on 2026-11-19 against a local Supabase (`npx supabase start`): all 9 migrations apply
 cleanly, all 50 tests pass, the cleanup cron job is scheduled, and function grants match the table
 above. The production build serves every route with the headers.
+
+Staging (`re-iq-staging`, `rtmtepejzkflhbmznbgo`), 2026-11-19: all 9 migrations applied with
+`db push --remote`; tables, RLS, function grants and the cleanup job match the local database. The
+security advisor reports only the three intended client-callable invite functions (each checks the
+caller itself).
 
 Sentry verified end to end on 2026-11-19: a test error thrown by a temporary route in the production
 build reached the `re-iq` project (issue RE-IQ-1, environment `local`) with only the request method and
@@ -195,17 +200,20 @@ Staging:
 ```sh
 npx supabase login                                  # once, opens the browser
 npx supabase link --project-ref <staging-ref>       # asks for the staging database password
-npx supabase db push --dry-run                      # lists what would run; check it
-npx supabase db push
+npx supabase db push --remote --dry-run             # lists what would run; check it
+npx supabase db push --remote
 ```
+CLI 3.x targets the local database unless you pass `--remote`. Read-only checks against a hosted
+project: `npx supabase db query --remote --read-only "<sql>"` and
+`npx supabase db advisors --remote --type security`.
 
 Production (at launch, only after the same migrations ran clean on staging):
 ```sh
 npx supabase link --project-ref dixlcrxxnmoivfrnvaqv
 # The waitlist table was created by hand before the CLI; record it as applied so push skips it.
-npx supabase migration repair --status applied 20261027000000
-npx supabase db push --dry-run
-npx supabase db push
+npx supabase migration repair --remote --status applied 20261027000000
+npx supabase db push --remote --dry-run
+npx supabase db push --remote
 npx supabase link --project-ref <staging-ref>       # point the CLI back at staging
 ```
 
