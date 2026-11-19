@@ -52,8 +52,6 @@ description: How RE-IQ protects your properties' data, who can see what, and wha
 
 ## Uploads and files
 
-> **Not yet live.** File uploads are being finished now. When they launch, this is how they'll work:
-
 - Owners choose which properties each property manager can upload to, and can change or remove that access at any time, effective immediately.
 - Accepted files: Excel (.xlsx, .xls), CSV, PDF and photos (.jpg, .png, .heic), up to 25 MB each.
 - Every file's contents are checked, not just its name. A file that isn't what its name says is refused, and spreadsheets containing macros are refused.

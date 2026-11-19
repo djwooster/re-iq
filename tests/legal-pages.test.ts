@@ -58,8 +58,8 @@ describe("security docs (content/docs/security.md)", () => {
     ]);
   });
 
-  it("labels what isn't live: uploads (until the upload flow ships), parsing rules, and the roadmap", () => {
-    expect(section("Uploads and files")).toMatch(/Not yet live/);
+  it("labels what isn't live: parsing rules and the roadmap, but not uploads", () => {
+    expect(section("Uploads and files")).not.toMatch(/Not yet live/);
     expect(section("Data we don't keep")).toMatch(/Not yet live[\s\S]*Payroll[\s\S]*Residents/);
     expect(section("On our roadmap")).toMatch(/Not yet live/);
   });
