@@ -13,9 +13,6 @@ export function SiteHeader() {
           <Link href="/login" className="rounded-md px-2.5 py-1.5 text-fg-2 transition-colors hover:bg-surface-2 hover:text-fg">
             Sign in
           </Link>
-          <Link href="/wireframe" className="rounded-md px-2.5 py-1.5 text-fg-2 transition-colors hover:bg-surface-2 hover:text-fg">
-            Wireframe
-          </Link>
           <BookCall className="h-auto px-3 py-1.5 text-xs" />
         </nav>
       </div>
