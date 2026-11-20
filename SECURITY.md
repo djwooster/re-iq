@@ -222,8 +222,8 @@ each of which checks the caller itself. A test error reached Sentry with no head
 
 DJ's call (2026-11-19): no staging for now, so localhost runs against production. That means local
 sign-ups, uploads and deletions are real. Test with your own accounts, never a customer's, and never copy
-production data anywhere else. Production's Auth redirect list stays production-only, so emailed links
-from a local sign-up open the live site. Bring staging back before there's more than a handful of users.
+production data anywhere else. Production's Auth redirect list also allows `http://localhost:3000/**` for now
+(DJ approved 2026-11-19), so emailed links from a local sign-up come back to localhost; remove it when staging returns. Bring staging back before there's more than a handful of users.
 
 | Variable | `.env.local` | Vercel Preview | Vercel Production |
 |---|---|---|---|

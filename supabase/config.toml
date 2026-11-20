@@ -484,9 +484,10 @@ project_id = "dixlcrxxnmoivfrnvaqv"
 
 [remotes.production.auth]
 # Production's own URL until we have a custom domain; then both switch to the domain, exactly.
-# Never localhost, a vercel.app pattern (re-iq-*…) or a broad wildcard here.
+# Never a vercel.app pattern (re-iq-*…) or a broad wildcard here. localhost:3000 is allowed only while
+# localhost runs against production (no staging, DJ's call 2026-11-19); remove it when staging returns.
 site_url = "https://re-iq.vercel.app"
-additional_redirect_urls = ["https://re-iq.vercel.app/**"]
+additional_redirect_urls = ["https://re-iq.vercel.app/**", "http://localhost:3000/**"]
 minimum_password_length = 8
 
 [remotes.production.auth.email]
