@@ -3,12 +3,7 @@
 import { useState, useTransition } from "react";
 import { Button } from "@/components/ui/button";
 
-/** "October 2026" for a period stored as 2026-10-01. */
-export const monthLabel = (period: string) => new Date(`${period.slice(0, 10)}T00:00:00Z`).toLocaleDateString("en-US", { month: "long", year: "numeric", timeZone: "UTC" });
-
-export const dateLabel = (iso: string) => new Date(iso).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
-
-export const sizeLabel = (bytes: number) => (bytes >= 1024 * 1024 ? `${(bytes / (1024 * 1024)).toFixed(1)} MB` : `${Math.max(1, Math.round(bytes / 1024))} KB`);
+export { dateLabel, monthLabel, sizeLabel } from "@/lib/workspace/format";
 
 /** A destructive action asks once more before it runs (two clicks, never a dialog). */
 export function ConfirmButton({ label, confirmLabel, onConfirm }: { label: string; confirmLabel: string; onConfirm: () => Promise<unknown> }) {

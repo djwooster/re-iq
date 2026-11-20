@@ -7,7 +7,7 @@ import { checkLimit } from "@/lib/auth/rate-limit";
 import { log } from "@/lib/logger";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
-import { getUploader } from "@/lib/workspace/context";
+import { getUploadContext } from "@/lib/workspace/context";
 import { isReportType } from "./report-types";
 import { stripMetadata } from "./strip-metadata";
 import { ACCEPTED_EXTENSIONS, MAX_UPLOAD_BYTES, REJECTION_MESSAGE, checkFile, extensionOf, isImage, safeFileName } from "./validate";
@@ -54,7 +54,7 @@ function accessMessage(status: unknown): string | null {
 }
 
 export async function startUpload(meta: UploadMeta, size: number): Promise<StartResult> {
-  const { supabase, userId, orgId } = await getUploader();
+  const { supabase, userId, orgId } = await getUploadContext();
   const invalid = checkMeta(meta);
   if (invalid) return { ok: false, message: invalid };
   if (size <= 0) return { ok: false, message: REJECTION_MESSAGE.empty };
@@ -81,7 +81,7 @@ export async function startUpload(meta: UploadMeta, size: number): Promise<Start
 }
 
 export async function finalizeUpload(meta: UploadMeta, uploadId: string): Promise<FinishResult> {
-  const { supabase, orgId } = await getUploader();
+  const { supabase, orgId } = await getUploadContext();
   const invalid = checkMeta(meta);
   if (invalid || !UUID.test(uploadId)) return { ok: false, message: invalid ?? NO_ACCESS };
   const admin = createAdminClient();
@@ -122,6 +122,7 @@ export async function finalizeUpload(meta: UploadMeta, uploadId: string): Promis
       return { ok: false, message: NO_ACCESS };
     }
     revalidatePath("/upload");
+    revalidatePath("/app", "layout");
     return { ok: true, version };
   } finally {
     await admin.storage.from("incoming").remove([path]);

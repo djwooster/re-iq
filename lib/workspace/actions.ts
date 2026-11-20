@@ -17,8 +17,7 @@ const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const OWNERS_ONLY = { ok: false, message: "Only owners can change this." } as const;
 const TRY_AGAIN = { ok: false, message: "That didn't save. Try again." } as const;
 
-const PATHS = ["/app/workspace/properties", "/app/workspace/managers"];
-const refresh = () => PATHS.forEach((p) => revalidatePath(p));
+const refresh = () => revalidatePath("/app", "layout");
 
 function readProperty(fd: FormData) {
   const name = String(fd.get("name") ?? "").trim();
@@ -114,6 +113,26 @@ export async function updateMyName(name: string): Promise<Result> {
   if (!value || value.length > 100) return { ok: false, message: "Enter your name (up to 100 characters)." };
   const { error } = await ws.supabase.auth.updateUser({ data: { full_name: value } });
   if (error) return TRY_AGAIN;
-  revalidatePath("/prototype", "layout");
+  refresh();
+  return { ok: true };
+}
+
+/** Finishing or skipping setup; remembered on the org, so it holds on any computer. */
+export async function completeSetup(): Promise<Result> {
+  const ws = await getWorkspace();
+  const { error } = await ws.supabase.rpc("complete_setup", { target_org: ws.orgId });
+  if (error) return TRY_AGAIN;
+  refresh();
+  return { ok: true };
+}
+
+export async function renameOrg(name: string): Promise<Result> {
+  const ws = await getWorkspace();
+  if (ws.role !== "owner") return OWNERS_ONLY;
+  const value = name.trim();
+  if (!value || value.length > 120) return { ok: false, message: "Enter a name (up to 120 characters)." };
+  const { error } = await ws.supabase.rpc("rename_org", { target_org: ws.orgId, new_name: value });
+  if (error) return TRY_AGAIN;
+  refresh();
   return { ok: true };
 }

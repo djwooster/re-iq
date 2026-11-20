@@ -3,7 +3,6 @@
 import { Check, Copy } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
-import { PageBody, PageHeader } from "@/components/shell/page-header";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader } from "@/components/ui/card";
 import { Field, Input } from "@/components/ui/controls";
@@ -22,8 +21,6 @@ export function ManagersView({ properties, uploaders, invites, canEdit }: { prop
   const router = useRouter();
   return (
     <>
-      <PageHeader title="Property managers" subtitle="People who upload monthly reports for your properties" />
-      <PageBody>
         <div className="flex flex-col gap-4">
           {canEdit &&
             (active.length ? (
@@ -80,7 +77,6 @@ export function ManagersView({ properties, uploaders, invites, canEdit }: { prop
             </Card>
           )}
         </div>
-      </PageBody>
     </>
   );
 }

@@ -31,10 +31,13 @@ tests; the database tests skip unless `TEST_SUPABASE_*` are set (CI always runs 
 
 ## Where things are
 
-- `app/(app)/app/*`: the product demo. `app/(auth)`: sign-in, sign-up, invites, `/upload`.
-  `app/(marketing)`: the public site and waitlist. `app/prototype`, `app/wireframe`: design work
-  (`docs/product.md`).
-- `proxy.ts`: gates `/app` on a Supabase session or the demo cookie; keeps uploaders out of `/app`.
+- `app/(workspace)/app/*`: the real, signed-in app (`/app`, `/app/setup`): real records only, empty
+  states until there's data. `components/app`: its frame, setup and settings.
+- `app/prototype`: the standalone, hard-coded prototype (no sign-in, browser storage). It stays
+  separate from `/app`. `app/wireframe`: low-fidelity reference (`docs/product.md`).
+- `app/(auth)`: sign-in, sign-up, invites. `app/(uploader)`: `/upload` for property managers.
+  `app/(marketing)`: the public site. `app/_parked-demo`: the old mock `/app` demo, not routed.
+- `proxy.ts`: gates `/app` on a Supabase session; keeps uploaders out of `/app`. `/demo` is parked.
 - `lib/data/index.ts`: the only data import for UI code. Async and org-scoped, so the mock internals
   can move to Supabase without UI changes. `lib/types` mirrors the tables; every record has `org_id`.
 - `lib/data/mock/*`: the deterministic generator and seed. `lib/data/insights.ts`: issues and AI

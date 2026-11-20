@@ -21,8 +21,6 @@ const nextConfig: NextConfig = {
   async redirects() {
     return [
       { source: "/wireframe-v2/:path*", destination: "/wireframe/:path*", permanent: false },
-      // Signing in is real (/login), so the prototype's own sign-in screen (Login in components/prototype/overview.tsx) is parked.
-      { source: "/prototype", destination: "/prototype/overview", permanent: false },
     ];
   },
   turbopack: {

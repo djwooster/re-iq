@@ -6,7 +6,7 @@ How RE-IQ is meant to work, and what each of the three versions on the site show
 |---|---|---|
 | `/prototype` | The current flow at high fidelity: onboarding, Close, Exceptions, Owner report, on the app design system with real numbers | **Current thinking.** Hard-coded hi-fi wireframe; no new state or data wiring unless asked |
 | `/wireframe` | The same flow in low fidelity (gray bars, generic names) | Reference; unchanged |
-| `/app` | The earlier month-end demo (Alder Peak Capital), behind sign-in | Older flow; not changed to match |
+| `/app` | The real, signed-in app: the prototype's layout on real records (properties, reports, managers, close), empty states elsewhere | **Live** for invited users |
 
 Brian's doc *Multifamily Asset Manager Dashboard — Reports & Decision Workflow* (local only, not in
 git) is the source for the wireframe and prototype.
@@ -77,7 +77,7 @@ some module tabs (GL detail, AP aging, funnel, work orders, inspections) use fix
 Routes in `app/wireframe`; components and data in `components/wireframe-v2` (`seed.ts`, `store.tsx`,
 `derive.ts`). Clicks carry across screens and reset on reload. v1 is parked in `app/_wireframe-v1`.
 
-## `/app` (earlier demo)
+## Earlier demo (parked in `app/_parked-demo`, not routed)
 
 Jordan Reyes, AM at Alder Peak Capital, on Oct 18, 2026, partway through the September close: 14
 properties, 3,790 units, 4 property managers, 24 months of history.

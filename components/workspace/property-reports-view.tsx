@@ -1,36 +1,20 @@
-import Link from "next/link";
-import { PageBody, PageHeader } from "@/components/shell/page-header";
-import { Badge } from "@/components/ui/badge";
 import { Card, CardHeader } from "@/components/ui/card";
 import { EmptyState } from "@/components/ui/empty-state";
 import { THead, Table, Td, Th, Tr } from "@/components/ui/table";
 import { reportTypeLabel } from "@/lib/uploads/report-types";
-import type { Property, Upload } from "@/lib/workspace/queries";
+import type { Upload } from "@/lib/workspace/queries";
 import { DownloadButton } from "./download-button";
 import { dateLabel, monthLabel, sizeLabel } from "./shared";
 
 /** Which reports arrived for each month, who uploaded them, and a download for each. */
-export function PropertyReportsView({ property, uploads, names }: { property: Property; uploads: Upload[]; names: Record<string, string> }) {
+export function PropertyReportsView({ uploads, names }: { uploads: Upload[]; names: Record<string, string> }) {
   const months = [...new Set(uploads.map((u) => u.period))];
   return (
     <>
-      <PageHeader
-        title={property.name}
-        subtitle={
-          <>
-            <Link href="/app/workspace/properties" className="hover:text-fg">
-              Properties and reports
-            </Link>
-            {property.address ? ` · ${property.address}` : ""}
-          </>
-        }
-        actions={property.archived_at ? <Badge tone="muted">Archived</Badge> : undefined}
-      />
-      <PageBody>
         <div className="flex flex-col gap-4">
           {months.length === 0 && (
             <Card>
-              <EmptyState title="No reports yet" description="Reports appear here as soon as this property's manager uploads them." />
+              <EmptyState title="No reports yet" description="Reports appear here once they're uploaded, by your team or this property's manager." />
             </Card>
           )}
           {months.map((month) => {
@@ -70,7 +54,6 @@ export function PropertyReportsView({ property, uploads, names }: { property: Pr
             );
           })}
         </div>
-      </PageBody>
     </>
   );
 }

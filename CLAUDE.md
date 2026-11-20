@@ -30,11 +30,12 @@ write-back, or AI calls. See `README.md`, `TODO.md`, `docs/product.md`.
 
 ## Architecture
 - Next.js 16 App Router (Cache Components on), React 19, Tailwind v4, Motion, Recharts.
-- Routes: `app/(app)/app/*` product, `app/(auth)` login/signup, `app/(marketing)` reserved.
-  `proxy.ts` (not middleware) gates `/app` on a Supabase session (`lib/supabase`, `lib/auth`) or the
-  `/demo` cookie; with `NEXT_PUBLIC_SUPABASE_*` unset, sign-in falls back to the demo. Data is still mock.
-- UI imports data only from `@/lib/data` (async, org-scoped). Never import `lib/data/mock/*`
-  or `lib/data/core.ts` from components or pages.
+- Two separate flows. `/app` (`app/(workspace)`) is the real product for signed-in users: real records
+  through `lib/workspace` (pages load with `requestWorkspace()`), no sample data, empty states until
+  there's data, setup remembered on the org. `/prototype` is the standalone hard-coded prototype
+  (browser storage, no sign-in); never mix the two. `app/_parked-demo` is the old mock demo, unrouted.
+- `proxy.ts` (not middleware) gates `/app` on a Supabase session (`lib/supabase`, `lib/auth`); `/demo` is parked.
+- Mock data (`@/lib/data`, `lib/data/mock/*`) only feeds the parked demo and must never reach `/app`.
 - `lib/types` mirrors future Supabase tables; every record has `org_id`.
 - Mock data is deterministic (`lib/data/mock/*`); user changes persist in localStorage via
   `lib/data/store.ts`. Components load data with `useData(fn, deps)` from `lib/hooks/use-data`.

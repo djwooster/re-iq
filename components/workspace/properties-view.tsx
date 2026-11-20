@@ -3,7 +3,6 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
-import { PageBody, PageHeader } from "@/components/shell/page-header";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader } from "@/components/ui/card";
@@ -17,11 +16,8 @@ import { ConfirmButton, FormMessage } from "./shared";
 export function PropertiesView({ properties, canEdit }: { properties: Property[]; canEdit: boolean }) {
   const [editing, setEditing] = useState<string | null>(null);
   const router = useRouter();
-  const active = properties.filter((p) => !p.archived_at);
   return (
     <>
-      <PageHeader title="Properties and reports" subtitle={`${active.length} active ${active.length === 1 ? "property" : "properties"}`} />
-      <PageBody>
         <div className="flex flex-col gap-4">
           {canEdit && (
             <Card>
@@ -33,7 +29,7 @@ export function PropertiesView({ properties, canEdit }: { properties: Property[]
           )}
           <Card>
             {properties.length === 0 ? (
-              <EmptyState title="No properties yet" description={canEdit ? "Add your first property above, then invite its property manager to upload reports." : "An owner adds properties."} />
+              <EmptyState title="No properties yet" description={canEdit ? "Add your first property above. Then upload its reports yourself, or invite its property manager to." : "An owner adds properties."} />
             ) : (
               <Table>
                 <THead>
@@ -60,7 +56,7 @@ export function PropertiesView({ properties, canEdit }: { properties: Property[]
                     ) : (
                       <Tr key={p.id}>
                         <Td>
-                          <Link href={`/app/workspace/properties/${p.id}`} className="font-medium text-property underline decoration-property/40 decoration-dashed underline-offset-[3px] hover:decoration-property">
+                          <Link href={`/app/properties/${p.id}`} className="font-medium text-property underline decoration-property/40 decoration-dashed underline-offset-[3px] hover:decoration-property">
                             {p.name}
                           </Link>
                         </Td>
@@ -93,7 +89,6 @@ export function PropertiesView({ properties, canEdit }: { properties: Property[]
             )}
           </Card>
         </div>
-      </PageBody>
     </>
   );
 }

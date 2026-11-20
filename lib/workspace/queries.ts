@@ -69,6 +69,18 @@ export async function getPropertyReports(ws: Workspace, propertyId: string) {
   return { property: property.data as Property | null, uploads: (uploads.data ?? []) as Upload[], names: Object.fromEntries(names) as Record<string, string> };
 }
 
+/** Every upload in the org for one month (`period` is YYYY-MM-01), newest first. */
+export async function getUploadsForPeriod(ws: Workspace, period: string): Promise<Upload[]> {
+  const { data } = await ws.supabase.from("uploads").select(UPLOAD_COLUMNS).eq("org_id", ws.orgId).eq("period", period).order("created_at", { ascending: false });
+  return (data ?? []) as Upload[];
+}
+
+/** The org's latest uploads, any month. */
+export async function getRecentUploads(ws: Workspace, limit = 8): Promise<Upload[]> {
+  const { data } = await ws.supabase.from("uploads").select(UPLOAD_COLUMNS).eq("org_id", ws.orgId).order("created_at", { ascending: false }).limit(limit);
+  return (data ?? []) as Upload[];
+}
+
 /** The properties this uploader may upload to (row-level security returns only their grants). */
 export async function getUploaderProperties(ctx: UploaderContext): Promise<Property[]> {
   const { data } = await ctx.supabase.from("properties").select("id, name, address, unit_count, archived_at").eq("org_id", ctx.orgId).is("archived_at", null).order("name");

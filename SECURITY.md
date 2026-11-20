@@ -101,8 +101,10 @@ which it doesn't expose. New functions in `public` get no EXECUTE by default.
 | `accept_org_invite(text)` | public | yes | authenticated (matching email) | `acceptInvite` |
 | `set_uploader_access(uuid, uuid, uuid[])`, `remove_uploader(uuid, uuid)` | public | yes | authenticated (owners) | `setUploaderAccess`, `removeUploader` |
 | `org_people(uuid)` | public | yes | authenticated (owners, members) | manager and report screens |
-| `can_upload(uuid)`, `record_upload(…)` | public | yes | authenticated (granted uploaders) | `startUpload`, `finalizeUpload` |
-| `has_property_access(uuid)`, `can_read_report_object(text)`, `try_uuid(text)`, `org_upload_cap()` | private | mixed | authenticated (policies run as the user) | policies and the functions above |
+| `can_upload(uuid)`, `record_upload(…)` | public | yes | authenticated (owners and members of the property's org, granted uploaders) | `startUpload`, `finalizeUpload` |
+| `complete_setup(uuid)` | public | yes | authenticated (owners, members) | `completeSetup` (finish or skip setup) |
+| `rename_org(uuid, text)` | public | yes | authenticated (owners) | `renameOrg` |
+| `has_property_access(uuid)`, `can_write_property(uuid)`, `can_read_report_object(text)`, `try_uuid(text)`, `org_upload_cap()` | private | mixed | authenticated (policies run as the user) | policies and the functions above |
 | `rate_limit_hit(text, int, int)` | public | yes | service_role | `lib/auth/rate-limit.ts` |
 | `is_org_member(uuid)`, `is_org_owner(uuid)`, `is_org_reader(uuid)` | private | yes | authenticated (RLS runs as the user) | policies |
 | `handle_new_user()` | private | yes | nobody (trigger only) | `auth.users` insert |

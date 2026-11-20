@@ -50,15 +50,16 @@ describe("demo session, on the server", () => {
     expect(isDemoSession([{ name: "reiq_session", value: "anything-else" }])).toBe(false);
   });
 
-  it("opens /app without touching Supabase", async () => {
+  it("a leftover demo cookie can't open /app: it goes home, cleared, without touching Supabase", async () => {
     const res = await proxy(request("/app/properties", [DEMO]));
-    expect(res.headers.get("location")).toBeNull();
+    expect(new URL(res.headers.get("location")!).pathname).toBe("/");
+    expect(res.cookies.get("reiq_session")?.value).toBe("");
     expect(supabaseCalls.updateSession).toBe(0);
   });
 
   it("is sent away from the uploader page without touching Supabase", async () => {
     const res = await proxy(request("/upload", [DEMO]));
-    expect(new URL(res.headers.get("location")!).pathname).toBe("/prototype/overview");
+    expect(new URL(res.headers.get("location")!).pathname).toBe("/");
     expect(supabaseCalls.updateSession).toBe(0);
   });
 

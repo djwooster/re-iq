@@ -1,7 +1,6 @@
 "use client";
 
 import { AlertCircle, Building2, CalendarCheck, ChartNoAxesColumn, ClipboardCheck, FileText, HardHat, Landmark, LayoutGrid, ListChecks, LogOut, Menu, RotateCcw, Settings, Users, Wrench, X } from "lucide-react";
-import { signOut } from "@/lib/auth/actions";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
@@ -9,7 +8,6 @@ import { FadeIn } from "@/components/ui/motion";
 import { cn } from "@/lib/cn";
 import { PRODUCT_NAME } from "@/lib/labels";
 import { managerState } from "./derive";
-import { ROLE_LABELS, useAccount } from "./account";
 import { Notifications } from "./notifications";
 import { MANAGERS } from "./seed";
 import { openExceptions, useWf, type Compare, type Period } from "./store";
@@ -91,7 +89,6 @@ function Nav({ onNavigate }: { onNavigate?: () => void }) {
 
 function UserMenu() {
   const { state, act } = useWf();
-  const account = useAccount();
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
@@ -119,22 +116,22 @@ function UserMenu() {
             type="button"
             onClick={() => {
               act.reset();
-              router.push(`${B}/overview`);
+              router.push(B);
             }}
             className="flex h-7 w-full items-center gap-2 rounded-md px-2 text-left text-xs text-fg-2 hover:bg-fg/[0.04] hover:text-fg"
           >
             <RotateCcw className="size-3.5" strokeWidth={1.75} /> Start over
           </button>
-          <button type="button" onClick={() => signOut()} className="flex h-7 w-full items-center gap-2 rounded-md px-2 text-left text-xs text-fg-2 hover:bg-fg/[0.04] hover:text-fg">
+          <Link href={B} className="flex h-7 items-center gap-2 rounded-md px-2 text-xs text-fg-2 hover:bg-fg/[0.04] hover:text-fg">
             <LogOut className="size-3.5" strokeWidth={1.75} /> Sign out
-          </button>
+          </Link>
         </div>
       )}
       <button type="button" onClick={() => setOpen((v) => !v)} aria-expanded={open} className="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-left transition-colors hover:bg-fg/[0.03]">
         <span className="num flex size-6 shrink-0 items-center justify-center rounded-full border border-border bg-surface text-[11px] text-fg-2">{initials}</span>
         <span className="min-w-0 flex-1">
           <span className="block truncate text-xs font-medium text-fg">{state.user.name}</span>
-          <span className="block truncate text-xs text-fg-3">{account ? ROLE_LABELS[account.role] : "Asset manager"}</span>
+          <span className="block truncate text-xs text-fg-3">Asset manager</span>
         </span>
       </button>
     </div>

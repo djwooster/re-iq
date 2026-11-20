@@ -10,7 +10,7 @@ import { HAS_TEST_DB, admin, cleanup, makeUser, orgsOf, signedIn, type TestUser 
 
 const ctx = vi.hoisted(() => ({ uploader: null as null | { supabase: unknown; userId: string; orgId: string } }));
 
-vi.mock("@/lib/workspace/context", () => ({ getUploader: async () => ctx.uploader }));
+vi.mock("@/lib/workspace/context", () => ({ getUploadContext: async () => ctx.uploader }));
 vi.mock("@/lib/auth/rate-limit", () => ({ checkLimit: async () => "ok" }));
 vi.mock("@/lib/supabase/admin", () => ({ createAdminClient: () => admin() }));
 vi.mock("next/cache", () => ({ revalidatePath: () => {} }));

@@ -119,6 +119,25 @@ describe.skipIf(!HAS_TEST_DB)("uploads: access, isolation and storage", () => {
     expect((await ownerB.storage.from("reports").list(`${orgA}/${p1}`)).data ?? []).toEqual([]);
   });
 
+  it("owners upload to their own org's properties, never another org's", async () => {
+    expect((await ownerA.rpc("can_upload", { target_property: p1 })).data).toBe("ok");
+    expect((await ownerA.rpc("can_upload", { target_property: q1 })).data).toBe("no_access");
+    expect((await upload(ownerA, orgA, p2, "owner.csv")).error).toBeNull();
+    expect((await upload(ownerB, orgA, p1, "intruder.csv")).error).not.toBeNull();
+  });
+
+  it("setup and the org name: setup by the org's own people, renaming by its owner only", async () => {
+    expect((await ownerB.rpc("complete_setup", { target_org: orgA })).error).not.toBeNull();
+    expect((await up1.rpc("complete_setup", { target_org: orgA })).error).not.toBeNull();
+    expect((await ownerA.rpc("complete_setup", { target_org: orgA })).error).toBeNull();
+    expect((await ownerA.from("orgs").select("setup_completed_at").eq("id", orgA).single()).data?.setup_completed_at).not.toBeNull();
+    expect((await ownerB.rpc("rename_org", { target_org: orgA, new_name: "Taken" })).error).not.toBeNull();
+    expect((await up1.rpc("rename_org", { target_org: orgA, new_name: "Taken" })).error).not.toBeNull();
+    expect((await ownerA.rpc("rename_org", { target_org: orgA, new_name: "   " })).error).not.toBeNull();
+    expect((await ownerA.rpc("rename_org", { target_org: orgA, new_name: "  Uploads A Renamed " })).error).toBeNull();
+    expect((await ownerA.from("orgs").select("name").eq("id", orgA).single()).data?.name).toBe("Uploads A Renamed");
+  });
+
   it("another org can't add properties or grant access in this org", async () => {
     expect((await ownerB.from("properties").insert({ org_id: orgA, name: "Sneaky" })).error).not.toBeNull();
     expect((await ownerB.rpc("set_uploader_access", { target_org: orgA, target_user: up1User.id, property_ids: [p1, p2] })).error).not.toBeNull();

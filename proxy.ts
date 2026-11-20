@@ -7,8 +7,8 @@ import { updateSession } from "@/lib/supabase/proxy";
 /**
  * Auth gate.
  * - Demo sessions (the /demo cookie) only see /app's mock data and never touch Supabase.
- * - Signed-in users: owners and members get /app and /prototype (their home); uploaders get /upload,
- *   and only with an email-and-password session. The session is refreshed here on every request.
+ * - Signed-in users: owners and members get /app; uploaders get /upload, and only with an
+ *   email-and-password session. /prototype is a standalone demo and isn't gated. The session is refreshed here on every request.
  * /demo is parked while /app's mock data is out of date: it sends visitors home. Server Actions and
  * Route Handlers check access themselves too.
  */
@@ -44,8 +44,13 @@ export async function proxy(request: NextRequest) {
     return response;
   }
 
+  // The demo is parked, and /app is the real workspace now: a leftover demo cookie goes home and is cleared.
   if (isDemoSession(request.cookies.getAll())) {
-    if (pathname === "/upload") return NextResponse.redirect(new URL(HOME.dashboard, request.url));
+    if (isDashboard(pathname) || pathname === "/upload") {
+      const home = NextResponse.redirect(new URL("/", request.url));
+      home.cookies.delete(SESSION_COOKIE);
+      return home;
+    }
     if (pathname === "/reset-password") return NextResponse.redirect(new URL("/forgot-password", request.url));
     return NextResponse.next();
   }
@@ -78,7 +83,7 @@ export async function proxy(request: NextRequest) {
 
 /** Pages only owners and members may open. */
 function isDashboard(pathname: string) {
-  return pathname.startsWith("/app") || pathname.startsWith("/prototype");
+  return pathname === "/app" || pathname.startsWith("/app/");
 }
 
 /** A redirect that still carries any auth cookies the session refresh just set. */
@@ -89,5 +94,5 @@ function redirectKeepingCookies(url: URL, from: NextResponse) {
 }
 
 export const config = {
-  matcher: ["/demo", "/app/:path*", "/prototype/:path*", "/upload", "/invite", "/login", "/signup", "/forgot-password", "/reset-password", "/auth/:path*"],
+  matcher: ["/demo", "/app/:path*", "/upload", "/invite", "/login", "/signup", "/forgot-password", "/reset-password", "/auth/:path*"],
 };
