@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { Suspense } from "react";
 import { UploadView } from "@/components/uploads/upload-view";
 import { getViewer } from "@/lib/auth/access";
@@ -7,7 +8,7 @@ import { getUploaderHistory, getUploaderProperties } from "@/lib/workspace/queri
 
 export const metadata: Metadata = { title: "Upload reports" };
 
-type Props = { searchParams: Promise<{ property?: string }> };
+type Props = { searchParams: Promise<{ org?: string; property?: string }> };
 
 /** Where property managers upload. The proxy sends everyone else elsewhere; this re-checks. */
 export default function UploadPage({ searchParams }: Props) {
@@ -22,7 +23,7 @@ function Notice({ title, children }: { title: string; children: React.ReactNode 
   return (
     <div className="max-w-[420px]">
       <h1 className="text-[15px] font-semibold text-fg">{title}</h1>
-      <p className="mt-1 text-xs text-fg-3">{children}</p>
+      <div className="mt-1 text-xs text-fg-3">{children}</div>
     </div>
   );
 }
@@ -32,13 +33,27 @@ async function Upload({ searchParams }: Props) {
   if (viewer.kind !== "user" || viewer.access !== "uploader") {
     return <Notice title="No workspace yet">Your account isn&apos;t part of a workspace. Ask the person who invited you for a new invite link.</Notice>;
   }
-  const ctx = await getUploader();
+  const { org, property } = await searchParams;
+  const ctx = await getUploader(org);
   const properties = await getUploaderProperties(ctx);
   if (!properties.length) {
-    return <Notice title="No properties yet">You don&apos;t have access to any properties right now. Ask the owner who invited you to give you access.</Notice>;
+    const others = ctx.orgs.filter((o) => o.id !== ctx.orgId);
+    return (
+      <Notice title="No properties yet">
+        You don&apos;t have access to any of {ctx.orgs.find((o) => o.id === ctx.orgId)?.name || "this owner"}&apos;s properties right now. Ask them to give you access.
+        {others.length > 0 && (
+          <span className="mt-3 flex flex-wrap gap-x-3 gap-y-1">
+            {others.map((o) => (
+              <Link key={o.id} href={`/upload?org=${o.id}`} className="font-medium text-fg underline decoration-fg/20 underline-offset-[3px] hover:decoration-fg/60">
+                {o.name}
+              </Link>
+            ))}
+          </span>
+        )}
+      </Notice>
+    );
   }
-  const { property } = await searchParams;
   const selected = properties.find((p) => p.id === property) ?? properties[0];
   const history = await getUploaderHistory(ctx, selected.id);
-  return <UploadView properties={properties} selectedId={selected.id} history={history} />;
+  return <UploadView owners={ctx.orgs} ownerId={ctx.orgId} properties={properties} selectedId={selected.id} history={history} />;
 }

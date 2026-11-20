@@ -29,15 +29,34 @@ function lastMonth(): string {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
 }
 
-/** The property managers' upload page: the upload card, then everything they've uploaded for the property. */
-export function UploadView({ properties, selectedId, history }: { properties: Property[]; selectedId: string; history: Upload[] }) {
+/**
+ * The property managers' upload page: which owner they're working for (when they upload for more than
+ * one), the upload card, then everything they've uploaded for the property, any month.
+ */
+export function UploadView({ owners, ownerId, properties, selectedId, history }: { owners: { id: string; name: string }[]; ownerId: string; properties: Property[]; selectedId: string; history: Upload[] }) {
+  const router = useRouter();
   return (
     <div className="flex flex-col gap-5">
-      <div>
-        <h1 className="text-[18px] font-semibold text-fg">Upload reports</h1>
-        <p className="mt-1 text-xs text-fg-3">{UPLOAD_HINT}</p>
+      <div className="flex flex-wrap items-end justify-between gap-3">
+        <div>
+          <h1 className="text-[18px] font-semibold text-fg">Upload reports</h1>
+          <p className="mt-1 text-xs text-fg-3">{UPLOAD_HINT}</p>
+        </div>
+        {owners.length > 1 && (
+          <Field label="Owner">
+            {(id) => (
+              <Select id={id} value={ownerId} onChange={(e) => router.replace(`/upload?org=${e.target.value}`)}>
+                {owners.map((o) => (
+                  <option key={o.id} value={o.id}>
+                    {o.name}
+                  </option>
+                ))}
+              </Select>
+            )}
+          </Field>
+        )}
       </div>
-      <UploadCard properties={properties} selectedId={selectedId} propertyHref="/upload?property=" />
+      <UploadCard properties={properties} selectedId={selectedId} propertyHref={`/upload?org=${ownerId}&property=`} />
       <History history={history} />
     </div>
   );

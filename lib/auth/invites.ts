@@ -30,11 +30,11 @@ export async function acceptInvite(token: string): Promise<AcceptResult> {
   return { ok: true, orgId: data };
 }
 
-/** The /invite page's Accept button: accepts the invite held in the cookie, then opens the upload page. */
+/** The /invite page's Accept button: accepts the invite held in the cookie, then opens the upload page for that owner. */
 export async function acceptInviteFromCookie(): Promise<{ ok: false; message: string }> {
   const jar = await cookies();
   const result = await acceptInvite(jar.get(INVITE_COOKIE)?.value ?? "");
   if (!result.ok) return { ok: false, message: "This invite can't be used. It may have expired, been revoked or used already, or be for a different email. Ask for a new one." };
   jar.delete({ name: INVITE_COOKIE, path: "/invite" });
-  redirect("/upload");
+  redirect(`/upload?org=${result.orgId}`);
 }

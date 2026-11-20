@@ -34,25 +34,30 @@ export async function getWorkspace(): Promise<Workspace> {
 export interface UploaderContext {
   supabase: SupabaseClient;
   userId: string;
+  /** The owner they're working for now. */
   orgId: string;
+  /** Every owner they upload for, by name. */
+  orgs: { id: string; name: string }[];
 }
 
-/** An uploader, in the one org they upload for. */
-export async function getUploader(): Promise<UploaderContext> {
+/** An uploader, working for one of the owners they upload for: `orgId` if it's one of theirs, else the first by name. */
+export async function getUploader(orgId?: string): Promise<UploaderContext> {
   const viewer = await getViewer();
   if (viewer.kind !== "user" || viewer.access !== "uploader") throw new AccessDenied();
   const supabase = await createClient();
-  const { data } = await supabase.from("org_members").select("org_id").eq("user_id", viewer.userId).eq("role", "uploader").maybeSingle();
-  if (!data) throw new AccessDenied();
-  return { supabase, userId: viewer.userId, orgId: data.org_id as string };
+  const { data } = await supabase.from("org_members").select("org_id, orgs(name)").eq("user_id", viewer.userId).eq("role", "uploader");
+  const orgs = ((data ?? []) as unknown as { org_id: string; orgs: { name: string } | null }[]).map((r) => ({ id: r.org_id, name: r.orgs?.name ?? "" })).sort((a, b) => a.name.localeCompare(b.name));
+  if (!orgs.length) throw new AccessDenied();
+  return { supabase, userId: viewer.userId, orgId: orgs.find((o) => o.id === orgId)?.id ?? orgs[0].id, orgs };
 }
 
-/** Whoever may upload: an owner or member in their org, or an uploader in theirs. The database re-checks per property. */
-export async function getUploadContext(): Promise<UploaderContext> {
+/** Whoever may upload: an owner or member, or an uploader. Which org an upload belongs to comes from its property; the database re-checks access per property. */
+export async function getUploadContext(): Promise<{ supabase: SupabaseClient; userId: string }> {
   const viewer = await getViewer();
   if (viewer.kind === "user" && viewer.access === "dashboard") {
-    const { supabase, userId, orgId } = await getWorkspace();
-    return { supabase, userId, orgId };
+    const { supabase, userId } = await getWorkspace();
+    return { supabase, userId };
   }
-  return getUploader();
+  const { supabase, userId } = await getUploader();
+  return { supabase, userId };
 }

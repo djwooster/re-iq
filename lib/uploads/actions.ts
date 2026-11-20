@@ -47,6 +47,12 @@ function checkMeta(meta: UploadMeta): string | null {
 
 const pathFor = (orgId: string, meta: UploadMeta, uploadId: string) => `${orgId}/${meta.propertyId}/${uploadId}/${safeFileName(meta.fileName)}`;
 
+/** The org a property belongs to, read as the caller (row-level security hides properties they can't see). */
+async function propertyOrg(supabase: Awaited<ReturnType<typeof getUploadContext>>["supabase"], propertyId: string): Promise<string | null> {
+  const { data } = await supabase.from("properties").select("org_id").eq("id", propertyId).maybeSingle();
+  return (data?.org_id as string | undefined) ?? null;
+}
+
 function accessMessage(status: unknown): string | null {
   if (status === "ok") return null;
   if (status === "org_cap") return "Your organization has reached today's upload limit. Try again tomorrow.";
@@ -54,9 +60,11 @@ function accessMessage(status: unknown): string | null {
 }
 
 export async function startUpload(meta: UploadMeta, size: number): Promise<StartResult> {
-  const { supabase, userId, orgId } = await getUploadContext();
+  const { supabase, userId } = await getUploadContext();
   const invalid = checkMeta(meta);
   if (invalid) return { ok: false, message: invalid };
+  const orgId = await propertyOrg(supabase, meta.propertyId);
+  if (!orgId) return { ok: false, message: NO_ACCESS };
   if (size <= 0) return { ok: false, message: REJECTION_MESSAGE.empty };
   if (size > MAX_UPLOAD_BYTES) return { ok: false, message: REJECTION_MESSAGE.too_large };
 
@@ -81,9 +89,11 @@ export async function startUpload(meta: UploadMeta, size: number): Promise<Start
 }
 
 export async function finalizeUpload(meta: UploadMeta, uploadId: string): Promise<FinishResult> {
-  const { supabase, orgId } = await getUploadContext();
+  const { supabase } = await getUploadContext();
   const invalid = checkMeta(meta);
   if (invalid || !UUID.test(uploadId)) return { ok: false, message: invalid ?? NO_ACCESS };
+  const orgId = await propertyOrg(supabase, meta.propertyId);
+  if (!orgId) return { ok: false, message: NO_ACCESS };
   const admin = createAdminClient();
   if (!admin) return { ok: false, message: TRY_AGAIN };
   const path = pathFor(orgId, meta, uploadId);
