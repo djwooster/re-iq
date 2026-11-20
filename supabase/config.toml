@@ -495,6 +495,17 @@ double_confirm_changes = true
 max_frequency = "1m0s"
 otp_length = 8
 
+# Auth email (confirmations, password resets) goes through Resend on our verified domain, reiq.app.
+# The key is never in this file: RESEND_API_KEY comes from the environment when running `config push`.
+[remotes.production.auth.email.smtp]
+enabled = true
+host = "smtp.resend.com"
+port = 465
+user = "resend"
+pass = "env(RESEND_API_KEY)"
+admin_email = "no-reply@reiq.app"
+sender_name = "RE-IQ"
+
 [remotes.production.auth.mfa.totp]
 enroll_enabled = true
 verify_enabled = true
