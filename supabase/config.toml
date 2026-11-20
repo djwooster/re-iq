@@ -506,6 +506,10 @@ pass = "env(RESEND_API_KEY)"
 admin_email = "no-reply@reiq.app"
 sender_name = "RE-IQ"
 
+# With our own SMTP, Supabase's 2-an-hour default for auth email no longer applies; still capped per hour.
+[remotes.production.auth.rate_limit]
+email_sent = 100
+
 [remotes.production.auth.mfa.totp]
 enroll_enabled = true
 verify_enabled = true
