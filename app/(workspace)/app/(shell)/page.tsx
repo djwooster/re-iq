@@ -4,12 +4,14 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { Suspense } from "react";
 import { LinkButton, Page } from "@/components/app/page";
+import { Pulse } from "@/components/app/pulse";
 import { Card, CardHeader } from "@/components/ui/card";
 import { EmptyState } from "@/components/ui/empty-state";
 import { THead, Table, Td, Th, Tr } from "@/components/ui/table";
 import { reportTypeLabel } from "@/lib/uploads/report-types";
 import { closePeriod, dateLabel, monthLabel } from "@/lib/workspace/format";
-import { getManagers, getRecentUploads, getUploadsForPeriod, listProperties } from "@/lib/workspace/queries";
+import { PULSE_REPORTS } from "@/lib/workspace/pulse";
+import { getLatestReports, getManagers, getRecentUploads, getUploadsForPeriod, listProperties } from "@/lib/workspace/queries";
 import { requestWorkspace } from "@/lib/workspace/request";
 
 export const metadata: Metadata = { title: "Overview" };
@@ -37,7 +39,7 @@ async function Overview() {
   const ws = await requestWorkspace();
   if (!ws.setupCompletedAt) redirect("/app/setup");
   const period = closePeriod();
-  const [properties, monthUploads, recent, { uploaders, invites }] = await Promise.all([listProperties(ws), getUploadsForPeriod(ws, period), getRecentUploads(ws), getManagers(ws)]);
+  const [properties, monthUploads, recent, { uploaders, invites }, pulse] = await Promise.all([listProperties(ws), getUploadsForPeriod(ws, period), getRecentUploads(ws), getManagers(ws), getLatestReports(ws, PULSE_REPORTS)]);
   const active = properties.filter((p) => !p.archived_at);
   const names = new Map(properties.map((p) => [p.id, p.name]));
   const units = active.reduce((sum, p) => sum + (p.unit_count ?? 0), 0);
@@ -66,6 +68,7 @@ async function Overview() {
 
   return (
     <Page title="Overview" subtitle={ws.orgName}>
+      <Pulse latest={pulse.filter((u) => active.some((p) => p.id === u.property_id))} properties={active.length} />
       <div className="grid gap-3 sm:grid-cols-3">
         <Stat label="Properties" value={String(active.length)} sub={units ? `${units.toLocaleString("en-US")} units` : undefined} href="/app/properties" />
         <Stat label={`${monthLabel(period)} close`} value={`${received} of ${active.length}`} sub="properties have sent reports" href="/app/close" />

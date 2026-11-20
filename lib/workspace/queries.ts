@@ -81,6 +81,20 @@ export async function getRecentUploads(ws: Workspace, limit = 8): Promise<Upload
   return (data ?? []) as Upload[];
 }
 
+/** The latest upload of each of these report types, per property (optionally one property). */
+export async function getLatestReports(ws: Workspace, types: string[], propertyId?: string): Promise<Upload[]> {
+  let query = ws.supabase.from("uploads").select(UPLOAD_COLUMNS).eq("org_id", ws.orgId).in("report_type", types).order("created_at", { ascending: false });
+  if (propertyId) query = query.eq("property_id", propertyId);
+  const { data } = await query;
+  const seen = new Set<string>();
+  return ((data ?? []) as Upload[]).filter((u) => {
+    const key = `${u.property_id}:${u.report_type}`;
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+}
+
 /** The properties this uploader may upload to (row-level security returns only their grants). */
 export async function getUploaderProperties(ctx: UploaderContext): Promise<Property[]> {
   const { data } = await ctx.supabase.from("properties").select("id, name, address, unit_count, archived_at").eq("org_id", ctx.orgId).is("archived_at", null).order("name");
