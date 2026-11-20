@@ -10,8 +10,9 @@ import { EXPENSE_LINES, LAST, MONTHS, MONTH_LONG, REVENUE_LINES, month, periodTo
 import { PropertyTable } from "./overview";
 import { fmtLongDate, managerOf, property, projectStage } from "./seed";
 import { href, Page } from "./shell";
+import { Pulse } from "./pulse";
 import { openExceptions, useWf } from "./store";
-import { A, Card, Chip, Delta, Empty, Kpi, PlanChip, Row, Segmented, Table, Td } from "./ui";
+import { A, Card, Chip, Delta, Empty, Kpi, PlanChip, Row, Segmented, Table, Tabs, Td } from "./ui";
 
 export function Properties() {
   return (
@@ -37,6 +38,7 @@ const RENO_COLOR: Record<UnitStatus, string> = {
 export function Scorecard({ id }: { id: string }) {
   const { state } = useWf();
   const [view, setView] = useState<"Occupancy" | "Renovation">("Occupancy");
+  const [panel, setPanel] = useState<"noi" | "statement" | "pulse">("noi");
   const p = property(id);
   if (!p) return <NotFound />;
   const exceptions = openExceptions(state, id);
@@ -77,55 +79,83 @@ export function Scorecard({ id }: { id: string }) {
         ))}
       </section>
 
-      <div className="grid gap-3 xl:grid-cols-[3fr_2fr]">
-        <Card title="NOI by month">
-          <TrendChart
-            data={MONTHS.map((label, m) => ({ month: label, actual: reported(id, m) ? month(id, m).noi : null, plan: month(id, m, state.compare).noi }))}
-            series={[
-              { key: "actual", label: "Actual", style: "data" },
-              { key: "plan", label: state.compare, style: "reference" },
-            ]}
-            format={fmt.usd}
-            axisFormat={fmt.usdShort}
-          />
-        </Card>
-        <Card title={`Income statement · ${state.period === "Month" ? MONTH_LONG[pr.through] : state.period}`} flush>
-          {a && b ? (
-            <Table bare columns={["", { label: "Actual", num: true }, { label: state.compare, num: true }, { label: "Variance", num: true }]}>
-              {[...REVENUE_LINES, "Effective gross income", ...EXPENSE_LINES, "Net operating income"].map((l) => {
-                const total = l === "Effective gross income" || l === "Net operating income";
-                const av = l === "Effective gross income" ? a.egi : l === "Net operating income" ? a.noi : a.lines[l as keyof typeof a.lines];
-                const bv = l === "Effective gross income" ? b.egi : l === "Net operating income" ? b.noi : b.lines[l as keyof typeof b.lines];
-                const expense = (EXPENSE_LINES as readonly string[]).includes(l);
-                return (
-                  <Row key={l}>
-                    <Td className={cn("whitespace-nowrap", total ? "font-medium" : "text-fg-2")}>{l}</Td>
-                    <Td num className={total ? "font-medium" : undefined}>
-                      {fmt.usd(av)}
-                    </Td>
-                    <Td num className="text-fg-3">
-                      {fmt.usd(bv)}
-                    </Td>
-                    <Td num>
-                      <Delta value={av - bv} format={fmt.delta} good={expense ? "down" : "up"} />
-                    </Td>
-                  </Row>
-                );
-              })}
-            </Table>
-          ) : (
-            <div className="p-4">
-              <Empty>No figures for this period yet.</Empty>
-            </div>
-          )}
-        </Card>
+      <div className="flex flex-col gap-3">
+        <Tabs
+          value={panel}
+          onChange={setPanel}
+          tabs={[
+            { id: "noi", label: "NOI by month" },
+            { id: "statement", label: "Income statement" },
+            { id: "pulse", label: "Pulse" },
+          ]}
+        />
+        {panel === "noi" && (
+          <Card title="NOI by month">
+            <TrendChart
+              data={MONTHS.map((label, m) => ({ month: label, actual: reported(id, m) ? month(id, m).noi : null, plan: month(id, m, state.compare).noi }))}
+              series={[
+                { key: "actual", label: "Actual", style: "data" },
+                { key: "plan", label: state.compare, style: "reference" },
+              ]}
+              format={fmt.usd}
+              axisFormat={fmt.usdShort}
+            />
+          </Card>
+        )}
+        {panel === "statement" && (
+          <Card title={`Income statement · ${state.period === "Month" ? MONTH_LONG[pr.through] : state.period}`} flush>
+            {a && b ? (
+              <Table bare columns={["", { label: "Actual", num: true }, { label: state.compare, num: true }, { label: "Variance", num: true }]}>
+                {[...REVENUE_LINES, "Effective gross income", ...EXPENSE_LINES, "Net operating income"].map((l) => {
+                  const total = l === "Effective gross income" || l === "Net operating income";
+                  const av = l === "Effective gross income" ? a.egi : l === "Net operating income" ? a.noi : a.lines[l as keyof typeof a.lines];
+                  const bv = l === "Effective gross income" ? b.egi : l === "Net operating income" ? b.noi : b.lines[l as keyof typeof b.lines];
+                  const expense = (EXPENSE_LINES as readonly string[]).includes(l);
+                  return (
+                    <Row key={l}>
+                      <Td className={cn("whitespace-nowrap", total ? "font-medium" : "text-fg-2")}>{l}</Td>
+                      <Td num className={total ? "font-medium" : undefined}>
+                        {fmt.usd(av)}
+                      </Td>
+                      <Td num className="text-fg-3">
+                        {fmt.usd(bv)}
+                      </Td>
+                      <Td num>
+                        <Delta value={av - bv} format={fmt.delta} good={expense ? "down" : "up"} />
+                      </Td>
+                    </Row>
+                  );
+                })}
+              </Table>
+            ) : (
+              <div className="p-4">
+                <Empty>No figures for this period yet.</Empty>
+              </div>
+            )}
+          </Card>
+        )}
+        {panel === "pulse" && <Pulse id={id} />}
       </div>
 
       <div className="grid gap-3 md:grid-cols-2">
-        <Card title="Open exceptions" action={<A href="/prototype/exceptions" className="text-xs font-normal text-fg-3">All exceptions</A>}>
+        <Card
+          title="Open exceptions"
+          action={
+            <A href="/prototype/exceptions" className="text-xs font-normal text-fg-3">
+              All exceptions
+            </A>
+          }
+        >
           {exceptions.length ? exceptions.map((e) => <ExceptionLink key={e.id} e={e} />) : <Empty>Nothing off plan.</Empty>}
         </Card>
-        <Card title="Renovation projects" action={<A href="/prototype/renovations" className="text-xs font-normal text-fg-3">Renovations</A>}>
+        <Card
+          title="Renovation projects"
+          action={
+            <A href="/prototype/renovations" className="text-xs font-normal text-fg-3">
+              Renovations
+            </A>
+          }
+        >
           {projects.length ? (
             projects.map((x) => (
               <Link key={x.id} href={href.project(x.id)} className="group flex items-center justify-between gap-2 border-b border-border/70 py-2 last:border-b-0">
@@ -164,7 +194,7 @@ export function Scorecard({ id }: { id: string }) {
                       href={href.unit(id, u.num)}
                       title={`Unit ${u.num} · ${u.plan.name} · ${u.occupancy}${u.status !== "Classic" ? ` · ${u.status}` : ""}`}
                       aria-label={`Unit ${u.num}`}
-                      className={cn("h-5 rounded-[3px] transition-opacity hover:opacity-60", (view === "Occupancy" ? OCC_COLOR[u.occupancy] : RENO_COLOR[u.status]))}
+                      className={cn("h-5 rounded-[3px] transition-opacity hover:opacity-60", view === "Occupancy" ? OCC_COLOR[u.occupancy] : RENO_COLOR[u.status])}
                     />
                   ))}
               </div>
