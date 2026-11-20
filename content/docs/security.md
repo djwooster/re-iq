@@ -58,7 +58,7 @@ description: How RE-IQ protects your properties' data, who can see what, and wha
 - Location and camera details are removed from photos before they're stored.
 - Uploaded files are private: only our servers can read them, never the public. Downloads use links that expire within a minute.
 - Uploading the same file again for the same property and month saves a new version instead of replacing the old one.
-- Original files are kept privately and deleted 90 days after a customer cancels.
+- Original files are kept privately and deleted 90 days after a customer cancels, or right away when an organization's only owner deletes their account.
 
 ## Data we don't keep
 

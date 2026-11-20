@@ -10,6 +10,7 @@ import { THead, Table, Td, Th, Tr } from "@/components/ui/table";
 import { useToast } from "@/components/ui/toast";
 import type { Account } from "@/lib/workspace/account";
 import { renameOrg, updateMyName, type Result } from "@/lib/workspace/actions";
+import { deleteMyAccount } from "@/lib/workspace/delete-account";
 import { ROLE_LABELS } from "@/lib/workspace/format";
 import { Page } from "./page";
 
@@ -33,7 +34,12 @@ export function Settings({ account }: { account: Account }) {
         />
       }
     >
-      {tab === "profile" && <Profile account={account} />}
+      {tab === "profile" && (
+        <>
+          <Profile account={account} />
+          <DeleteAccount account={account} />
+        </>
+      )}
       {tab === "team" && <Team account={account} />}
       {tab === "workspace" && <Workspace account={account} />}
     </Page>
@@ -93,6 +99,54 @@ function Profile({ account }: { account: Account }) {
           <Row label="Email">{account.email}</Row>
           <Row label="Role">{ROLE_LABELS[account.role]}</Row>
         </dl>
+      </div>
+    </Card>
+  );
+}
+
+/** Deleting the account. Typing DELETE is the confirmation; the consequences are spelled out first. */
+function DeleteAccount({ account }: { account: Account }) {
+  const [typed, setTyped] = useState("");
+  const [error, setError] = useState<string | null>(null);
+  const [pending, start] = useTransition();
+  const lastOwner = account.role === "owner" && account.team.filter((p) => p.role === "owner").length === 1;
+  const others = account.team.length - 1;
+  return (
+    <Card className="max-w-lg">
+      <CardHeader title="Delete account" />
+      <div className="flex flex-col gap-4 px-4 pb-4 text-xs">
+        <p className="leading-relaxed text-fg-2">
+          {lastOwner ? (
+            <>
+              You&apos;re the only owner of <span className="font-medium text-fg">{account.orgName}</span>, so deleting your account also deletes the organization: every property, every uploaded report and file,
+              {others > 0 ? ` and access for the ${others} other ${others === 1 ? "person" : "people"} on your team` : ""}, along with your property managers&apos; access. This can&apos;t be undone.
+            </>
+          ) : (
+            <>Your account and sign-in are deleted. {account.orgName} and its reports stay with the rest of your team. This can&apos;t be undone.</>
+          )}
+        </p>
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            start(async () => {
+              const result = await deleteMyAccount(typed);
+              if (result && !result.ok) setError(result.message);
+            });
+          }}
+          className="flex flex-col gap-2"
+        >
+          <Field label="Type DELETE to confirm">{(id) => <Input id={id} value={typed} onChange={(e) => setTyped(e.target.value)} autoComplete="off" />}</Field>
+          {error && (
+            <p role="alert" className="text-xs text-unfavorable">
+              {error}
+            </p>
+          )}
+          <div>
+            <Button type="submit" variant="danger" size="sm" loading={pending} disabled={typed.trim() !== "DELETE"}>
+              {lastOwner ? "Delete account and organization" : "Delete account"}
+            </Button>
+          </div>
+        </form>
       </div>
     </Card>
   );
