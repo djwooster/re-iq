@@ -217,15 +217,18 @@ each of which checks the caller itself. A test error reached Sentry with no head
 | | Database | Used by |
 |---|---|---|
 | Local | `npx supabase start` (Docker via OrbStack, API port 55321) | the database tests; trying a migration |
-| Staging | `re-iq-staging` (`rtmtepejzkflhbmznbgo`), test data only | `npm run dev` (`.env.local`), Vercel previews |
-| Production | `dixlcrxxnmoivfrnvaqv`, real customer data | `re-iq.vercel.app` |
+| Staging | `re-iq-staging` (`rtmtepejzkflhbmznbgo`), test data only | Vercel previews only; not in use for now |
+| Production | `dixlcrxxnmoivfrnvaqv`, real customer data | `re-iq.vercel.app` and `npm run dev` (`.env.local`) |
 
-Never point localhost at production, and never copy production data into staging or local.
+DJ's call (2026-11-19): no staging for now, so localhost runs against production. That means local
+sign-ups, uploads and deletions are real. Test with your own accounts, never a customer's, and never copy
+production data anywhere else. Production's Auth redirect list stays production-only, so emailed links
+from a local sign-up open the live site. Bring staging back before there's more than a handful of users.
 
 | Variable | `.env.local` | Vercel Preview | Vercel Production |
 |---|---|---|---|
-| `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | staging | staging | production |
-| `SUPABASE_URL`, `SUPABASE_SECRET_KEY` | staging | staging | production |
+| `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | production (for now) | staging | production |
+| `SUPABASE_URL`, `SUPABASE_SECRET_KEY` | production (for now) | staging | production |
 | `RATE_LIMIT_HMAC_SECRET` (`openssl rand -hex 32`) | its own value | its own value | its own value |
 | `SENTRY_DSN` | optional (empty keeps Sentry off) | yes | yes |
 | `SENTRY_ORG`, `SENTRY_PROJECT`, `SENTRY_AUTH_TOKEN` | no | yes | yes |
@@ -242,9 +245,10 @@ Migrations live in `supabase/migrations/` and apply in filename order. Every com
 1. `npx supabase migration new <name>`, then write the SQL. New tables get RLS and `org_id`.
 2. Try it locally: `npx supabase start` (or `npx supabase db reset` to re-apply from scratch), then
    `npm test` with `TEST_SUPABASE_*` from `npx supabase status -o env`.
-3. Staging: `npx supabase db push --remote=rtmtepejzkflhbmznbgo --dry-run`, read the list, then run it
-   without `--dry-run`. Check `npx supabase db advisors --remote=<ref> --type security`.
-4. Production, the same two commands with `--remote=dixlcrxxnmoivfrnvaqv`.
+3. Production: `npx supabase db push --remote=dixlcrxxnmoivfrnvaqv --dry-run`, read the list, then run it
+   without `--dry-run`. Check `npx supabase db advisors --remote=<ref> --type security`. (While staging
+   is off, step 2 is the only rehearsal: CI also applies every migration to a fresh local database.)
+4. Staging, when it's back in use: the same commands with `--remote=rtmtepejzkflhbmznbgo`.
 5. Then push the code that uses it. Code that expects a table the database doesn't have breaks the site.
 
 Read-only checks: `npx supabase db query --remote=<ref> --read-only "<sql>"`.

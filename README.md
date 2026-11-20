@@ -23,7 +23,7 @@ falls back to the demo too.
 1. `npm run dev`, fix things on localhost.
 2. Commit and push to `main`. GitHub runs the tests; Vercel deploys to production.
 3. **Only when a change touches the database** (a new file in `supabase/migrations/`): apply the
-   migration to staging, then production, *before* pushing the code that needs it (SECURITY.md, "Database changes").
+   migration to production *before* pushing the code that needs it (SECURITY.md, "Database changes").
    Code that expects a table the database doesn't have yet breaks the live site.
 
 Checks before pushing: `npx tsc --noEmit`, `npm run lint`, `npm run build`. `npm test` runs the
