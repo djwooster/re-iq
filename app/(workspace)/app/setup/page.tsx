@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
-import { SETUP_STEPS, SetupFrame, type SetupStep } from "@/components/app/setup";
+import { SetupFrame } from "@/components/app/setup";
+import { SETUP_STEPS, type SetupStep } from "@/lib/workspace/setup-steps";
 import { ToastProvider } from "@/components/ui/toast";
 import { UploadCard } from "@/components/uploads/upload-view";
 import { ManagersView } from "@/components/workspace/managers-view";
