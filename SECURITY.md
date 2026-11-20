@@ -260,7 +260,9 @@ protection is a dashboard toggle (on in both).
 ## Manual steps (DJ)
 
 Done: staging project, Auth settings and templates on both projects, leaked-password protection,
-Sentry project and scrubbing.
+Sentry project and scrubbing. Production auth email through Resend on `reiq.app` (2026-11-19): SMTP in
+`config.toml` under `[remotes.production.auth.email.smtp]`, key from `RESEND_API_KEY` in `.env.local` when
+running `config push` (load it first: `set -a; . ./.env.local; set +a`), 100 emails an hour.
 
 **Once there's a domain**
 - Supabase production Auth: Site URL and Redirect URLs switch to exactly `https://<domain>/**` (in
