@@ -32,7 +32,8 @@ function useFinish() {
   return { finish, pending, error };
 }
 
-export function SetupFrame({ step, canContinue, children }: { step: SetupStep; canContinue: boolean; children: React.ReactNode }) {
+/** `bare` steps draw their own heading and footer (Properties and reports saves before moving on). */
+export function SetupFrame({ step, canContinue, bare, children }: { step: SetupStep; canContinue: boolean; bare?: boolean; children: React.ReactNode }) {
   const i = SETUP_STEPS.findIndex((s) => s.id === step);
   const current = SETUP_STEPS[i];
   const next = SETUP_STEPS[i + 1];
@@ -67,35 +68,41 @@ export function SetupFrame({ step, canContinue, children }: { step: SetupStep; c
           Skip setup
         </button>
       </header>
-      <motion.main key={step} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3, ease: "easeOut" }} className="mx-auto flex w-full max-w-[860px] flex-1 flex-col gap-6 px-5 py-10">
-        <div className="flex flex-col gap-1">
-          <h1 className="text-[22px] leading-8 font-semibold tracking-tight">{current.title}</h1>
-          <p className="max-w-[560px] text-xs leading-relaxed text-fg-2">{current.hint}</p>
-        </div>
+      <motion.main key={step} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3, ease: "easeOut" }} className="mx-auto flex w-full max-w-[760px] flex-1 flex-col gap-6 px-5 py-10">
+        {!bare && (
+          <>
+            <div className="flex flex-col gap-1">
+              <h1 className="text-[22px] leading-8 font-semibold tracking-tight">{current.title}</h1>
+              <p className="max-w-[560px] text-xs leading-relaxed text-fg-2">{current.hint}</p>
+            </div>
+          </>
+        )}
         {children}
-        <div className="mt-2 flex flex-wrap items-center justify-end gap-3 border-t border-border pt-5">
-          {(skip.error || done.error) && <span className="mr-auto text-xs text-unfavorable">That didn&apos;t save. Try again.</span>}
-          {back && (
-            <Link href={href(back.id)} className="inline-flex min-w-[100px] items-center justify-center rounded-md border border-border bg-surface px-3 py-1.5 text-[13px] font-medium text-fg transition-colors hover:border-border-strong hover:bg-surface-2">
-              Back
-            </Link>
-          )}
-          {next ? (
-            canContinue ? (
-              <Link href={href(next.id)} className="inline-flex min-w-[100px] items-center justify-center rounded-md border border-transparent bg-inverted px-3 py-1.5 text-[13px] font-medium text-inverted-fg transition-opacity hover:opacity-90">
-                Continue
+        {!bare && (
+          <div className="mt-2 flex flex-wrap items-center justify-end gap-3 border-t border-border pt-5">
+            {(skip.error || done.error) && <span className="mr-auto text-xs text-unfavorable">That didn&apos;t save. Try again.</span>}
+            {back && (
+              <Link href={href(back.id)} className="inline-flex min-w-[100px] items-center justify-center rounded-md border border-border bg-surface px-3 py-1.5 text-[13px] font-medium text-fg transition-colors hover:border-border-strong hover:bg-surface-2">
+                Back
               </Link>
+            )}
+            {next ? (
+              canContinue ? (
+                <Link href={href(next.id)} className="inline-flex min-w-[100px] items-center justify-center rounded-md border border-transparent bg-inverted px-3 py-1.5 text-[13px] font-medium text-inverted-fg transition-opacity hover:opacity-90">
+                  Continue
+                </Link>
+              ) : (
+                <Button variant="primary" disabled>
+                  Continue
+                </Button>
+              )
             ) : (
-              <Button variant="primary" disabled>
-                Continue
+              <Button variant="primary" onClick={done.finish} loading={done.pending}>
+                Open dashboard
               </Button>
-            )
-          ) : (
-            <Button variant="primary" onClick={done.finish} loading={done.pending}>
-              Open dashboard
-            </Button>
-          )}
-        </div>
+            )}
+          </div>
+        )}
       </motion.main>
     </div>
   );

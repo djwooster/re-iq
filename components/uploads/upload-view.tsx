@@ -11,10 +11,8 @@ import { THead, Table, Td, Th, Tr } from "@/components/ui/table";
 import { DownloadButton } from "@/components/workspace/download-button";
 import { dateLabel, monthLabel } from "@/components/workspace/shared";
 import { cn } from "@/lib/cn";
-import { createClient } from "@/lib/supabase/client";
-import { finalizeUpload, startUpload, type UploadMeta } from "@/lib/uploads/actions";
 import { REPORT_GROUPS, reportTypeLabel } from "@/lib/uploads/report-types";
-import { ACCEPTED_EXTENSIONS, MAX_UPLOAD_BYTES, REJECTION_MESSAGE, extensionOf } from "@/lib/uploads/validate";
+import { sendFile } from "@/lib/uploads/send";
 import type { Property, Upload } from "@/lib/workspace/queries";
 
 type Status = {
@@ -66,40 +64,9 @@ export function UploadCard({ properties, selectedId, propertyHref }: { propertie
     setBusy(true);
     const offset = statuses.length;
     setStatuses((all) => [...all, ...files.map((f) => ({ name: f.name, state: "uploading" as const }))]);
-    const storage = createClient().storage.from("incoming");
     for (const [n, file] of files.entries()) {
       const i = offset + n;
-      if (!(ACCEPTED_EXTENSIONS as readonly string[]).includes(extensionOf(file.name))) {
-        setStatus(i, {
-          state: "failed",
-          message: REJECTION_MESSAGE.type_not_allowed,
-        });
-        continue;
-      }
-      if (file.size > MAX_UPLOAD_BYTES) {
-        setStatus(i, { state: "failed", message: REJECTION_MESSAGE.too_large });
-        continue;
-      }
-      const meta: UploadMeta = {
-        propertyId: selectedId,
-        reportType,
-        period,
-        fileName: file.name,
-      };
-      const start = await startUpload(meta, file.size);
-      if (!start.ok) {
-        setStatus(i, { state: "failed", message: start.message });
-        continue;
-      }
-      const sent = await storage.uploadToSignedUrl(start.path, start.token, file, { contentType: file.type || "application/octet-stream" });
-      if (sent.error) {
-        setStatus(i, {
-          state: "failed",
-          message: "The upload didn't finish. Check your connection and try again.",
-        });
-        continue;
-      }
-      const done = await finalizeUpload(meta, start.uploadId);
+      const done = await sendFile({ propertyId: selectedId, reportType, period, fileName: file.name }, file);
       setStatus(
         i,
         done.ok

@@ -53,6 +53,35 @@ export async function updateProperty(id: string, fd: FormData): Promise<Result> 
   return { ok: true };
 }
 
+const readName = (raw: string) => {
+  const name = raw.trim();
+  return name && name.length <= 120 ? name : null;
+};
+
+/** Setup adds properties by name alone, then uploads to them, so it needs the new id. */
+export async function addPropertyNamed(raw: string): Promise<{ ok: true; id: string } | { ok: false; message: string }> {
+  const ws = await getWorkspace();
+  if (ws.role !== "owner") return OWNERS_ONLY;
+  const name = readName(raw);
+  if (!name) return { ok: false, message: "Give the property a name (up to 120 characters)." };
+  const { data, error } = await ws.supabase.from("properties").insert({ org_id: ws.orgId, name }).select("id").single();
+  if (error || !data) return TRY_AGAIN;
+  refresh();
+  return { ok: true, id: data.id as string };
+}
+
+/** Renames a property and leaves its address and unit count alone. */
+export async function renameProperty(id: string, raw: string): Promise<Result> {
+  const ws = await getWorkspace();
+  if (ws.role !== "owner" || !UUID.test(id)) return OWNERS_ONLY;
+  const name = readName(raw);
+  if (!name) return { ok: false, message: "Give the property a name (up to 120 characters)." };
+  const { error } = await ws.supabase.from("properties").update({ name }).eq("id", id).eq("org_id", ws.orgId);
+  if (error) return TRY_AGAIN;
+  refresh();
+  return { ok: true };
+}
+
 /** Archiving stops new uploads to the property; its reports stay. */
 export async function setPropertyArchived(id: string, archived: boolean): Promise<Result> {
   const ws = await getWorkspace();
