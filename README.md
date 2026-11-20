@@ -33,8 +33,8 @@ tests; the database tests skip unless `TEST_SUPABASE_*` are set (CI always runs 
 
 - `app/(workspace)/app/*`: the real, signed-in app (`/app`, `/app/setup`): real records only, empty
   states until there's data. `components/app`: its frame, setup and settings.
-- `app/prototype`: the standalone, hard-coded prototype (no sign-in, browser storage). It stays
-  separate from `/app`. `app/wireframe`: low-fidelity reference (`docs/product.md`).
+- `app/prototype`: the hard-coded prototype (no sign-in, browser storage). Frozen and kept live for
+  feedback sessions; `/app` doesn't depend on it. `app/wireframe`: low-fidelity reference (`docs/product.md`).
 - `app/(auth)`: sign-in, sign-up, invites. `app/(uploader)`: `/upload` for property managers.
   `app/(marketing)`: the public site. `app/_parked-demo`: the old mock `/app` demo, not routed.
 - `proxy.ts`: gates `/app` on a Supabase session; keeps uploaders out of `/app`. `/demo` is parked.

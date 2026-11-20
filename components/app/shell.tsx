@@ -10,14 +10,14 @@ import { cn } from "@/lib/cn";
 import { PRODUCT_NAME } from "@/lib/labels";
 import { Notifications } from "./notifications";
 
-/** The signed-in app's frame: the same sidebar as the prototype, with the real org and person. */
+/** The signed-in app's frame: the sidebar, with the org and the signed-in person. */
 
 export interface ShellAccount {
   orgName: string;
   name: string;
   email: string;
   roleLabel: string;
-  /** Some property hasn't sent last month's reports yet: the prototype's dot on Close. */
+  /** Some property hasn't sent last month's reports yet: a dot on Close. */
   closeOpen: boolean;
 }
 

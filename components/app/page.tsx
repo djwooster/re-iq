@@ -8,7 +8,7 @@ export interface Crumb {
   href?: string;
 }
 
-/** Page frame for the signed-in app, matching the prototype's: title, optional crumbs, actions and tabs on the bottom edge. */
+/** Page frame for the signed-in app: title, optional crumbs, actions and tabs on the bottom edge. */
 export function Page({ title, subtitle, crumbs, actions, tabs, children }: { title: React.ReactNode; subtitle?: React.ReactNode; crumbs?: Crumb[]; actions?: React.ReactNode; tabs?: React.ReactNode; children: React.ReactNode }) {
   return (
     <>
@@ -54,7 +54,7 @@ export function EmptyPage({ title, icon, heading, description, action }: { title
   );
 }
 
-/** A link that looks like a button (the prototype's button styles). */
+/** A link that looks like a button. */
 export function LinkButton({ href, variant = "primary", children }: { href: string; variant?: "primary" | "secondary"; children: React.ReactNode }) {
   return (
     <Link

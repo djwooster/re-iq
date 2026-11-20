@@ -3,7 +3,7 @@ import { AccessDenied } from "@/lib/auth/access";
 import { getWorkspace } from "./context";
 import type { Person } from "./queries";
 
-/** The signed-in person, their org and its owners and members, for the prototype's shell and settings. */
+/** The signed-in person, their org and its owners and members, for the shell and settings. */
 
 export interface Account {
   name: string;
@@ -13,7 +13,7 @@ export interface Account {
   team: { userId: string; name: string | null; email: string; role: "owner" | "member" }[];
 }
 
-/** Null for demo and signed-out visitors, so the prototype falls back to its sample names. */
+/** Null for demo and signed-out visitors. */
 export async function getAccount(): Promise<Account | null> {
   let ws;
   try {

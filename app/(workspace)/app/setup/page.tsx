@@ -21,7 +21,7 @@ export default function SetupPage({ searchParams }: Props) {
   );
 }
 
-/** The real first-run setup, following the prototype's. Every step works on real records. */
+/** First-run setup. Every step works on real records. */
 async function Setup({ searchParams }: Props) {
   const params = await searchParams;
   const step: SetupStep = SETUP_STEPS.some((s) => s.id === params.step) ? (params.step as SetupStep) : "properties";

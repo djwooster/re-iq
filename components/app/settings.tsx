@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
-import { Button, Card, Empty, Field, Input, Row, Segmented, Select, Table, Tabs, Td } from "@/components/prototype/ui";
+import { Button, Card, Empty, Field, Input, Row, Segmented, Select, Table, Tabs, Td } from "./ui";
 import { useTheme } from "@/components/theme/theme-provider";
 import { useToast } from "@/components/ui/toast";
 import type { Account } from "@/lib/workspace/account";
@@ -13,7 +13,7 @@ import { CHART_OF_ACCOUNTS, KPIS } from "@/lib/workspace/kpis";
 import type { Property, Threshold } from "@/lib/workspace/queries";
 import { Page } from "./page";
 
-/** Settings, as in the prototype (components/prototype/settings.tsx), on real records, with Profile first. */
+/** Settings: profile, thresholds, properties, chart of accounts, team and workspace. */
 
 type Tab = "profile" | "thresholds" | "properties" | "accounts" | "team" | "workspace";
 
@@ -199,7 +199,7 @@ function Workspace({ orgName }: { orgName: string }) {
 
 const ALL = "All properties";
 
-/** The prototype's thresholds table; Save stores the targets for the chosen scope. */
+/** The thresholds table; Save stores the targets for the chosen scope. */
 function Thresholds({ properties, saved, canEdit }: { properties: Property[]; saved: Threshold[]; canEdit: boolean }) {
   const toast = useToast();
   const router = useRouter();

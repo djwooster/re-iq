@@ -1,6 +1,6 @@
 /**
- * The KPIs owners track and the owner chart of accounts, as validated in the prototype. Shared by
- * `/prototype` (re-exported from its seed) and `/app`, so the two can't drift apart.
+ * The KPIs owners track and the owner chart of accounts. The frozen `/prototype` re-exports these
+ * from its seed.
  */
 
 export const CHART_OF_ACCOUNTS = [

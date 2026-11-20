@@ -5,7 +5,7 @@ import { motion } from "motion/react";
 import { useRouter } from "next/navigation";
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { useDropzone } from "react-dropzone";
-import { Button, Select } from "@/components/prototype/ui";
+import { Button, Select } from "./ui";
 import { Input, Select as UiSelect } from "@/components/ui/controls";
 import { Drawer } from "@/components/ui/overlay";
 import { cn } from "@/lib/cn";
@@ -17,7 +17,7 @@ import { addPropertyNamed, renameProperty, setPropertyArchived } from "@/lib/wor
 import type { Property, Upload } from "@/lib/workspace/queries";
 
 /**
- * Setup's first step, as in the prototype (components/prototype/setup.tsx): drop the month's reports,
+ * Setup's first step: drop the month's reports,
  * each file is matched to a property and a report type by its name, fix anything in the property's
  * drawer, then Continue. Dropped files wait in the browser until Continue (or Save and exit), which
  * creates the new properties, renames changed ones and uploads the files. Saved uploads can't be

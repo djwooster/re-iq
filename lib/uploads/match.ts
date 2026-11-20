@@ -1,6 +1,6 @@
 /**
- * Reading a dropped file's name: which property it's for and which report it is. Shared by
- * `/prototype` (re-exported from its seed) and `/app` setup.
+ * Reading a dropped file's name: which property it's for and which report it is. The frozen
+ * `/prototype` re-exports these from its seed.
  */
 
 /** The monthly package, as setup's checklist columns, with the report type each is stored as. */

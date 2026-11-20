@@ -6,7 +6,7 @@ import { useEffect, useRef, useState } from "react";
 import { cn } from "@/lib/cn";
 
 /**
- * The prototype's notifications bell (components/prototype/notifications.tsx). Nothing in the real workspace
+ * The notifications bell. Nothing in the workspace
  * raises notifications yet (they come from exceptions and close events once reports are read), so the list is empty.
  */
 export function Notifications() {
