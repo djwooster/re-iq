@@ -1,3 +1,4 @@
+import { connection } from "next/server";
 import { Suspense } from "react";
 import { ToastProvider } from "@/components/ui/toast";
 import { AccountProvider } from "@/components/prototype/account";
@@ -13,8 +14,12 @@ export default function PrototypeLayout({ children }: { children: React.ReactNod
   );
 }
 
-/** Reads the signed-in account per request (cookies), so it sits under Suspense. */
+/**
+ * Reads the signed-in account per request, so it sits under Suspense. `connection()` keeps it out of
+ * prerendering entirely: Supabase checks session expiry with the current time, which can't be prerendered.
+ */
 async function WithAccount({ children }: { children: React.ReactNode }) {
+  await connection();
   const account = await getAccount();
   return (
     <AccountProvider account={account}>
