@@ -119,7 +119,7 @@ function UserMenu() {
             type="button"
             onClick={() => {
               act.reset();
-              router.push(B);
+              router.push(`${B}/overview`);
             }}
             className="flex h-7 w-full items-center gap-2 rounded-md px-2 text-left text-xs text-fg-2 hover:bg-fg/[0.04] hover:text-fg"
           >

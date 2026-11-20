@@ -39,7 +39,7 @@ export function Setup({ step }: { step: StepId }) {
   return (
     <div className="flex min-h-screen flex-col bg-bg text-fg">
       <header className="grid h-12 grid-cols-[1fr_auto_1fr] items-center border-b border-border px-5">
-        <Link href="/prototype" className="num justify-self-start text-[13px] font-semibold tracking-[0.06em]">
+        <Link href="/prototype/overview" className="num justify-self-start text-[13px] font-semibold tracking-[0.06em]">
           {PRODUCT_NAME}
         </Link>
         <ol className="hidden items-center gap-1 md:flex" aria-label="Setup steps">
@@ -96,7 +96,7 @@ function Footer({ back, next, disabled, label = "Continue", onNext, hint }: { ba
     <div className="mt-2 flex items-center justify-end gap-3 border-t border-border pt-5">
       <span className="flex items-center gap-3">
         {hint && <span className="num text-xs text-fg-3">{hint}</span>}
-        <Button variant="secondary" href="/prototype">
+        <Button variant="secondary" href="/prototype/overview">
           Save and exit
         </Button>
         {back && (
