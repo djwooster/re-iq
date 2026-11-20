@@ -24,15 +24,12 @@ async function origin() {
   return h.get("origin") ?? `https://${h.get("host")}`;
 }
 
-/** Without Supabase configured, sign-in still works: it starts the demo session, as before. */
-async function demoSession(next: string): Promise<never> {
-  (await cookies()).set(SESSION_COOKIE, "demo", { path: "/", maxAge: 60 * 60 * 24 * 30, sameSite: "lax" });
-  redirect(next);
-}
+/** Without Supabase configured, auth says so instead of failing quietly (a deploy missing its keys). */
+const NOT_CONFIGURED = { status: "error", message: "Sign-in isn't available right now. Try again shortly." } as const;
 
 export async function signIn(_prev: AuthState, fd: FormData): Promise<AuthState> {
   const next = safeNext(str(fd, "next"));
-  if (!AUTH_ENABLED) return demoSession(next);
+  if (!AUTH_ENABLED) return NOT_CONFIGURED;
   const email = str(fd, "email").toLowerCase();
   // Fails open when the limiter is down, so sign-in keeps working.
   if ((await checkLimit("signIn", email)) !== "ok") return { status: "error", message: "That email and password don't match an account." };
@@ -50,7 +47,7 @@ export async function signIn(_prev: AuthState, fd: FormData): Promise<AuthState>
  * From an invite link (invite=1), no org is created; acceptInvite adds them to the inviting org.
  */
 export async function signUp(_prev: AuthState, fd: FormData): Promise<AuthState> {
-  if (!AUTH_ENABLED) return demoSession(HOME.dashboard);
+  if (!AUTH_ENABLED) return NOT_CONFIGURED;
   const invited = str(fd, "invite") === "1";
   const name = str(fd, "name").slice(0, 120);
   const company = str(fd, "company").slice(0, 120);
@@ -79,7 +76,7 @@ export async function signUp(_prev: AuthState, fd: FormData): Promise<AuthState>
 }
 
 export async function signInWithProvider(provider: Provider, next: string): Promise<AuthState> {
-  if (!AUTH_ENABLED) return demoSession(safeNext(next));
+  if (!AUTH_ENABLED) return NOT_CONFIGURED;
   const supabase = await createClient();
   const { data, error } = await supabase.auth.signInWithOAuth({
     provider,
@@ -97,7 +94,7 @@ export async function signInWithProvider(provider: Provider, next: string): Prom
 export async function requestPasswordReset(_prev: AuthState, fd: FormData): Promise<AuthState> {
   const email = str(fd, "email").toLowerCase();
   if (email.length > 254 || !EMAIL.test(email)) return { status: "error", message: "That doesn't look like an email address." };
-  if (!AUTH_ENABLED) return { status: "sent", email };
+  if (!AUTH_ENABLED) return NOT_CONFIGURED;
   const limit = await checkLimit("passwordReset", email);
   if (limit === "unavailable") return { status: "error", message: TRY_AGAIN };
   if (limit === "ok") {
@@ -110,7 +107,7 @@ export async function requestPasswordReset(_prev: AuthState, fd: FormData): Prom
 export async function updatePassword(_prev: AuthState, fd: FormData): Promise<AuthState> {
   const password = String(fd.get("password") ?? "");
   if (password.length < MIN_PASSWORD) return { status: "error", message: `Use at least ${MIN_PASSWORD} characters for your password.` };
-  if (!AUTH_ENABLED) redirect("/login");
+  if (!AUTH_ENABLED) return NOT_CONFIGURED;
   const supabase = await createClient();
   const { error } = await supabase.auth.updateUser({ password });
   if (error) {

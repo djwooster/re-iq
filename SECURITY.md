@@ -14,7 +14,7 @@ says what protects them today, how database changes ship, and the manual steps o
 - Generic errors: a wrong password and an unknown email look the same; password reset always says
   "if this email has an account". Redirects accept only in-app paths (`safeNext`, `demoTarget`).
 - Google and Microsoft sign-in show a generic message if they fail to start or return an error.
-- Without `NEXT_PUBLIC_SUPABASE_*`, sign-in falls back to the demo, so a deploy without keys still runs.
+- Without `NEXT_PUBLIC_SUPABASE_*`, sign-in, sign-up and password reset show "Sign-in isn't available right now" (no demo fallback).
 
 **Organizations and roles** (`supabase/migrations`)
 - Every user belongs to orgs through `org_members` with a role: `owner`, `member` or `uploader`.

@@ -6,7 +6,6 @@ import { useActionState, useState, useTransition } from "react";
 import { Button } from "@/components/ui/button";
 import { Field, Input, Tabs } from "@/components/ui/controls";
 import { requestPasswordReset, signIn, signInWithProvider, signUp, updatePassword, type AuthState, type Provider } from "@/lib/auth/actions";
-import { AUTH_ENABLED } from "@/lib/supabase/env";
 
 type Mode = "login" | "signup" | "forgot" | "reset";
 
@@ -136,12 +135,6 @@ export function AuthForm({ mode, invite }: { mode: Mode; invite?: boolean }) {
           </p>
         )}
       </form>
-
-      {!AUTH_ENABLED && (
-        <p className="mt-4 rounded-md border border-dashed border-border px-3 py-2 text-[11px] text-fg-3">
-          Demo environment: any credentials work and you&apos;ll enter the Alder Peak Capital sample portfolio.
-        </p>
-      )}
 
       {(mode === "forgot" || mode === "reset") && (
         <p className="mt-6 text-xs text-fg-3">
