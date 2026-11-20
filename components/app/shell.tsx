@@ -8,6 +8,7 @@ import { ToastProvider } from "@/components/ui/toast";
 import { signOut } from "@/lib/auth/actions";
 import { cn } from "@/lib/cn";
 import { PRODUCT_NAME } from "@/lib/labels";
+import { Notifications } from "./notifications";
 
 /** The signed-in app's frame: the same sidebar as the prototype, with the real org and person. */
 
@@ -16,14 +17,16 @@ export interface ShellAccount {
   name: string;
   email: string;
   roleLabel: string;
+  /** Some property hasn't sent last month's reports yet: the prototype's dot on Close. */
+  closeOpen: boolean;
 }
 
-const NAV: { group?: string; items: { href: string; label: string; icon: typeof LayoutGrid }[] }[] = [
+const NAV: { group?: string; items: { href: string; label: string; icon: typeof LayoutGrid; badge?: "close" }[] }[] = [
   { items: [{ href: "/app", label: "Overview", icon: LayoutGrid }] },
   {
     group: "Month-end",
     items: [
-      { href: "/app/close", label: "Close", icon: ClipboardCheck },
+      { href: "/app/close", label: "Close", icon: ClipboardCheck, badge: "close" },
       { href: "/app/exceptions", label: "Exceptions", icon: AlertCircle },
       { href: "/app/tasks", label: "Tasks", icon: ListChecks },
       { href: "/app/owner-report", label: "Owner report", icon: FileText },
@@ -43,7 +46,7 @@ const NAV: { group?: string; items: { href: string; label: string; icon: typeof 
   },
 ];
 
-function Nav({ onNavigate }: { onNavigate?: () => void }) {
+function Nav({ closeOpen, onNavigate }: { closeOpen: boolean; onNavigate?: () => void }) {
   const pathname = usePathname();
   const active = (href: string) => (href === "/app" ? pathname === "/app" : pathname === href || pathname.startsWith(`${href}/`));
   return (
@@ -52,7 +55,7 @@ function Nav({ onNavigate }: { onNavigate?: () => void }) {
         <div key={section.group ?? i} className="mb-5">
           {section.group && <div className="px-2 pb-1 text-[11px] font-medium text-fg-3">{section.group}</div>}
           <ul className="flex flex-col gap-px">
-            {section.items.map(({ href, label, icon: Icon }) => (
+            {section.items.map(({ href, label, icon: Icon, badge }) => (
               <li key={href}>
                 <Link
                   href={href}
@@ -62,6 +65,7 @@ function Nav({ onNavigate }: { onNavigate?: () => void }) {
                 >
                   <Icon className={cn("size-4", active(href) ? "text-brand" : "text-fg-2")} strokeWidth={1.75} />
                   <span className="flex-1">{label}</span>
+                  {badge === "close" && closeOpen && <span className="size-1.5 rounded-full bg-warning" aria-label="Close in progress" />}
                 </Link>
               </li>
             ))}
@@ -123,16 +127,17 @@ function UserMenu({ account, onNavigate }: { account: ShellAccount; onNavigate?:
 function Sidebar({ account, onNavigate }: { account: ShellAccount; onNavigate?: () => void }) {
   return (
     <nav aria-label="Primary" className="flex h-full w-[220px] flex-col border-r border-border bg-surface">
-      <div className="flex h-12 items-center pl-4">
+      <div className="flex h-12 items-center justify-between gap-2 pr-2.5 pl-4">
         <Link href="/app" onClick={onNavigate} className="num text-[13px] font-semibold tracking-[0.06em] text-fg">
           {PRODUCT_NAME}
         </Link>
+        <Notifications />
       </div>
       <div className="mx-2 mb-4 flex items-center gap-2 rounded-md border border-border bg-bg px-2 py-1.5">
         <span className="flex size-5 shrink-0 items-center justify-center rounded bg-fg/[0.08] text-[11px] font-semibold text-fg-2">{account.orgName.slice(0, 1).toUpperCase()}</span>
         <span className="truncate text-xs font-medium">{account.orgName}</span>
       </div>
-      <Nav onNavigate={onNavigate} />
+      <Nav closeOpen={account.closeOpen} onNavigate={onNavigate} />
       <UserMenu account={account} onNavigate={onNavigate} />
     </nav>
   );

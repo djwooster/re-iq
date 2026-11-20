@@ -2,22 +2,26 @@
 
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
+import { Button, Card, Empty, Field, Input, Row, Segmented, Select, Table, Tabs, Td } from "@/components/prototype/ui";
 import { useTheme } from "@/components/theme/theme-provider";
-import { Button } from "@/components/ui/button";
-import { Card, CardHeader } from "@/components/ui/card";
-import { Field, Input, Segmented, Tabs } from "@/components/ui/controls";
-import { THead, Table, Td, Th, Tr } from "@/components/ui/table";
 import { useToast } from "@/components/ui/toast";
 import type { Account } from "@/lib/workspace/account";
-import { renameOrg, updateMyName, type Result } from "@/lib/workspace/actions";
+import { saveThresholds, updateMyName } from "@/lib/workspace/actions";
 import { deleteMyAccount } from "@/lib/workspace/delete-account";
 import { ROLE_LABELS } from "@/lib/workspace/format";
+import { CHART_OF_ACCOUNTS, KPIS } from "@/lib/workspace/kpis";
+import type { Property, Threshold } from "@/lib/workspace/queries";
 import { Page } from "./page";
 
-type Tab = "profile" | "team" | "workspace";
+/** Settings, as in the prototype (components/prototype/settings.tsx), on real records, with Profile first. */
 
-export function Settings({ account }: { account: Account }) {
+type Tab = "profile" | "thresholds" | "properties" | "accounts" | "team" | "workspace";
+
+const SEES: Record<Account["role"], string> = { owner: "Everything; manages properties, managers and settings", member: "Everything; can't change settings or access" };
+
+export function Settings({ account, properties, thresholds }: { account: Account; properties: Property[]; thresholds: Threshold[] }) {
   const [tab, setTab] = useState<Tab>("profile");
+  const active = properties.filter((p) => !p.archived_at);
   return (
     <Page
       title="Settings"
@@ -28,6 +32,9 @@ export function Settings({ account }: { account: Account }) {
           onChange={setTab}
           tabs={[
             { id: "profile", label: "Profile" },
+            { id: "thresholds", label: "Thresholds and targets" },
+            { id: "properties", label: "Properties and managers" },
+            { id: "accounts", label: "Chart of accounts" },
             { id: "team", label: "Team" },
             { id: "workspace", label: "Workspace" },
           ]}
@@ -40,65 +47,93 @@ export function Settings({ account }: { account: Account }) {
           <DeleteAccount account={account} />
         </>
       )}
-      {tab === "team" && <Team account={account} />}
-      {tab === "workspace" && <Workspace account={account} />}
+      {tab === "thresholds" && <Thresholds properties={active} saved={thresholds} canEdit={account.role === "owner"} />}
+      {tab === "properties" &&
+        (active.length ? (
+          <Table columns={["Property", { label: "Units", num: true }, "Manager", "Reports email", "Upload link"]}>
+            {active.map((p) => (
+              <Row key={p.id}>
+                <Td className="font-medium">{p.name}</Td>
+                <Td num className="text-fg-2">
+                  {p.unit_count ?? "—"}
+                </Td>
+                <Td className="text-fg-3">—</Td>
+                <Td className="text-fg-3">—</Td>
+                <Td className="text-fg-3">—</Td>
+              </Row>
+            ))}
+          </Table>
+        ) : (
+          <Empty>No properties yet.</Empty>
+        ))}
+      {tab === "accounts" && (
+        <Table columns={["Owner account", { label: "Manager labels mapped", num: true }]}>
+          {CHART_OF_ACCOUNTS.map((a) => (
+            <Row key={a}>
+              <Td>{a}</Td>
+              <Td num className="text-fg-3">
+                —
+              </Td>
+            </Row>
+          ))}
+        </Table>
+      )}
+      {tab === "team" && (
+        <Table columns={["Name", "Role", "Sees"]}>
+          {account.team.map((p) => (
+            <Row key={p.userId}>
+              <Td>{p.name || p.email}</Td>
+              <Td className="text-fg-2">{ROLE_LABELS[p.role]}</Td>
+              <Td className="text-fg-2">{SEES[p.role]}</Td>
+            </Row>
+          ))}
+        </Table>
+      )}
+      {tab === "workspace" && <Workspace orgName={account.orgName} />}
     </Page>
   );
 }
 
-/** One editable text value with its own Save, for name-like fields. */
-function SaveField({ label, initial, save, done }: { label: string; initial: string; save: (value: string) => Promise<Result>; done: string }) {
+function Profile({ account }: { account: Account }) {
   const toast = useToast();
   const router = useRouter();
-  const [value, setValue] = useState(initial);
+  const [name, setName] = useState(account.name);
   const [error, setError] = useState<string | null>(null);
   const [saving, start] = useTransition();
-  const submit = (e: React.FormEvent) => {
-    e.preventDefault();
+  const save = () =>
     start(async () => {
-      const result = await save(value);
+      const result = await updateMyName(name);
       if (!result.ok) return setError(result.message);
       setError(null);
-      toast(done);
+      toast("Name saved");
       router.refresh();
     });
-  };
   return (
-    <form onSubmit={submit} className="flex flex-col gap-2">
-      <Field label={label}>{(id) => <Input id={id} value={value} onChange={(e) => setValue(e.target.value)} maxLength={120} />}</Field>
-      {error && (
-        <p role="alert" className="text-xs text-unfavorable">
-          {error}
-        </p>
-      )}
-      <div>
-        <Button type="submit" variant="primary" size="sm" loading={saving} disabled={value.trim() === initial || !value.trim()}>
-          Save
-        </Button>
-      </div>
-    </form>
-  );
-}
-
-function Row({ label, children }: { label: string; children: React.ReactNode }) {
-  return (
-    <div className="flex items-center justify-between gap-3 text-xs">
-      <dt className="text-fg-2">{label}</dt>
-      <dd className="font-medium text-fg">{children}</dd>
-    </div>
-  );
-}
-
-function Profile({ account }: { account: Account }) {
-  return (
-    <Card className="max-w-lg">
-      <CardHeader title="Profile" />
-      <div className="flex flex-col gap-5 px-4 pb-4">
-        <SaveField label="Name" initial={account.name} save={updateMyName} done="Name saved" />
-        <dl className="flex flex-col gap-3 border-t border-border pt-4">
-          <Row label="Email">{account.email}</Row>
-          <Row label="Role">{ROLE_LABELS[account.role]}</Row>
+    <Card title="Profile">
+      <div className="flex max-w-lg flex-col gap-4 text-xs">
+        <Field label="Name">
+          <Input value={name} onChange={(e) => setName(e.target.value)} maxLength={100} />
+        </Field>
+        {error && (
+          <p role="alert" className="text-xs text-unfavorable">
+            {error}
+          </p>
+        )}
+        <dl className="flex flex-col gap-4">
+          <div className="flex items-center justify-between gap-3">
+            <dt className="text-fg-2">Email</dt>
+            <dd className="font-medium">{account.email}</dd>
+          </div>
+          <div className="flex items-center justify-between gap-3">
+            <dt className="text-fg-2">Role</dt>
+            <dd className="font-medium">{ROLE_LABELS[account.role]}</dd>
+          </div>
         </dl>
+        <div>
+          <Button onClick={save} disabled={saving || !name.trim() || name.trim() === account.name}>
+            {saving ? "Saving…" : "Save"}
+          </Button>
+        </div>
       </div>
     </Card>
   );
@@ -111,98 +146,106 @@ function DeleteAccount({ account }: { account: Account }) {
   const [pending, start] = useTransition();
   const lastOwner = account.role === "owner" && account.team.filter((p) => p.role === "owner").length === 1;
   const others = account.team.length - 1;
+  const remove = () =>
+    start(async () => {
+      const result = await deleteMyAccount(typed);
+      if (result && !result.ok) setError(result.message);
+    });
   return (
-    <Card className="max-w-lg">
-      <CardHeader title="Delete account" />
-      <div className="flex flex-col gap-4 px-4 pb-4 text-xs">
+    <Card title="Delete account">
+      <div className="flex max-w-lg flex-col gap-4 text-xs">
         <p className="leading-relaxed text-fg-2">
-          {lastOwner ? (
-            <>
-              You&apos;re the only owner of <span className="font-medium text-fg">{account.orgName}</span>, so deleting your account also deletes the organization: every property, every uploaded report and file,
-              {others > 0 ? ` and access for the ${others} other ${others === 1 ? "person" : "people"} on your team` : ""}, along with your property managers&apos; access. This can&apos;t be undone.
-            </>
-          ) : (
-            <>Your account and sign-in are deleted. {account.orgName} and its reports stay with the rest of your team. This can&apos;t be undone.</>
-          )}
+          {lastOwner
+            ? `You're the only owner of ${account.orgName}, so deleting your account also deletes the organization: every property and every uploaded report and file${others > 0 ? `, and access for the ${others} other ${others === 1 ? "person" : "people"} on your team` : ""}. Your property managers lose access too. This can't be undone.`
+            : `Your account and sign-in are deleted. ${account.orgName} and its reports stay with the rest of your team. This can't be undone.`}
         </p>
-        <form
-          onSubmit={(e) => {
-            e.preventDefault();
-            start(async () => {
-              const result = await deleteMyAccount(typed);
-              if (result && !result.ok) setError(result.message);
-            });
-          }}
-          className="flex flex-col gap-2"
-        >
-          <Field label="Type DELETE to confirm">{(id) => <Input id={id} value={typed} onChange={(e) => setTyped(e.target.value)} autoComplete="off" />}</Field>
-          {error && (
-            <p role="alert" className="text-xs text-unfavorable">
-              {error}
-            </p>
-          )}
-          <div>
-            <Button type="submit" variant="danger" size="sm" loading={pending} disabled={typed.trim() !== "DELETE"}>
-              {lastOwner ? "Delete account and organization" : "Delete account"}
-            </Button>
-          </div>
-        </form>
-      </div>
-    </Card>
-  );
-}
-
-function Team({ account }: { account: Account }) {
-  return (
-    <Card>
-      <CardHeader title="Team" description="Everyone in your organization who can see the dashboard. Property managers are under Managers." />
-      <Table>
-        <THead>
-          <Th>Name</Th>
-          <Th>Email</Th>
-          <Th>Role</Th>
-        </THead>
-        <tbody>
-          {account.team.map((p) => (
-            <Tr key={p.userId}>
-              <Td className="font-medium text-fg">{p.name || "—"}</Td>
-              <Td className="text-fg-2">{p.email}</Td>
-              <Td className="text-fg-2">{ROLE_LABELS[p.role]}</Td>
-            </Tr>
-          ))}
-        </tbody>
-      </Table>
-    </Card>
-  );
-}
-
-function Workspace({ account }: { account: Account }) {
-  const { preference, setPreference } = useTheme();
-  return (
-    <Card className="max-w-lg">
-      <CardHeader title="Workspace" />
-      <div className="flex flex-col gap-5 px-4 pb-4">
-        {account.role === "owner" ? (
-          <SaveField label="Organization name" initial={account.orgName} save={renameOrg} done="Organization renamed" />
-        ) : (
-          <dl>
-            <Row label="Organization">{account.orgName}</Row>
-          </dl>
+        <Field label="Type DELETE to confirm">
+          <Input value={typed} onChange={(e) => setTyped(e.target.value)} autoComplete="off" />
+        </Field>
+        {error && (
+          <p role="alert" className="text-xs text-unfavorable">
+            {error}
+          </p>
         )}
-        <div className="flex items-center justify-between gap-3 border-t border-border pt-4 text-xs">
-          <span className="text-fg-2">Theme</span>
-          <Segmented
-            label="Theme"
-            value={preference}
-            onChange={setPreference}
-            options={[
-              { id: "light", label: "Light" },
-              { id: "dark", label: "Dark" },
-              { id: "system", label: "System" },
-            ]}
-          />
+        <div>
+          <Button variant="danger-ghost" onClick={remove} disabled={pending || typed.trim() !== "DELETE"}>
+            {pending ? "Deleting…" : lastOwner ? "Delete account and organization" : "Delete account"}
+          </Button>
         </div>
       </div>
     </Card>
+  );
+}
+
+function Workspace({ orgName }: { orgName: string }) {
+  const { preference, setPreference } = useTheme();
+  return (
+    <Card title="Workspace">
+      <dl className="flex max-w-lg flex-col gap-4 text-xs">
+        <div className="flex items-center justify-between gap-3">
+          <dt className="text-fg-2">Organization</dt>
+          <dd className="font-medium">{orgName}</dd>
+        </div>
+        <div className="flex items-center justify-between gap-3">
+          <dt className="text-fg-2">Theme</dt>
+          <dd>
+            <Segmented label="" value={preference === "system" ? "System" : preference === "dark" ? "Dark" : "Light"} options={["Light", "Dark", "System"] as const} onChange={(v) => setPreference(v.toLowerCase() as "light" | "dark" | "system")} />
+          </dd>
+        </div>
+      </dl>
+    </Card>
+  );
+}
+
+const ALL = "All properties";
+
+/** The prototype's thresholds table; Save stores the targets for the chosen scope. */
+function Thresholds({ properties, saved, canEdit }: { properties: Property[]; saved: Threshold[]; canEdit: boolean }) {
+  const toast = useToast();
+  const router = useRouter();
+  const [scope, setScope] = useState(ALL);
+  const [targets, setTargets] = useState<Record<string, string>>({});
+  const [saving, start] = useTransition();
+  const propertyId = properties.find((p) => p.name === scope)?.id ?? null;
+  const key = (kpi: string) => `${scope}:${kpi}`;
+  // What a KPI shows for this scope: an edit in progress, else a saved target (property, then all), else the default.
+  const current = (kpi: string, fallback: string) =>
+    targets[key(kpi)] ?? saved.find((t) => t.kpi === kpi && t.property_id === propertyId)?.target ?? saved.find((t) => t.kpi === kpi && t.property_id === null)?.target ?? fallback;
+  const save = () =>
+    start(async () => {
+      const values = Object.fromEntries(KPIS.map((k) => [k.kpi, current(k.kpi, k.target)]).filter(([kpi, value]) => value !== KPIS.find((k) => k.kpi === kpi)?.target));
+      const result = await saveThresholds(propertyId, values);
+      if (!result.ok) return toast(result.message);
+      setTargets({});
+      toast("Thresholds saved", { detail: `Applies to ${scope.toLowerCase()} from the next close.` });
+      router.refresh();
+    });
+  return (
+    <div className="flex flex-col gap-3">
+      <div className="flex flex-wrap items-end justify-between gap-3">
+        <div className="w-48">
+          <Field label="Applies to">
+            <Select value={scope} onChange={setScope} options={[ALL, ...properties.map((p) => p.name)]} />
+          </Field>
+        </div>
+        {canEdit && (
+          <Button onClick={save} disabled={saving}>
+            {saving ? "Saving…" : "Save"}
+          </Button>
+        )}
+      </div>
+      <Table columns={["KPI", "Formula", "Source report", "Target or alert"]}>
+        {KPIS.map((k) => (
+          <Row key={k.kpi}>
+            <Td className="font-medium whitespace-nowrap">{k.kpi}</Td>
+            <Td className="text-xs text-fg-2">{k.formula}</Td>
+            <Td className="whitespace-nowrap text-fg-2">{k.source}</Td>
+            <Td className="w-64">
+              <Input value={current(k.kpi, k.target)} disabled={!canEdit} onChange={(e) => setTargets((t) => ({ ...t, [key(k.kpi)]: e.target.value }))} />
+            </Td>
+          </Row>
+        ))}
+      </Table>
+    </div>
   );
 }

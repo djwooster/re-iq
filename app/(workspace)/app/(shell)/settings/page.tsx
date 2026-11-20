@@ -4,6 +4,8 @@ import { redirect } from "next/navigation";
 import { Suspense } from "react";
 import { Settings } from "@/components/app/settings";
 import { getAccount } from "@/lib/workspace/account";
+import { getThresholds, listProperties } from "@/lib/workspace/queries";
+import { requestWorkspace } from "@/lib/workspace/request";
 
 export const metadata: Metadata = { title: "Settings" };
 
@@ -19,5 +21,7 @@ async function Load() {
   await connection();
   const account = await getAccount();
   if (!account) redirect("/login");
-  return <Settings account={account} />;
+  const ws = await requestWorkspace();
+  const [properties, thresholds] = await Promise.all([listProperties(ws), getThresholds(ws)]);
+  return <Settings account={account} properties={properties} thresholds={thresholds} />;
 }

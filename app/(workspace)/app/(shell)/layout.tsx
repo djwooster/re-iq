@@ -3,7 +3,9 @@ import { connection } from "next/server";
 import { Suspense } from "react";
 import { AppShell } from "@/components/app/shell";
 import { getAccount } from "@/lib/workspace/account";
-import { ROLE_LABELS } from "@/lib/workspace/format";
+import { ROLE_LABELS, closePeriod } from "@/lib/workspace/format";
+import { getUploadsForPeriod, listProperties } from "@/lib/workspace/queries";
+import { requestWorkspace } from "@/lib/workspace/request";
 
 /** The signed-in app. proxy.ts already sends anyone without a dashboard role away; this re-checks. */
 export default function AppLayout({ children }: { children: React.ReactNode }) {
@@ -18,5 +20,8 @@ async function Frame({ children }: { children: React.ReactNode }) {
   await connection();
   const account = await getAccount();
   if (!account) redirect("/login");
-  return <AppShell account={{ orgName: account.orgName, name: account.name, email: account.email, roleLabel: ROLE_LABELS[account.role] }}>{children}</AppShell>;
+  const ws = await requestWorkspace();
+  const [properties, uploads] = await Promise.all([listProperties(ws), getUploadsForPeriod(ws, closePeriod())]);
+  const closeOpen = properties.some((p) => !p.archived_at && !uploads.some((u) => u.property_id === p.id));
+  return <AppShell account={{ orgName: account.orgName, name: account.name, email: account.email, roleLabel: ROLE_LABELS[account.role], closeOpen }}>{children}</AppShell>;
 }

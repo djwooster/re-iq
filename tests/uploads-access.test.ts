@@ -138,6 +138,16 @@ describe.skipIf(!HAS_TEST_DB)("uploads: access, isolation and storage", () => {
     expect((await ownerA.from("orgs").select("name").eq("id", orgA).single()).data?.name).toBe("Uploads A Renamed");
   });
 
+  it("thresholds: the org's owners write, its people read, other orgs and property managers can't touch them", async () => {
+    expect((await ownerA.from("org_thresholds").insert({ org_id: orgA, property_id: null, kpi: "Bad debt %", target: "Under 1%" })).error).toBeNull();
+    expect((await ownerA.from("org_thresholds").insert({ org_id: orgA, property_id: q1, kpi: "DSCR", target: "x" })).error).not.toBeNull();
+    expect((await ownerB.from("org_thresholds").insert({ org_id: orgA, property_id: null, kpi: "DSCR", target: "x" })).error).not.toBeNull();
+    expect((await up1.from("org_thresholds").insert({ org_id: orgA, property_id: null, kpi: "DSCR", target: "x" })).error).not.toBeNull();
+    expect((await ownerB.from("org_thresholds").select("kpi").eq("org_id", orgA)).data).toEqual([]);
+    expect((await up1.from("org_thresholds").select("kpi").eq("org_id", orgA)).data).toEqual([]);
+    expect((await ownerA.from("org_thresholds").select("kpi").eq("org_id", orgA)).data?.map((t) => t.kpi)).toEqual(["Bad debt %"]);
+  });
+
   it("another org can't add properties or grant access in this org", async () => {
     expect((await ownerB.from("properties").insert({ org_id: orgA, name: "Sneaky" })).error).not.toBeNull();
     expect((await ownerB.rpc("set_uploader_access", { target_org: orgA, target_user: up1User.id, property_ids: [p1, p2] })).error).not.toBeNull();

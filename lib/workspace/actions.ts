@@ -3,6 +3,7 @@
 import { headers } from "next/headers";
 import { revalidatePath } from "next/cache";
 import { getWorkspace } from "./context";
+import { KPIS } from "./kpis";
 
 /**
  * Owner actions for properties and property managers (uploaders). Each runs as the signed-in user,
@@ -133,6 +134,29 @@ export async function renameOrg(name: string): Promise<Result> {
   if (!value || value.length > 120) return { ok: false, message: "Enter a name (up to 120 characters)." };
   const { error } = await ws.supabase.rpc("rename_org", { target_org: ws.orgId, new_name: value });
   if (error) return TRY_AGAIN;
+  refresh();
+  return { ok: true };
+}
+
+/**
+ * Saves the targets for one scope (all properties, or one property): replaces that scope's rows with the
+ * targets that differ from the defaults. Owners only; row-level security re-checks.
+ */
+export async function saveThresholds(propertyId: string | null, targets: Record<string, string>): Promise<Result> {
+  const ws = await getWorkspace();
+  if (ws.role !== "owner") return OWNERS_ONLY;
+  if (propertyId !== null && !UUID.test(propertyId)) return TRY_AGAIN;
+  const rows = Object.entries(targets)
+    .filter(([kpi]) => KPIS.some((k) => k.kpi === kpi))
+    .map(([kpi, target]) => ({ kpi, target: target.trim() }));
+  if (rows.some((r) => !r.target || r.target.length > 200)) return { ok: false, message: "Each target needs some text (up to 200 characters)." };
+  const scope = ws.supabase.from("org_thresholds").delete().eq("org_id", ws.orgId);
+  const { error: clearError } = await (propertyId ? scope.eq("property_id", propertyId) : scope.is("property_id", null));
+  if (clearError) return TRY_AGAIN;
+  if (rows.length) {
+    const { error } = await ws.supabase.from("org_thresholds").insert(rows.map((r) => ({ org_id: ws.orgId, property_id: propertyId, ...r })));
+    if (error) return TRY_AGAIN;
+  }
   refresh();
   return { ok: true };
 }

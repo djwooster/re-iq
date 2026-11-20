@@ -95,6 +95,18 @@ export async function getLatestReports(ws: Workspace, types: string[], propertyI
   });
 }
 
+export interface Threshold {
+  property_id: string | null;
+  kpi: string;
+  target: string;
+}
+
+/** Saved targets for the org: all-properties rows (property_id null) and per-property overrides. */
+export async function getThresholds(ws: Workspace): Promise<Threshold[]> {
+  const { data } = await ws.supabase.from("org_thresholds").select("property_id, kpi, target").eq("org_id", ws.orgId);
+  return (data ?? []) as Threshold[];
+}
+
 /** The properties this uploader may upload to (row-level security returns only their grants). */
 export async function getUploaderProperties(ctx: UploaderContext): Promise<Property[]> {
   const { data } = await ctx.supabase.from("properties").select("id, name, address, unit_count, archived_at").eq("org_id", ctx.orgId).is("archived_at", null).order("name");
