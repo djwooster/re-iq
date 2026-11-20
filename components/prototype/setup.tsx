@@ -15,7 +15,7 @@ import { PRODUCT_NAME } from "@/lib/labels";
 import { GL_LINES, uploadUrl, useCopyLink } from "./close";
 import { fmt } from "./metrics";
 import { profile } from "./numbers";
-import { ALL_PROPERTY_IDS, CHART_OF_ACCOUNTS, CLOSE_MONTH, DEFAULT_NAMES, EXCEPTIONS, MANAGERS, MAPPING, MISSING, PACKAGE, RECEIVED, detectKind, fmtWhen, guessProperty, managerOfId, type ManagerId, type ReportKind, type Upload } from "./seed";
+import { ALL_PROPERTY_IDS, CHART_OF_ACCOUNTS, DEFAULT_NAMES, EXCEPTIONS, MANAGERS, MAPPING, MISSING, PACKAGE, RECEIVED, detectKind, fmtWhen, guessProperty, managerOfId, type ManagerId, type ReportKind, type Upload } from "./seed";
 import { STEPS, type StepId } from "./setup-steps";
 import { useWf, type Draft } from "./store";
 import { Button, Select } from "./ui";
@@ -257,9 +257,7 @@ function Properties() {
 
   return (
     <>
-      <Heading title={`Add ${CLOSE_MONTH}'s reports`}>
-        Drop everything your managers sent for {CLOSE_MONTH}, for every property, in one go. {PRODUCT_NAME} sorts each file by property and report type. Check the table and fix anything it got wrong.
-      </Heading>
+      <Heading title="Add reports" />
 
       <div
         {...getRootProps()}
