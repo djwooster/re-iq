@@ -6,7 +6,7 @@ import { closePeriod } from "@/lib/workspace/format";
 import { getUploadsForPeriod, listProperties } from "@/lib/workspace/queries";
 import { requestWorkspace } from "@/lib/workspace/request";
 
-export const metadata: Metadata = { title: "Add reports" };
+export const metadata: Metadata = { title: "Add report" };
 
 export default function AddReportsPage() {
   return (
@@ -22,7 +22,7 @@ async function AddReports() {
   const period = closePeriod();
   const [properties, uploads] = await Promise.all([listProperties(ws), getUploadsForPeriod(ws, period)]);
   return (
-    <Page title="Add reports" crumbs={[{ label: "Reports", href: "/app/reports" }, { label: "Add reports" }]}>
+    <Page title="Add report" crumbs={[{ label: "Reports", href: "/app/reports" }, { label: "Add report" }]}>
       <SetupProperties properties={properties.filter((p) => !p.archived_at)} uploads={uploads} period={period} inApp />
     </Page>
   );

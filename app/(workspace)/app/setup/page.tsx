@@ -37,7 +37,8 @@ async function Setup({ searchParams }: Props) {
     const period = closePeriod();
     body = <SetupProperties properties={active} uploads={await getUploadsForPeriod(ws, period)} period={period} />;
   } else if (step === "review") {
-    body = <Review properties={properties} reads={await loadReview(ws)} />;
+    // Reports the reader couldn't place (type "other") have nothing to review.
+    body = <Review properties={properties} reads={(await loadReview(ws)).filter((r) => !(r.status === "read" && r.report_type === "other"))} />;
   } else if (step === "managers") {
     body = <SetupManagers properties={active} companies={await listCompanies(ws)} />;
   } else {

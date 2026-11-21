@@ -4,6 +4,8 @@ import { headers } from "next/headers";
 import { revalidatePath } from "next/cache";
 import { getWorkspace } from "./context";
 import { sendEmail } from "@/lib/email";
+import { log } from "@/lib/logger";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { readUpload } from "@/lib/reading/run";
 import { CHART_OF_ACCOUNTS, KPIS } from "./kpis";
 
@@ -313,4 +315,37 @@ export async function sendCompanyInvites(companyIds: string[]): Promise<{ id: st
   }
   refresh();
   return results;
+}
+
+/** Deletes a report: its stored file, its record and what was read from it. Owners only. */
+export async function deleteReport(uploadId: string): Promise<Result> {
+  const ws = await getWorkspace();
+  if (ws.role !== "owner") return OWNERS_ONLY;
+  if (!UUID.test(uploadId)) return TRY_AGAIN;
+  // Read as the user first: row-level security confirms the report is in their org.
+  const { data: upload } = await ws.supabase.from("uploads").select("id, storage_path").eq("id", uploadId).eq("org_id", ws.orgId).maybeSingle();
+  if (!upload) return TRY_AGAIN;
+  const admin = createAdminClient();
+  if (!admin) return TRY_AGAIN;
+  const { error: storageError } = await admin.storage.from("reports").remove([upload.storage_path as string]);
+  if (storageError) return TRY_AGAIN;
+  const { error } = await admin.from("uploads").delete().eq("id", uploadId).eq("org_id", ws.orgId);
+  if (error) return TRY_AGAIN;
+  log.info("report.deleted", { upload: uploadId, org: ws.orgId, by: ws.userId });
+  refresh();
+  return { ok: true };
+}
+
+/** Reads a report again from scratch (after a fix to the reader, or a wrong read). */
+export async function rereadReport(uploadId: string): Promise<Result> {
+  const ws = await getWorkspace();
+  if (!UUID.test(uploadId)) return TRY_AGAIN;
+  const { data } = await ws.supabase.from("uploads").select("id").eq("id", uploadId).eq("org_id", ws.orgId).maybeSingle();
+  if (!data) return TRY_AGAIN;
+  const admin = createAdminClient();
+  if (!admin) return TRY_AGAIN;
+  await admin.from("report_reads").delete().eq("upload_id", uploadId).neq("status", "confirmed");
+  await readUpload(uploadId);
+  refresh();
+  return { ok: true };
 }

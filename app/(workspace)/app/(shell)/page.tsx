@@ -1,4 +1,4 @@
-import { ChartNoAxesColumn, FileUp } from "lucide-react";
+import { ChartNoAxesColumn, FileUp, Plus } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
@@ -52,7 +52,7 @@ async function Overview() {
           <EmptyState
             title="Add your first reports"
             description="Drop last month's reports. Each one is matched to its property by file name, then read."
-            action={<LinkButton href="/app/reports/new">Add reports</LinkButton>}
+            action={<LinkButton href="/app/reports/new" icon={<Plus className="size-3.5" />}>Add report</LinkButton>}
           />
         </Card>
       </Page>
@@ -60,7 +60,7 @@ async function Overview() {
   }
 
   return (
-    <Page title="Overview" subtitle={ws.orgName} actions={<LinkButton href="/app/reports/new">Add reports</LinkButton>}>
+    <Page title="Overview" subtitle={ws.orgName} actions={<LinkButton href="/app/reports/new" icon={<Plus className="size-3.5" />}>Add report</LinkButton>}>
       <Pulse latest={pulse.filter((u) => active.some((p) => p.id === u.property_id))} properties={active.length} />
       <div className="grid gap-3 sm:grid-cols-3">
         <Stat label="Properties" value={String(active.length)} sub={units ? `${units.toLocaleString("en-US")} units` : undefined} href="/app/properties" />

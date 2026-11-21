@@ -55,7 +55,7 @@ export function EmptyPage({ title, icon, heading, description, action }: { title
 }
 
 /** A link that looks like a button. */
-export function LinkButton({ href, variant = "primary", children }: { href: string; variant?: "primary" | "secondary"; children: React.ReactNode }) {
+export function LinkButton({ href, variant = "primary", icon, children }: { href: string; variant?: "primary" | "secondary"; icon?: React.ReactNode; children: React.ReactNode }) {
   return (
     <Link
       href={href}
@@ -64,6 +64,7 @@ export function LinkButton({ href, variant = "primary", children }: { href: stri
         variant === "primary" ? "border-transparent bg-inverted text-inverted-fg hover:opacity-90" : "border-border bg-surface text-fg hover:border-border-strong hover:bg-surface-2",
       )}
     >
+      {icon}
       {children}
     </Link>
   );
