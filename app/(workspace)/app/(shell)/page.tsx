@@ -52,7 +52,7 @@ async function Overview() {
           <EmptyState
             title="Add your first reports"
             description="Drop last month's reports. Each one is matched to its property by file name, then read."
-            action={<LinkButton href="/app/setup">Add reports</LinkButton>}
+            action={<LinkButton href="/app/reports/new">Add reports</LinkButton>}
           />
         </Card>
       </Page>
@@ -60,7 +60,7 @@ async function Overview() {
   }
 
   return (
-    <Page title="Overview" subtitle={ws.orgName}>
+    <Page title="Overview" subtitle={ws.orgName} actions={<LinkButton href="/app/reports/new">Add reports</LinkButton>}>
       <Pulse latest={pulse.filter((u) => active.some((p) => p.id === u.property_id))} properties={active.length} />
       <div className="grid gap-3 sm:grid-cols-3">
         <Stat label="Properties" value={String(active.length)} sub={units ? `${units.toLocaleString("en-US")} units` : undefined} href="/app/properties" />
@@ -69,7 +69,14 @@ async function Overview() {
       </div>
 
       <Card>
-        <CardHeader title="Latest reports" />
+        <CardHeader
+          title="Latest reports"
+          action={
+            <Link href="/app/review" className="text-xs text-fg-2 transition-colors hover:text-fg">
+              Review
+            </Link>
+          }
+        />
         {recent.length === 0 ? (
           <EmptyState
             icon={<FileUp className="size-4" strokeWidth={1.75} />}

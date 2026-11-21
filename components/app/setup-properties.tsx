@@ -48,7 +48,8 @@ const CHECKBOX = "size-3.5 cursor-pointer accent-[var(--text-primary)]";
 let seq = 0;
 const uid = () => `s${Date.now().toString(36)}${(seq++).toString(36)}`;
 
-export function SetupProperties({ properties, uploads, period }: { properties: Property[]; uploads: Upload[]; period: string }) {
+/** `inApp`: the monthly Add reports page (no heading or Save and exit; Continue goes to Review) rather than setup's first step. */
+export function SetupProperties({ properties, uploads, period, inApp }: { properties: Property[]; uploads: Upload[]; period: string; inApp?: boolean }) {
   const router = useRouter();
   const [rows, setRows] = useState<Row[]>(() => properties.map((p) => ({ key: p.id, id: p.id, name: p.name, units: p.unit_count, saved: uploads.filter((u) => u.property_id === p.id) })));
   const [staged, setStaged] = useState<Staged[]>([]);
@@ -177,7 +178,7 @@ export function SetupProperties({ properties, uploads, period }: { properties: P
 
   return (
     <>
-      <Heading title="Add reports" />
+      {!inApp && <Heading title="Add reports" />}
 
       <div
         {...getRootProps()}
@@ -291,11 +292,13 @@ export function SetupProperties({ properties, uploads, period }: { properties: P
       )}
 
       <div className="mt-2 flex items-center justify-end gap-3 border-t border-border pt-5">
-        <Button variant="secondary" disabled={busy} onClick={async () => (await save()) && router.push("/")}>
-          Save and exit
-        </Button>
-        <Button disabled={busy || !rows.length || !rows.every((r) => r.name.trim()) || !reports} onClick={async () => (await save()) && router.push("/app/setup?step=managers")}>
-          Continue
+        {!inApp && (
+          <Button variant="secondary" disabled={busy} onClick={async () => (await save()) && router.push("/")}>
+            Save and exit
+          </Button>
+        )}
+        <Button disabled={busy || !rows.length || !rows.every((r) => r.name.trim()) || !reports} onClick={async () => (await save()) && router.push(inApp ? "/app/review" : "/app/setup?step=managers")}>
+          {inApp ? "Upload and review" : "Continue"}
         </Button>
       </div>
 
