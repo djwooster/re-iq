@@ -1,17 +1,29 @@
-import { CalendarCheck } from "lucide-react";
 import type { Metadata } from "next";
-import { EmptyPage, LinkButton } from "@/components/app/page";
+import { Suspense } from "react";
+import { Page } from "@/components/app/page";
+import { Pulse } from "@/components/app/pulse";
+import { PULSE_REPORTS } from "@/lib/workspace/pulse";
+import { getLatestReports, listProperties } from "@/lib/workspace/queries";
+import { requestWorkspace } from "@/lib/workspace/request";
 
 export const metadata: Metadata = { title: "Leasing and revenue" };
 
-export default function Page() {
+export default function LeasingPage() {
   return (
-    <EmptyPage
-      title="Leasing and revenue"
-      icon={<CalendarCheck className="size-4" strokeWidth={1.75} />}
-      heading="No leasing data yet"
-      description="Occupancy, rents, renewals and loss to lease appear here once rent rolls and box scores are processed."
-      action={<LinkButton href="/app/properties" variant="secondary">Upload reports</LinkButton>}
-    />
+    <Suspense>
+      <Leasing />
+    </Suspense>
+  );
+}
+
+/** Leasing and revenue. Pulse (Brian's five operating numbers) leads until the rest of the page is ported. */
+async function Leasing() {
+  const ws = await requestWorkspace();
+  const [properties, pulse] = await Promise.all([listProperties(ws), getLatestReports(ws, PULSE_REPORTS)]);
+  const active = properties.filter((p) => !p.archived_at);
+  return (
+    <Page title="Leasing and revenue">
+      <Pulse latest={pulse.filter((u) => active.some((p) => p.id === u.property_id))} properties={active.length} />
+    </Page>
   );
 }

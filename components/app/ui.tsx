@@ -1,9 +1,10 @@
 "use client";
 
-import { ArrowDown, ArrowUp, ArrowUpDown } from "lucide-react";
+import { ArrowDown, ArrowUp, ArrowUpDown, ChevronRight } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { createContext, useContext } from "react";
+import { Line, LineChart, ResponsiveContainer, YAxis } from "recharts";
 import { Button as UiButton } from "@/components/ui/button";
 import { Input as UiInput, Segmented as UiSegmented, Select as UiSelect, Tabs as UiTabs } from "@/components/ui/controls";
 import { cn } from "@/lib/cn";
@@ -147,4 +148,46 @@ export function Select({ value, onChange, options, label }: { value: string; onC
 
 export function Empty({ children }: { children: React.ReactNode }) {
   return <p className="rounded-md border border-dashed border-border px-4 py-6 text-center text-xs text-fg-3">{children}</p>;
+}
+
+/** A small trend line. Null months break the line. */
+export function Sparkline({ data, tone = "data", className }: { data: { value: number | null }[]; tone?: "data" | "unfavorable" | "muted"; className?: string }) {
+  const stroke = { data: "var(--data)", unfavorable: "var(--unfavorable)", muted: "var(--text-muted)" }[tone];
+  return (
+    <div className={cn("h-6 w-full", className)} aria-hidden>
+      <ResponsiveContainer width="100%" height="100%" minWidth={0}>
+        <LineChart data={data} margin={{ top: 2, right: 2, bottom: 2, left: 2 }}>
+          <YAxis hide domain={["dataMin", "dataMax"]} />
+          <Line type="monotone" dataKey="value" stroke={stroke} strokeWidth={1.5} dot={false} isAnimationActive={false} />
+        </LineChart>
+      </ResponsiveContainer>
+    </div>
+  );
+}
+
+/** A KPI: label, value, the rule it's measured against, and whether it's inside it. */
+export function Kpi({ label, value, target, status, trend, href, sub }: { label: string; value: React.ReactNode; target?: string; status?: "ok" | "watch" | "breach"; trend?: { value: number | null }[]; href?: string; sub?: React.ReactNode }) {
+  const body = (
+    <>
+      <span className="flex items-center justify-between gap-2">
+        <span className="text-xs font-medium text-fg-2">{label}</span>
+        <span className="flex items-center gap-1.5">
+          {status && status !== "ok" && <span className={cn("size-1.5 rounded-full", status === "breach" ? "bg-unfavorable" : "bg-warning")} aria-label={status === "breach" ? "Outside target" : "Near target"} />}
+          {href && <ChevronRight className="-mr-0.5 size-3.5 text-fg-3 transition-colors group-hover:text-fg" />}
+        </span>
+      </span>
+      <span className="num text-[20px] leading-7 font-medium tracking-tight text-fg">{value}</span>
+      {sub && <span className="-mt-1 text-xs">{sub}</span>}
+      {trend && <Sparkline data={trend} tone={status === "breach" ? "unfavorable" : "data"} />}
+      {target && <span className="text-[11px] leading-snug text-fg-3">{target}</span>}
+    </>
+  );
+  const cls = "flex min-w-0 flex-col gap-1.5 rounded-lg border border-border bg-surface p-3";
+  return href ? (
+    <Link href={href} className={cn(cls, "group transition-colors hover:border-border-strong")}>
+      {body}
+    </Link>
+  ) : (
+    <div className={cls}>{body}</div>
+  );
 }
