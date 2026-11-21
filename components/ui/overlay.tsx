@@ -141,6 +141,7 @@ export function Modal({
   children,
   width = 440,
   className,
+  dismissible = true,
 }: {
   open: boolean;
   onClose: () => void;
@@ -150,6 +151,8 @@ export function Modal({
   children?: React.ReactNode;
   width?: number;
   className?: string;
+  /** False for work in progress the user can't cancel: no close button. */
+  dismissible?: boolean;
 }) {
   const panelRef = useOverlayBehavior(open, onClose);
   const titleId = useId();
@@ -180,14 +183,16 @@ export function Modal({
                     </h2>
                     {description && <p className="mt-1 text-xs text-fg-2">{description}</p>}
                   </div>
-                  <button
-                    type="button"
-                    onClick={onClose}
-                    className="-mr-1 cursor-pointer rounded-md p-1 text-fg-3 transition-colors hover:bg-surface-2 hover:text-fg"
-                    aria-label="Close"
-                  >
-                    <X className="size-3.5" />
-                  </button>
+                  {dismissible && (
+                    <button
+                      type="button"
+                      onClick={onClose}
+                      className="-mr-1 cursor-pointer rounded-md p-1 text-fg-3 transition-colors hover:bg-surface-2 hover:text-fg"
+                      aria-label="Close"
+                    >
+                      <X className="size-3.5" />
+                    </button>
+                  )}
                 </div>
                 {children && <div className="px-4 pt-3 pb-4">{children}</div>}
                 {footer && <div className={cn("flex items-center justify-end gap-2 border-t border-border px-4 py-3", !children && "mt-4")}>{footer}</div>}

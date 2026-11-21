@@ -1,16 +1,16 @@
 "use client";
 
-import { Building2, Check, ChevronDown, FileSpreadsheet, FileText, Plus, Trash2, UploadCloud, X } from "lucide-react";
+import { Building2, Check, ChevronDown, FileSpreadsheet, FileText, Loader2, Plus, Trash2, UploadCloud, X } from "lucide-react";
 import { motion } from "motion/react";
 import { useRouter } from "next/navigation";
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { useDropzone } from "react-dropzone";
 import { Button, Select } from "./ui";
 import { Input, Select as UiSelect } from "@/components/ui/controls";
-import { Drawer } from "@/components/ui/overlay";
+import { Drawer, Modal } from "@/components/ui/overlay";
 import { cn } from "@/lib/cn";
 import { formatFileSize } from "@/lib/format";
-import { PACKAGE, REPORT_TYPE, detectKind, guessProperty, type ReportKind } from "@/lib/uploads/match";
+import { PACKAGE, REPORT_TYPE, detectKind, fullerName, guessProperty, sameProperty, type ReportKind } from "@/lib/uploads/match";
 import { reportTypeLabel } from "@/lib/uploads/report-types";
 import { sendFile } from "@/lib/uploads/send";
 import { addPropertyNamed, renameProperty, setPropertyArchived } from "@/lib/workspace/actions";
@@ -55,7 +55,7 @@ export function SetupProperties({ properties, uploads, period }: { properties: P
   const saved = useRef(new Map(properties.map((p) => [p.id, p.name])));
   const [open, setOpen] = useState<string | null>(null);
   const [picked, setPicked] = useState<string[]>([]);
-  const [progress, setProgress] = useState<string | null>(null);
+  const [progress, setProgress] = useState<{ label: string; done: number; total: number } | null>(null);
   const [errors, setErrors] = useState<string[]>([]);
   const busy = progress !== null;
 
@@ -83,8 +83,14 @@ export function SetupProperties({ properties, uploads, period }: { properties: P
       let key = row;
       if (key === undefined) {
         const guess = guessProperty(file.name);
-        let match = guess ? next.find((r) => r.name.trim().toLowerCase() === guess.toLowerCase()) : undefined;
+        let match = guess ? next.find((r) => sameProperty(r.name, guess)) : undefined;
         if (!match && guess) next.push((match = { key: uid(), name: guess, units: null, saved: [] }));
+        // A property added in this session takes the fullest name its files give (CR, then Cedar Ridge).
+        else if (match && guess && !match.id && fullerName(match.name, guess) !== match.name) {
+          const renamed: Row = { ...match, name: fullerName(match.name, guess) };
+          next[next.indexOf(match)] = renamed;
+          match = renamed;
+        }
         key = match?.key ?? "";
       }
       adds.push({ id: uid(), file, row: key, kind: detectKind(file.name) });
@@ -124,7 +130,8 @@ export function SetupProperties({ properties, uploads, period }: { properties: P
     const errs: string[] = [];
     const ids = new Map<string, string>();
     setErrors([]);
-    setProgress("Saving properties");
+    const queued = staged.filter((f) => f.row).length;
+    setProgress({ label: "Saving properties", done: 0, total: queued });
     for (const r of rows) {
       const name = r.name.trim();
       if (r.id) {
@@ -147,7 +154,7 @@ export function SetupProperties({ properties, uploads, period }: { properties: P
     }
     const queue = staged.filter((s) => ids.has(s.row));
     for (const [n, s] of queue.entries()) {
-      setProgress(`Uploading ${n + 1} of ${queue.length}`);
+      setProgress({ label: s.file.name, done: n, total: queue.length });
       const res = await sendFile({ propertyId: ids.get(s.row)!, reportType: REPORT_TYPE[s.kind], period: period.slice(0, 7), fileName: s.file.name }, s.file);
       if (res.ok) setStaged((x) => x.filter((f) => f.id !== s.id));
       else errs.push(`${s.file.name}: ${res.message}`);
@@ -284,7 +291,6 @@ export function SetupProperties({ properties, uploads, period }: { properties: P
       )}
 
       <div className="mt-2 flex items-center justify-end gap-3 border-t border-border pt-5">
-        {progress && <span className="num text-xs text-fg-3">{progress}</span>}
         <Button variant="secondary" disabled={busy} onClick={async () => (await save()) && router.push("/")}>
           Save and exit
         </Button>
@@ -292,6 +298,18 @@ export function SetupProperties({ properties, uploads, period }: { properties: P
           Continue
         </Button>
       </div>
+
+      <Modal open={busy} onClose={() => {}} dismissible={false} title={progress && progress.total ? `Uploading ${Math.min(progress.done + 1, progress.total)} of ${progress.total}` : "Saving"}>
+        <div className="flex flex-col gap-3">
+          <span className="h-1 overflow-hidden rounded-full bg-fg/10">
+            <span className="block h-full rounded-full bg-fg/70 transition-[width] duration-300 ease-out" style={{ width: `${progress?.total ? (progress.done / progress.total) * 100 : 0}%` }} />
+          </span>
+          <span className="flex items-center gap-2 text-xs text-fg-3">
+            <Loader2 className="size-3 shrink-0 animate-spin" />
+            <span className="truncate">{progress?.label}</span>
+          </span>
+        </div>
+      </Modal>
 
       <FilesDrawer
         open={open}
