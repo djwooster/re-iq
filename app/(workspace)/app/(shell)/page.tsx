@@ -50,16 +50,9 @@ async function Overview() {
       <Page title="Overview" subtitle={ws.orgName}>
         <Card>
           <EmptyState
-            title="Add your first property"
-            description="Properties hold everything else: monthly reports, property managers and the close. Start with one."
-            action={
-              <>
-                <LinkButton href="/app/properties">Add a property</LinkButton>
-                <LinkButton href="/app/setup" variant="secondary">
-                  Run setup
-                </LinkButton>
-              </>
-            }
+            title="Add your first reports"
+            description="Drop last month's reports. Each one is matched to its property by file name, then read."
+            action={<LinkButton href="/app/setup">Add reports</LinkButton>}
           />
         </Card>
       </Page>
