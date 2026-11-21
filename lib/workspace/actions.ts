@@ -3,6 +3,7 @@
 import { headers } from "next/headers";
 import { revalidatePath } from "next/cache";
 import { getWorkspace } from "./context";
+import { sendEmail } from "@/lib/email";
 import { readUpload } from "@/lib/reading/run";
 import { CHART_OF_ACCOUNTS, KPIS } from "./kpis";
 
@@ -213,4 +214,103 @@ export async function retryReportRead(uploadId: string): Promise<Result> {
   await readUpload(uploadId);
   refresh();
   return { ok: true };
+}
+
+export interface CompanyInput {
+  /** Null for a company added in this session. */
+  id: string | null;
+  name: string;
+  email: string;
+  propertyIds: string[];
+}
+
+/**
+ * Saves setup's Managers step: the org's companies (added, renamed, removed) and which company
+ * manages each property. Companies left out are removed; properties left out have no company.
+ */
+export async function saveCompanies(input: CompanyInput[]): Promise<Result> {
+  const ws = await getWorkspace();
+  if (ws.role !== "owner") return OWNERS_ONLY;
+  if (!Array.isArray(input) || input.length > 200) return TRY_AGAIN;
+  const seen = new Set<string>();
+  for (const c of input) {
+    const name = c.name?.trim() ?? "";
+    const email = c.email?.trim().toLowerCase() ?? "";
+    if (!name || name.length > 120) return { ok: false, message: "Give each company a name (up to 120 characters)." };
+    if (email && (email.length > 254 || !EMAIL.test(email))) return { ok: false, message: `${name}: that doesn't look like an email address.` };
+    if ((c.id && !UUID.test(c.id)) || !c.propertyIds.every((p) => UUID.test(p) && !seen.has(p))) return TRY_AGAIN;
+    c.propertyIds.forEach((p) => seen.add(p));
+  }
+
+  const { data: existing } = await ws.supabase.from("management_companies").select("id").eq("org_id", ws.orgId);
+  const known = new Set(((existing ?? []) as { id: string }[]).map((c) => c.id));
+  const ids: string[] = [];
+  for (const c of input) {
+    const row = { name: c.name.trim(), reports_email: c.email.trim().toLowerCase() || null };
+    if (c.id && known.has(c.id)) {
+      const { error } = await ws.supabase.from("management_companies").update(row).eq("id", c.id).eq("org_id", ws.orgId);
+      if (error) return TRY_AGAIN;
+      ids.push(c.id);
+    } else {
+      const { data, error } = await ws.supabase.from("management_companies").insert({ org_id: ws.orgId, ...row }).select("id").single();
+      if (error || !data) return TRY_AGAIN;
+      ids.push(data.id as string);
+    }
+  }
+
+  const { error: clearError } = await ws.supabase.from("properties").update({ management_company_id: null }).eq("org_id", ws.orgId);
+  if (clearError) return TRY_AGAIN;
+  for (const [i, c] of input.entries()) {
+    if (!c.propertyIds.length) continue;
+    const { error } = await ws.supabase.from("properties").update({ management_company_id: ids[i] }).eq("org_id", ws.orgId).in("id", c.propertyIds);
+    if (error) return TRY_AGAIN;
+  }
+  const removed = [...known].filter((id) => !ids.includes(id));
+  if (removed.length) await ws.supabase.from("management_companies").delete().eq("org_id", ws.orgId).in("id", removed);
+  refresh();
+  return { ok: true };
+}
+
+/**
+ * Emails each company's reports address an invite to upload for its properties. An earlier
+ * pending invite to the same address is revoked, so only the newest link works.
+ */
+export async function sendCompanyInvites(companyIds: string[]): Promise<{ id: string; ok: boolean; message?: string }[]> {
+  const ws = await getWorkspace();
+  if (ws.role !== "owner" || !Array.isArray(companyIds) || companyIds.length > 200 || !companyIds.every((id) => UUID.test(id))) return companyIds.map((id) => ({ id, ok: false, message: OWNERS_ONLY.message }));
+  const [{ data: companies }, { data: properties }] = await Promise.all([
+    ws.supabase.from("management_companies").select("id, name, reports_email").eq("org_id", ws.orgId).in("id", companyIds),
+    ws.supabase.from("properties").select("id, name, management_company_id").eq("org_id", ws.orgId).is("archived_at", null).in("management_company_id", companyIds),
+  ]);
+  const h = await headers();
+  const origin = h.get("origin") ?? `https://${h.get("host")}`;
+  const results = [];
+  for (const id of companyIds) {
+    const company = (companies ?? []).find((c) => c.id === id) as { id: string; name: string; reports_email: string | null } | undefined;
+    const props = ((properties ?? []) as { id: string; name: string; management_company_id: string }[]).filter((p) => p.management_company_id === id);
+    if (!company?.reports_email) {
+      results.push({ id, ok: false, message: "Add the company's reports email first." });
+      continue;
+    }
+    if (!props.length) {
+      results.push({ id, ok: false, message: "This company has no properties." });
+      continue;
+    }
+    const { data: pending } = await ws.supabase.from("org_invites").select("id").eq("org_id", ws.orgId).eq("email", company.reports_email).is("accepted_at", null).is("revoked_at", null);
+    for (const p of (pending ?? []) as { id: string }[]) await ws.supabase.rpc("revoke_org_invite", { invite_id: p.id });
+    const { data: token, error } = await ws.supabase.rpc("create_org_invite", { target_org: ws.orgId, invite_email: company.reports_email, invite_role: "uploader", property_ids: props.map((p) => p.id) });
+    if (error || typeof token !== "string") {
+      results.push({ id, ok: false, message: "This address can't be invited. It may belong to an owner's account." });
+      continue;
+    }
+    const names = props.map((p) => p.name).join(", ");
+    const sent = await sendEmail({
+      to: company.reports_email,
+      subject: `${ws.orgName || "An owner"} invited you to send reports on RE-IQ`,
+      text: `${ws.orgName || "An owner"} uses RE-IQ to collect monthly reports for ${props.length === 1 ? "" : `${props.length} properties: `}${names}.\n\nCreate your account and upload here:\n${origin}/invite?token=${token}\n\nThe link works once, for ${company.reports_email}, for 7 days. If you already send reports to another owner on RE-IQ, sign in with the same account.`,
+    });
+    results.push(sent ? { id, ok: true } : { id, ok: false, message: "The invite was created but the email didn't send. Try again." });
+  }
+  refresh();
+  return results;
 }

@@ -9,6 +9,13 @@ export interface Property {
   address: string | null;
   unit_count: number | null;
   archived_at: string | null;
+  management_company_id?: string | null;
+}
+
+export interface Company {
+  id: string;
+  name: string;
+  reports_email: string | null;
 }
 
 export interface Upload {
@@ -41,8 +48,14 @@ export interface PendingInvite {
 const UPLOAD_COLUMNS = "id, property_id, uploaded_by, report_type, period, file_name, size_bytes, version, created_at";
 
 export async function listProperties(ws: Workspace): Promise<Property[]> {
-  const { data } = await ws.supabase.from("properties").select("id, name, address, unit_count, archived_at").eq("org_id", ws.orgId).order("name");
+  const { data } = await ws.supabase.from("properties").select("id, name, address, unit_count, archived_at, management_company_id").eq("org_id", ws.orgId).order("name");
   return (data ?? []) as Property[];
+}
+
+/** The org's management companies, by name. */
+export async function listCompanies(ws: Workspace): Promise<Company[]> {
+  const { data } = await ws.supabase.from("management_companies").select("id, name, reports_email").eq("org_id", ws.orgId).order("name");
+  return (data ?? []) as Company[];
 }
 
 export async function getManagers(ws: Workspace) {

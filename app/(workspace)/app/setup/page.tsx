@@ -6,10 +6,11 @@ import { SETUP_STEPS, type SetupStep } from "@/lib/workspace/setup-steps";
 import { ToastProvider } from "@/components/ui/toast";
 import { Review } from "@/components/app/review";
 import { SetupProperties } from "@/components/app/setup-properties";
-import { ManagersView } from "@/components/workspace/managers-view";
+import { SetupLinks } from "@/components/app/setup-links";
+import { SetupManagers } from "@/components/app/setup-managers";
 import { closePeriod } from "@/lib/workspace/format";
 import { isReadable, readPending } from "@/lib/reading/run";
-import { getManagers, getReportReads, getUnreadUploads, getUploadsForPeriod, listProperties, type ReportRead } from "@/lib/workspace/queries";
+import { getManagers, getReportReads, getUnreadUploads, getUploadsForPeriod, listCompanies, listProperties, type ReportRead } from "@/lib/workspace/queries";
 import { requestWorkspace } from "@/lib/workspace/request";
 
 export const metadata: Metadata = { title: "Set up your workspace" };
@@ -31,7 +32,6 @@ async function Setup({ searchParams }: Props) {
   const ws = await requestWorkspace();
   const properties = await listProperties(ws);
   const active = properties.filter((p) => !p.archived_at);
-  const canEdit = ws.role === "owner";
 
   let body: React.ReactNode;
   if (step === "properties") {
@@ -43,14 +43,23 @@ async function Setup({ searchParams }: Props) {
     if (unread.length) after(() => readPending(unread.map((u) => u.id)));
     const reads = await getReportReads(ws);
     body = <Review properties={properties} reads={unread.length ? [...reads, ...placeholders(unread, reads)] : reads} />;
+  } else if (step === "managers") {
+    body = <SetupManagers properties={active} companies={await listCompanies(ws)} />;
   } else {
-    const { uploaders, invites } = await getManagers(ws);
-    body = <ManagersView properties={properties} uploaders={uploaders} invites={invites} canEdit={canEdit} />;
+    const [companies, { uploaders, invites }] = await Promise.all([listCompanies(ws), getManagers(ws)]);
+    const rows = companies
+      .map((c) => {
+        const email = c.reports_email?.toLowerCase() ?? null;
+        const sent = invites.filter((i) => i.email === email).sort((a, b) => b.created_at.localeCompare(a.created_at))[0];
+        return { id: c.id, name: c.name, email, properties: active.filter((p) => p.management_company_id === c.id).length, sentAt: sent?.created_at ?? null, joined: Boolean(email && uploaders.some((u) => u.email.toLowerCase() === email)) };
+      })
+      .filter((r) => r.properties > 0);
+    body = <SetupLinks rows={rows} />;
   }
 
   return (
     <ToastProvider>
-      <SetupFrame step={step} canContinue={active.length > 0} bare={step === "properties"}>
+      <SetupFrame step={step} canContinue={active.length > 0} bare={step !== "review"}>
         {body}
       </SetupFrame>
     </ToastProvider>
