@@ -7,6 +7,11 @@
 - [ ] Track time to first insight for new workspaces (start with the usability sessions).
 
 ## Next up (as of 2026-11-11)
+- [ ] Speed and simplicity audit of `/app` (DJ, 2026-11-20: switching pages and buttons like "Add a property"
+      feel slow). Measure first, then cut anything overengineered. Likely causes: no `loading.tsx`, so a click
+      shows nothing until the server finishes; every page re-checks the session and membership (proxy, layout
+      and page each query); the layout re-queries properties and uploads on every navigation just for the Close
+      dot; Supabase and Vercel regions may be far apart.
 - [ ] Click through `/prototype` from setup to Overview (DJ, in the browser) and list refinements.
 - [ ] Prototype follow-ups: sortable tables, remember mapping choices per label, a period picker
       for past closes, and whether the marketing nav links to `/prototype` instead of `/wireframe`.
