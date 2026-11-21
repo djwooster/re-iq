@@ -254,7 +254,7 @@ otp_expiry = 3600
 
 # Sign-up confirmation and password reset link straight to our /auth/confirm route with a token hash
 # (server-side flow). {{ .RedirectTo }} is the app's own /auth/confirm?next=… URL, so the link adds
-# its parameters with "&". Used locally and, through the remotes below, on staging and production.
+# its parameters with "&". Used locally and, through the remote below, on production.
 [auth.email.template.confirmation]
 subject = "Confirm your RE-IQ account"
 content_path = "./supabase/templates/confirmation.html"
@@ -444,40 +444,7 @@ enabled = true
 # applies the base config with the matching block below layered on top. Values that differ between
 # local and a hosted project but that we haven't decided to change (pooler sizes, MFA, SMS, OTP
 # length, storage) are pinned to that project's current values so a push changes only what we mean.
-# Leaked-password protection isn't settable here: it's a dashboard toggle (SECURITY.md).
-
-[remotes.staging]
-project_id = "rtmtepejzkflhbmznbgo"
-
-[remotes.staging.auth]
-site_url = "http://localhost:3000"
-# The vercel.app wildcard is acceptable on staging only (test data). Never on production.
-additional_redirect_urls = ["http://localhost:3000/**", "https://re-iq-*-dwoosty.vercel.app/**"]
-minimum_password_length = 8
-
-[remotes.staging.auth.email]
-enable_confirmations = true
-double_confirm_changes = true
-max_frequency = "1m0s"
-otp_length = 8
-
-[remotes.staging.auth.mfa.totp]
-enroll_enabled = true
-verify_enabled = true
-
-[remotes.staging.auth.sms]
-enable_confirmations = true
-
-[remotes.staging.db.pooler]
-default_pool_size = 15
-max_client_conn = 200
-
-[remotes.staging.storage.analytics]
-enabled = true
-max_namespaces = 10
-
-[remotes.staging.storage.vector]
-enabled = false
+# Leaked-password protection isn't settable here: it's a dashboard toggle.
 
 [remotes.production]
 project_id = "dixlcrxxnmoivfrnvaqv"
@@ -485,7 +452,7 @@ project_id = "dixlcrxxnmoivfrnvaqv"
 [remotes.production.auth]
 # Production's own URL until we have a custom domain; then both switch to the domain, exactly.
 # Never a vercel.app pattern (re-iq-*…) or a broad wildcard here. localhost:3000 is allowed only while
-# localhost runs against production (no staging, DJ's call 2026-11-19); remove it when staging returns.
+# localhost runs against production.
 site_url = "https://re-iq.vercel.app"
 additional_redirect_urls = ["https://re-iq.vercel.app/**", "http://localhost:3000/**"]
 minimum_password_length = 8
