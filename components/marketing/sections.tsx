@@ -1,4 +1,5 @@
-import { CalendarClock, FileSearch, Gauge, Tag } from "lucide-react";
+import { ArrowRight, Calculator, CalendarCheck, CalendarClock, Eraser, EyeOff, FileSearch, Gauge, Layers, Lock, Table2, Tag, UserCheck, type LucideIcon } from "lucide-react";
+import Link from "next/link";
 import { FadeIn } from "@/components/ui/motion";
 import { cn } from "@/lib/cn";
 import { BOOKING_URL } from "@/lib/marketing";
@@ -41,6 +42,90 @@ export function Hero() {
         <HeroFlow />
       </FadeIn>
     </section>
+  );
+}
+
+/** A section of plain facts: the headline on the left, four short points beside it. */
+function FactsSection({
+  id,
+  eyebrow,
+  title,
+  body,
+  facts,
+  link,
+  tinted,
+}: {
+  id: string;
+  eyebrow: string;
+  title: string;
+  body: React.ReactNode;
+  facts: { icon: LucideIcon; title: string; body: string }[];
+  link?: { href: string; label: string };
+  tinted?: boolean;
+}) {
+  return (
+    <section id={id} className={cn("scroll-mt-12 border-t border-border", tinted && "bg-surface")}>
+      <div className="mx-auto grid max-w-[1280px] gap-10 px-4 py-16 sm:px-6 sm:py-20 lg:grid-cols-[minmax(0,5fr)_minmax(0,7fr)] lg:gap-16">
+        <FadeIn className="max-w-[440px]">
+          <div className="eyebrow">{eyebrow}</div>
+          <h2 className={cn(H2, "mt-2")}>{title}</h2>
+          <div className={cn(BODY, "mt-3")}>{body}</div>
+          {link && (
+            <Link href={link.href} className="group mt-6 inline-flex items-center gap-1 text-[13px] text-fg-2 transition-colors duration-150 hover:text-fg">
+              {link.label}
+              <ArrowRight className="size-3.5 transition-transform duration-150 group-hover:translate-x-0.5" strokeWidth={1.75} aria-hidden />
+            </Link>
+          )}
+        </FadeIn>
+        <FadeIn delay={0.05}>
+          <ul className="grid gap-x-8 gap-y-7 sm:grid-cols-2">
+            {facts.map(({ icon: Icon, title, body }) => (
+              <li key={title}>
+                <Icon className="size-4 text-fg-3" strokeWidth={1.75} aria-hidden />
+                <h3 className="mt-2 text-[14px] font-medium text-fg">{title}</h3>
+                <p className="mt-1 text-[13px] leading-[1.55] text-fg-2">{body}</p>
+              </li>
+            ))}
+          </ul>
+        </FadeIn>
+      </div>
+    </section>
+  );
+}
+
+export function Accuracy() {
+  return (
+    <FactsSection
+      id="accuracy"
+      tinted
+      eyebrow="Accuracy"
+      title="Every number comes from the report itself."
+      body={<p>AI is good at reading messy layouts and bad at arithmetic, so RE-IQ uses it only for the first. Every amount is read straight from the manager&apos;s file.</p>}
+      facts={[
+        { icon: Table2, title: "AI reads the layout, not the numbers", body: "It says which row and column hold what. Our code then takes each amount directly from those cells." },
+        { icon: Calculator, title: "The report has to agree with itself", body: "Subtotals add up, NOI equals income minus expenses, a T-12 has twelve months in a row. Any break is flagged with its row." },
+        { icon: UserCheck, title: "Nothing counts until you confirm it", body: "Each report is a draft until you approve it. Lines RE-IQ isn't sure how to map wait for your call." },
+        { icon: CalendarCheck, title: "Month and property from the contents", body: "Read from the report, not its file name, and flagged when the two disagree." },
+      ]}
+    />
+  );
+}
+
+export function Security() {
+  return (
+    <FactsSection
+      id="security"
+      eyebrow="Security"
+      title="Your data stays yours."
+      body={<p>You&apos;re trusting us with your properties&apos; financials. Here&apos;s what&apos;s in place today.</p>}
+      link={{ href: "/security", label: "How we protect your data" }}
+      facts={[
+        { icon: Layers, title: "Kept separate", body: "The database keeps each company's data apart, and tests try to cross that line before every release that touches data or access." },
+        { icon: EyeOff, title: "Managers upload, never browse", body: "Property managers see only the properties you give them, and never your dashboards." },
+        { icon: Eraser, title: "No names or bank numbers", body: "Resident names, contact details and bank account numbers are removed when a report is read. The AI that reads reports doesn't train on your data." },
+        { icon: Lock, title: "Encrypted, in the US", body: "Every connection is encrypted, so is stored data, and everything is hosted in the United States." },
+      ]}
+    />
   );
 }
 

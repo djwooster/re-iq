@@ -1,11 +1,13 @@
 import type { Metadata } from "next";
 import {
+  Accuracy,
   Explain,
   FinalCta,
   Grow,
   Hero,
   Ingest,
   Reconcile,
+  Security,
   WhoItsFor,
 } from "@/components/marketing/sections";
 import { MonthBento } from "@/components/marketing/month-bento";
@@ -22,8 +24,10 @@ export default function HomePage() {
   return (
     <>
       <Hero />
+      <Accuracy />
       <WhatWeDo />
       <Grow />
+      <Security />
       <MonthBento />
       <Ingest />
       <Reconcile />
