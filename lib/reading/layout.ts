@@ -10,7 +10,7 @@ import { renderSheet, type Sheet } from "./grid";
  * It never supplies amounts; our code reads every number from the cells it points at.
  */
 
-export const MODEL = "claude-opus-5-5";
+export const MODEL = "claude-sonnet-5-5";
 
 const Column = z.object({
   column: z.string().describe("Excel column letter"),
@@ -31,7 +31,8 @@ const Line = z.object({
 const Aging = z.object({
   total_row: z.number().nullable().describe("Row of the report's grand total"),
   total_column: z.string().nullable().describe("Column of each resident's total balance"),
-  buckets: z.array(z.object({ column: z.string(), label: z.string() })).describe("Aging bucket columns, oldest last"),
+  buckets: z.array(z.object({ column: z.string(), label: z.string() })).describe("Only the columns that age amounts owed (0-30, 31-60, ...), oldest last. Never a prepaid, credit or total column."),
+  prepaid_column: z.string().nullable().describe("Column of prepaid (credit) balances, if the report shows them separately"),
   first_detail_row: z.number().nullable(),
   last_detail_row: z.number().nullable(),
   skip_rows: z.array(z.number()).describe("Rows between first and last detail row that are subtotals, headings or blank, not a resident or unit"),

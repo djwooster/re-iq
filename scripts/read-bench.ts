@@ -96,8 +96,8 @@ for (const r of results) {
   if (results.every(Boolean)) passed++;
 }
 
-// Opus 5.5: $4 per million input tokens, $20 per million output tokens.
-const cost = (inputTokens * 4 + outputTokens * 20) / 1_000_000;
+// Sonnet 5.5: $2 per million input tokens, $10 per million output tokens.
+const cost = (inputTokens * 2 + outputTokens * 10) / 1_000_000;
 console.log(`\n${passed} of ${results.length} files fully right · ${inputTokens} input + ${outputTokens} output tokens ≈ $${cost.toFixed(2)}`);
 if (outAt > 0) fs.writeFileSync(process.argv[outAt + 1], JSON.stringify(results, null, 2));
 }
