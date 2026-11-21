@@ -19,9 +19,10 @@ import { Button, Empty } from "./ui";
  * While anything is still being read, the page refreshes itself.
  */
 
-const TYPE_LABEL: Record<string, string> = { income_statement: "Monthly P&L", t12: "T-12", ar_aging: "AR aging", other: "Other report" };
+export const TYPE_LABEL: Record<string, string> = { income_statement: "Monthly P&L", t12: "T-12", ar_aging: "AR aging", other: "Other report" };
 
-export function Review({ properties, reads }: { properties: Property[]; reads: ReportRead[] }) {
+/** Refreshes the page every few seconds while something is still being read. */
+export function useRefreshWhileReading(reads: Pick<ReportRead, "status">[]) {
   const router = useRouter();
   const reading = reads.some((r) => r.status === "reading");
   useEffect(() => {
@@ -29,8 +30,12 @@ export function Review({ properties, reads }: { properties: Property[]; reads: R
     const t = window.setInterval(() => router.refresh(), 3000);
     return () => window.clearInterval(t);
   }, [reading, router]);
+  return reading;
+}
 
-  if (!reads.length) return <Empty>No reports to read yet. Excel and CSV P&Ls, T-12s and AR agings are read as they arrive.</Empty>;
+export function Review({ properties, reads, empty = "No reports to read yet. Excel and CSV P&Ls, T-12s and AR agings are read as they arrive." }: { properties: Property[]; reads: ReportRead[]; empty?: string }) {
+  const reading = useRefreshWhileReading(reads);
+  if (!reads.length) return <Empty>{empty}</Empty>;
 
   const confirmed = reads.filter((r) => r.status === "confirmed").length;
   return (
@@ -69,7 +74,7 @@ function StatusBadge({ status }: { status: ReportRead["status"] }) {
   return <Badge tone="warning">To review</Badge>;
 }
 
-function ReadCard({ read }: { read: ReportRead }) {
+export function ReadCard({ read }: { read: ReportRead }) {
   const router = useRouter();
   const [overrides, setOverrides] = useState<Record<string, string>>(read.overrides ?? {});
   const [showAll, setShowAll] = useState(false);

@@ -1,6 +1,6 @@
 "use client";
 
-import { AlertCircle, Building2, CalendarCheck, ChartNoAxesColumn, ClipboardCheck, FileText, HardHat, Landmark, LayoutGrid, ListChecks, LogOut, Menu, Settings, Users, Wrench, X } from "lucide-react";
+import { AlertCircle, Building2, CalendarCheck, ChartNoAxesColumn, ClipboardCheck, FileText, Files, HardHat, Landmark, LayoutGrid, ListChecks, LogOut, Menu, Settings, Users, Wrench, X } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
@@ -27,6 +27,7 @@ const NAV: { group?: string; items: { href: string; label: string; icon: typeof 
     group: "Month-end",
     items: [
       { href: "/app/close", label: "Close", icon: ClipboardCheck, badge: "close" },
+      { href: "/app/reports", label: "Reports", icon: Files },
       { href: "/app/exceptions", label: "Exceptions", icon: AlertCircle },
       { href: "/app/tasks", label: "Tasks", icon: ListChecks },
       { href: "/app/owner-report", label: "Owner report", icon: FileText },

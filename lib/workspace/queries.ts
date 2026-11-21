@@ -160,3 +160,30 @@ export async function getUnreadUploads(ws: Workspace): Promise<Pick<Upload, "id"
   const done = new Set(((reads.data ?? []) as { upload_id: string }[]).map((r) => r.upload_id));
   return ((uploads.data ?? []) as Pick<Upload, "id" | "property_id" | "report_type" | "file_name" | "created_at">[]).filter((u) => !done.has(u.id));
 }
+
+export interface ReportRow extends Upload {
+  uploaderName: string | null;
+  read: Pick<ReportRead, "id" | "status" | "report_type" | "period"> | null;
+}
+
+/** Every upload in the org, newest first, with who sent it and how far reading got. */
+export async function getReports(ws: Workspace, limit = 500): Promise<ReportRow[]> {
+  const [uploads, reads, people] = await Promise.all([
+    ws.supabase.from("uploads").select(UPLOAD_COLUMNS).eq("org_id", ws.orgId).order("created_at", { ascending: false }).limit(limit),
+    ws.supabase.from("report_reads").select("id, upload_id, status, report_type, period").eq("org_id", ws.orgId),
+    ws.supabase.rpc("org_people", { target_org: ws.orgId }),
+  ]);
+  const names = new Map(((people.data ?? []) as Person[]).map((p) => [p.user_id, p.full_name || p.email]));
+  const byUpload = new Map(((reads.data ?? []) as (Pick<ReportRead, "id" | "status" | "report_type" | "period"> & { upload_id: string })[]).map((r) => [r.upload_id, r]));
+  return ((uploads.data ?? []) as Upload[]).map((u) => ({ ...u, uploaderName: (u.uploaded_by && names.get(u.uploaded_by)) || null, read: byUpload.get(u.id) ?? null }));
+}
+
+/** One upload and what was read from it. */
+export async function getReport(ws: Workspace, uploadId: string): Promise<{ upload: Upload; read: ReportRead | null } | null> {
+  const [upload, read] = await Promise.all([
+    ws.supabase.from("uploads").select(UPLOAD_COLUMNS).eq("org_id", ws.orgId).eq("id", uploadId).maybeSingle(),
+    ws.supabase.from("report_reads").select("id, upload_id, property_id, status, report_type, period, result, overrides, error, uploads(file_name, created_at)").eq("org_id", ws.orgId).eq("upload_id", uploadId).maybeSingle(),
+  ]);
+  if (!upload.data) return null;
+  return { upload: upload.data as Upload, read: (read.data as unknown as ReportRead | null) ?? null };
+}

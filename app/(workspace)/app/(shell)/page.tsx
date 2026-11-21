@@ -72,8 +72,8 @@ async function Overview() {
         <CardHeader
           title="Latest reports"
           action={
-            <Link href="/app/review" className="text-xs text-fg-2 transition-colors hover:text-fg">
-              Review
+            <Link href="/app/reports" className="text-xs text-fg-2 transition-colors hover:text-fg">
+              All reports
             </Link>
           }
         />

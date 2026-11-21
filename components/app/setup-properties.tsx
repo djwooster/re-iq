@@ -297,7 +297,7 @@ export function SetupProperties({ properties, uploads, period, inApp }: { proper
             Save and exit
           </Button>
         )}
-        <Button disabled={busy || !rows.length || !rows.every((r) => r.name.trim()) || !reports} onClick={async () => (await save()) && router.push(inApp ? "/app/review" : "/app/setup?step=managers")}>
+        <Button disabled={busy || !rows.length || !rows.every((r) => r.name.trim()) || !reports} onClick={async () => (await save()) && router.push(inApp ? "/app/reports?tab=review" : "/app/setup?step=managers")}>
           {inApp ? "Upload and review" : "Continue"}
         </Button>
       </div>
