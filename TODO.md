@@ -12,6 +12,8 @@
       shows nothing until the server finishes; every page re-checks the session and membership (proxy, layout
       and page each query); the layout re-queries properties and uploads on every navigation just for the Close
       dot; Supabase and Vercel regions may be far apart.
+- [ ] Overview KPI targets ("Target 93–96%", "Covenant 1.25x", ...) removed from `/app` on 2026-11-20 to keep the
+      cards simple. Add them back (the `target` prop on `Kpi`; values in `lib/workspace/kpis.ts`) if users ask.
 - [ ] Click through `/prototype` from setup to Overview (DJ, in the browser) and list refinements.
 - [ ] Prototype follow-ups: sortable tables, remember mapping choices per label, a period picker
       for past closes, and whether the marketing nav links to `/prototype` instead of `/wireframe`.

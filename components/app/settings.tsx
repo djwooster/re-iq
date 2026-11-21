@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
-import { Button, Card, Empty, Field, Input, Row, Segmented, Select, Table, Tabs, Td } from "./ui";
+import { Button, Card, Field, Input, Row, Segmented, Select, Table, Tabs, Td } from "./ui";
 import { useTheme } from "@/components/theme/theme-provider";
 import { useToast } from "@/components/ui/toast";
 import type { Account } from "@/lib/workspace/account";
@@ -15,7 +15,7 @@ import { Page } from "./page";
 
 /** Settings: profile, thresholds, properties, chart of accounts, team and workspace. */
 
-type Tab = "profile" | "thresholds" | "properties" | "accounts" | "team" | "workspace";
+type Tab = "profile" | "thresholds" | "accounts" | "team" | "workspace";
 
 const SEES: Record<Account["role"], string> = { owner: "Everything; manages properties, managers and settings", member: "Everything; can't change settings or access" };
 
@@ -33,7 +33,6 @@ export function Settings({ account, properties, thresholds }: { account: Account
           tabs={[
             { id: "profile", label: "Profile" },
             { id: "thresholds", label: "Thresholds and targets" },
-            { id: "properties", label: "Properties and managers" },
             { id: "accounts", label: "Chart of accounts" },
             { id: "team", label: "Team" },
             { id: "workspace", label: "Workspace" },
@@ -48,24 +47,6 @@ export function Settings({ account, properties, thresholds }: { account: Account
         </>
       )}
       {tab === "thresholds" && <Thresholds properties={active} saved={thresholds} canEdit={account.role === "owner"} />}
-      {tab === "properties" &&
-        (active.length ? (
-          <Table columns={["Property", { label: "Units", num: true }, "Manager", "Reports email", "Upload link"]}>
-            {active.map((p) => (
-              <Row key={p.id}>
-                <Td className="font-medium">{p.name}</Td>
-                <Td num className="text-fg-2">
-                  {p.unit_count ?? "—"}
-                </Td>
-                <Td className="text-fg-3">—</Td>
-                <Td className="text-fg-3">—</Td>
-                <Td className="text-fg-3">—</Td>
-              </Row>
-            ))}
-          </Table>
-        ) : (
-          <Empty>No properties yet.</Empty>
-        ))}
       {tab === "accounts" && (
         <Table columns={["Owner account", { label: "Manager labels mapped", num: true }]}>
           {CHART_OF_ACCOUNTS.map((a) => (

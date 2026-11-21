@@ -133,7 +133,7 @@ function PropertyChip({ label, others, onMove, onNew }: { label: string; others:
   const item = "flex h-7 w-full items-center gap-2 rounded-md px-2 text-left text-xs text-fg-2 hover:bg-fg/[0.04] hover:text-fg";
   return (
     <span ref={ref} className="relative">
-      <button type="button" onClick={() => setOpen((v) => !v)} aria-expanded={open} aria-haspopup="menu" className="flex h-6 items-center gap-1 rounded-md border border-border bg-bg pr-1.5 pl-2 text-xs text-property transition-colors hover:border-border-strong">
+      <button type="button" onClick={() => setOpen((v) => !v)} aria-expanded={open} aria-haspopup="menu" className="flex h-6 items-center gap-1 rounded-md border border-border bg-bg pr-1.5 pl-2 text-xs text-brand transition-colors hover:border-border-strong">
         {label}
         <ChevronDown className="size-3 text-fg-3" />
       </button>

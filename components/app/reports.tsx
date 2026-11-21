@@ -1,10 +1,9 @@
 "use client";
 
-import { Download, ExternalLink, MoreHorizontal, RotateCw, Trash2 } from "lucide-react";
+import { CircleCheck, Download, ExternalLink, FileSpreadsheet, RotateCw, ScanText, Trash2 } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useEffect, useRef, useState, useTransition } from "react";
+import { useState, useTransition } from "react";
 import { Badge } from "@/components/ui/badge";
-import { Select } from "@/components/ui/controls";
 import { Modal } from "@/components/ui/overlay";
 import { useToast } from "@/components/ui/toast";
 import { downloadUrl } from "@/lib/uploads/actions";
@@ -13,11 +12,13 @@ import { deleteReport, rereadReport } from "@/lib/workspace/actions";
 import { dateLabel, monthLabel } from "@/lib/workspace/format";
 import type { Property, ReportRead, ReportRow } from "@/lib/workspace/queries";
 import { ReadCard, TYPE_LABEL, useRefreshWhileReading } from "./review";
-import { Button, Empty, Row, Table, Tabs, Td } from "./ui";
+import { AddReportsButton } from "./add-reports";
+import { Button, Empty, FilterMenu, PropertyTd, Row, RowMenu, SelectTd, SelectionBar, SpotEmpty, Table, Tabs, Td, useSelection, type RowAction } from "./ui";
 
 /**
  * Reports: every report the org has received, with its reading status. Tabs: All (a table with
- * filters and a menu per report), To review (the review cards), Couldn't read. A row opens the report.
+ * filters, a menu per report, and checkboxes for acting on several at once), To review (the review
+ * cards), Couldn't read. A row opens the report.
  */
 
 export type ReportsTab = "all" | "review" | "failed";
@@ -38,7 +39,7 @@ export const needsReview = (r: Pick<ReportRead, "status" | "report_type">) => r.
 /** What a row is: what reading found, else what it was sent as. */
 const typeOf = (r: ReportRow) => (r.read?.report_type && r.read.report_type !== "other" ? TYPE_LABEL[r.read.report_type] : reportTypeLabel(r.report_type));
 
-export function Reports({ tab, rows, statuses, reads, properties, canDelete }: { tab: ReportsTab; rows: ReportRow[]; statuses: Record<string, ReadStatus>; reads: ReportRead[]; properties: Property[]; canDelete: boolean }) {
+export function Reports({ tab, rows, statuses, reads, properties, period, canDelete }: { tab: ReportsTab; rows: ReportRow[]; statuses: Record<string, ReadStatus>; reads: ReportRead[]; properties: Property[]; period: string; canDelete: boolean }) {
   const router = useRouter();
   useRefreshWhileReading(reads);
   const toReview = reads.filter(needsReview);
@@ -56,12 +57,12 @@ export function Reports({ tab, rows, statuses, reads, properties, canDelete }: {
         ]}
       />
       {tab === "all" ? (
-        <AllReports rows={rows} statuses={statuses} properties={properties} canDelete={canDelete} />
+        <AllReports rows={rows} statuses={statuses} properties={properties} period={period} canDelete={canDelete} />
       ) : shown.length ? (
         <div className="flex flex-col gap-3">
           {shown.map((r) => (
             <div key={r.id} className="flex flex-col gap-1.5">
-              <span className="text-xs font-medium text-property">{properties.find((p) => p.id === r.property_id)?.name}</span>
+              <span className="text-xs font-medium text-fg">{properties.find((p) => p.id === r.property_id)?.name}</span>
               <ReadCard read={r} />
             </div>
           ))}
@@ -73,7 +74,7 @@ export function Reports({ tab, rows, statuses, reads, properties, canDelete }: {
   );
 }
 
-function AllReports({ rows, statuses, properties, canDelete }: { rows: ReportRow[]; statuses: Record<string, ReadStatus>; properties: Property[]; canDelete: boolean }) {
+function AllReports({ rows, statuses, properties, period, canDelete }: { rows: ReportRow[]; statuses: Record<string, ReadStatus>; properties: Property[]; period: string; canDelete: boolean }) {
   const [filters, setFilters] = useState({ property: "", type: "", month: "", status: "" });
   const names = new Map(properties.map((p) => [p.id, p.name]));
   const monthOf = (r: ReportRow) => r.read?.period ?? r.period;
@@ -86,53 +87,49 @@ function AllReports({ rows, statuses, properties, canDelete }: { rows: ReportRow
       (!filters.month || monthOf(r) === filters.month) &&
       (!filters.status || (statuses[r.id] ?? "notRead") === filters.status),
   );
-  const filter = (key: keyof typeof filters) => (e: React.ChangeEvent<HTMLSelectElement>) => setFilters((f) => ({ ...f, [key]: e.target.value }));
-  if (!rows.length) return <Empty>No reports yet. Add last month&apos;s reports to get started.</Empty>;
+  const filter = (key: keyof typeof filters) => (value: string) => setFilters((f) => ({ ...f, [key]: value }));
+  const filtered = Object.values(filters).some(Boolean);
+  const selection = useSelection(shown);
+  const { selected } = selection;
+  if (!rows.length)
+    return (
+      <SpotEmpty
+        icons={[FileSpreadsheet, ScanText, CircleCheck]}
+        title="No reports yet"
+        action={<AddReportsButton properties={properties.filter((p) => !p.archived_at)} period={period} variant="secondary" />}
+      >
+        Add last month&apos;s P&amp;Ls, T-12s and rent rolls. RE-IQ reads each one and lists anything to review.
+      </SpotEmpty>
+    );
   return (
     <div className="flex flex-col gap-3">
-      <div className="flex flex-wrap items-center justify-between gap-2">
-        <div className="w-56">
-          <Select aria-label="Property" value={filters.property} onChange={filter("property")}>
-            <option value="">All properties</option>
-            {properties.map((p) => (
-              <option key={p.id} value={p.id}>
-                {p.name}
-              </option>
-            ))}
-          </Select>
+      {selected.length > 0 ? (
+        <BulkBar rows={selected} statuses={statuses} canDelete={canDelete} onClear={selection.clear} />
+      ) : (
+        <div className="flex min-h-8 flex-wrap items-center justify-end gap-2">
+          {filtered && (
+            <button type="button" onClick={() => setFilters({ property: "", type: "", month: "", status: "" })} className="px-1 text-xs text-brand transition-opacity hover:opacity-75">
+              Clear filters
+            </button>
+          )}
+          <FilterMenu label="Property" allLabel="All properties" value={filters.property} onChange={filter("property")} options={properties.map((p) => ({ value: p.id, label: p.name }))} />
+          <FilterMenu label="Report" allLabel="All reports" value={filters.type} onChange={filter("type")} options={types.map((t) => ({ value: t, label: t }))} />
+          <FilterMenu label="Month" allLabel="All months" value={filters.month} onChange={filter("month")} options={months.map((m) => ({ value: m, label: monthLabel(m) }))} />
+          <FilterMenu label="Status" allLabel="Any status" value={filters.status} onChange={filter("status")} options={(Object.keys(STATUS) as ReadStatus[]).map((s) => ({ value: s, label: STATUS[s].label }))} />
         </div>
-        <div className="flex flex-wrap items-center gap-2">
-          <Select aria-label="Report" value={filters.type} onChange={filter("type")} className="w-48">
-            <option value="">All reports</option>
-            {types.map((t) => (
-              <option key={t}>{t}</option>
-            ))}
-          </Select>
-          <Select aria-label="Month" value={filters.month} onChange={filter("month")} className="w-40">
-            <option value="">All months</option>
-            {months.map((m) => (
-              <option key={m} value={m}>
-                {monthLabel(m)}
-              </option>
-            ))}
-          </Select>
-          <Select aria-label="Status" value={filters.status} onChange={filter("status")} className="w-40">
-            <option value="">Any status</option>
-            {(Object.keys(STATUS) as ReadStatus[]).map((s) => (
-              <option key={s} value={s}>
-                {STATUS[s].label}
-              </option>
-            ))}
-          </Select>
-        </div>
-      </div>
+      )}
       {shown.length ? (
-        <Table columns={["Property", "Report", "Month", "File", "Received", "From", "Status", { label: "", sort: false }]}>
+        <Table
+          columns={["Property", "Report", "Month", "File", "Received", "From", "Status", { label: "", sort: false }]}
+          select={selection.select}
+        >
           {shown.map((r) => {
             const status = statuses[r.id] ?? "notRead";
+            const checked = selection.isSelected(r.id);
             return (
-              <Row key={r.id} href={`/app/reports/${r.id}`}>
-                <Td className="font-medium whitespace-nowrap text-property">{names.get(r.property_id) ?? "Archived property"}</Td>
+              <Row key={r.id} href={`/app/reports/${r.id}`} selected={checked}>
+                <SelectTd label={`Select ${r.file_name}`} checked={checked} onChange={() => selection.toggle(r.id)} />
+                <PropertyTd>{names.get(r.property_id) ?? "Archived property"}</PropertyTd>
                 <Td className="whitespace-nowrap">{typeOf(r)}</Td>
                 <Td className="whitespace-nowrap text-fg-2">{monthLabel(monthOf(r))}</Td>
                 <Td className="max-w-[220px] truncate text-fg-2">
@@ -157,77 +154,123 @@ function AllReports({ rows, statuses, properties, canDelete }: { rows: ReportRow
   );
 }
 
+/** Replaces the filters while reports are checked: download, read again or delete them all at once. */
+function BulkBar({ rows, statuses, canDelete, onClear }: { rows: ReportRow[]; statuses: Record<string, ReadStatus>; canDelete: boolean; onClear: () => void }) {
+  const router = useRouter();
+  const toast = useToast();
+  const [confirming, setConfirming] = useState(false);
+  const [pending, start] = useTransition();
+  const n = rows.length;
+  const reports = (k: number) => `${k} ${k === 1 ? "report" : "reports"}`;
+  // Same rule as the row menu: only reports the reader handled (or failed on) can be read again.
+  const rereadable = rows.filter((r) => statuses[r.id] === "read" || statuses[r.id] === "failed");
+
+  // Each signed URL downloads as an attachment, so a hidden frame per file saves them all without leaving the page.
+  const download = () =>
+    start(async () => {
+      let failed = 0;
+      for (const r of rows) {
+        const res = await downloadUrl(r.id);
+        if (!res.ok) {
+          failed++;
+          continue;
+        }
+        const frame = document.createElement("iframe");
+        frame.hidden = true;
+        frame.src = res.url;
+        document.body.appendChild(frame);
+        setTimeout(() => frame.remove(), 60_000);
+      }
+      if (failed) toast(`${reports(failed)} couldn't be downloaded`);
+    });
+
+  const reread = () =>
+    start(async () => {
+      const results = await Promise.all(rereadable.map((r) => rereadReport(r.id)));
+      const failed = results.filter((res) => !res.ok).length;
+      toast(failed ? `${reports(failed)} couldn't be read again` : `Reading ${reports(rereadable.length)} again`);
+      router.refresh();
+    });
+
+  const remove = () =>
+    start(async () => {
+      const results = await Promise.all(rows.map((r) => deleteReport(r.id)));
+      const failed = results.filter((res) => !res.ok).length;
+      setConfirming(false);
+      toast(failed ? `${reports(failed)} couldn't be deleted` : `${reports(n)} deleted`);
+      if (!failed) onClear();
+      router.refresh();
+    });
+
+  return (
+    <SelectionBar count={n} onClear={onClear}>
+        <Button variant="secondary" icon={<Download className="size-3.5" />} disabled={pending} onClick={download}>
+          Download
+        </Button>
+        {rereadable.length > 0 && (
+          <Button variant="secondary" icon={<RotateCw className="size-3.5" />} disabled={pending} onClick={reread}>
+            Read again{rereadable.length < n ? ` (${rereadable.length})` : ""}
+          </Button>
+        )}
+        {canDelete && (
+          <Button variant="danger-ghost" icon={<Trash2 className="size-3.5" />} disabled={pending} onClick={() => setConfirming(true)}>
+            Delete
+          </Button>
+        )}
+      <Modal
+        open={confirming}
+        onClose={() => setConfirming(false)}
+        title={`Delete ${reports(n)}?`}
+        description={`${n === 1 ? "This report and anything read from it are" : "These reports and anything read from them are"} removed for everyone in your workspace. This can't be undone.`}
+        footer={
+          <>
+            <Button variant="secondary" onClick={() => setConfirming(false)}>
+              Cancel
+            </Button>
+            <Button variant="danger-ghost" disabled={pending} onClick={remove}>
+              {pending ? "Deleting…" : `Delete ${reports(n)}`}
+            </Button>
+          </>
+        }
+      />
+    </SelectionBar>
+  );
+}
+
 /** Open, download, read again, delete. */
 function ReportMenu({ row, status, canDelete }: { row: ReportRow; status: ReadStatus; canDelete: boolean }) {
   const router = useRouter();
   const toast = useToast();
-  const [open, setOpen] = useState(false);
   const [confirming, setConfirming] = useState(false);
   const [pending, start] = useTransition();
-  const ref = useRef<HTMLDivElement>(null);
-  useEffect(() => {
-    if (!open) return;
-    const close = (e: MouseEvent) => !ref.current?.contains(e.target as Node) && setOpen(false);
-    document.addEventListener("mousedown", close);
-    return () => document.removeEventListener("mousedown", close);
-  }, [open]);
-
-  const run = (fn: () => Promise<void>) => () => {
-    setOpen(false);
-    start(fn);
-  };
-  const item = "flex h-7 w-full items-center gap-2 rounded-md px-2 text-left text-xs text-fg-2 hover:bg-fg/[0.04] hover:text-fg";
+  const actions: RowAction[] = [
+    { label: "Open", icon: ExternalLink, onSelect: () => router.push(`/app/reports/${row.id}`) },
+    {
+      label: "Download",
+      icon: Download,
+      onSelect: () =>
+        start(async () => {
+          const res = await downloadUrl(row.id);
+          if (res.ok) window.location.assign(res.url);
+          else toast(res.message);
+        }),
+    },
+  ];
+  if (status === "read" || status === "failed")
+    actions.push({
+      label: "Read again",
+      icon: RotateCw,
+      onSelect: () =>
+        start(async () => {
+          const res = await rereadReport(row.id);
+          if (!res.ok) toast(res.message);
+          router.refresh();
+        }),
+    });
+  if (canDelete) actions.push({ label: "Delete", icon: Trash2, danger: true, onSelect: () => setConfirming(true) });
   return (
-    <div ref={ref} className="relative inline-block" onClick={(e) => e.stopPropagation()} onKeyDown={(e) => e.stopPropagation()}>
-      <button type="button" aria-label={`Actions for ${row.file_name}`} aria-haspopup="menu" aria-expanded={open} disabled={pending} onClick={() => setOpen((v) => !v)} className="rounded-md p-1.5 text-fg-3 transition-colors hover:bg-fg/[0.06] hover:text-fg disabled:opacity-50">
-        <MoreHorizontal className="size-3.5" />
-      </button>
-      {open && (
-        <div role="menu" className="absolute top-full right-0 z-20 mt-1 w-44 rounded-lg border border-border bg-bg p-1 text-left shadow-overlay">
-          <button type="button" role="menuitem" className={item} onClick={run(async () => router.push(`/app/reports/${row.id}`))}>
-            <ExternalLink className="size-3.5" /> Open
-          </button>
-          <button
-            type="button"
-            role="menuitem"
-            className={item}
-            onClick={run(async () => {
-              const res = await downloadUrl(row.id);
-              if (res.ok) window.location.assign(res.url);
-              else toast(res.message);
-            })}
-          >
-            <Download className="size-3.5" /> Download
-          </button>
-          {(status === "read" || status === "failed") && (
-            <button
-              type="button"
-              role="menuitem"
-              className={item}
-              onClick={run(async () => {
-                const res = await rereadReport(row.id);
-                if (!res.ok) toast(res.message);
-                router.refresh();
-              })}
-            >
-              <RotateCw className="size-3.5" /> Read again
-            </button>
-          )}
-          {canDelete && (
-            <button
-              type="button"
-              role="menuitem"
-              className="flex h-7 w-full items-center gap-2 rounded-md px-2 text-left text-xs text-unfavorable hover:bg-unfavorable/10"
-              onClick={() => {
-                setOpen(false);
-                setConfirming(true);
-              }}
-            >
-              <Trash2 className="size-3.5" /> Delete
-            </button>
-          )}
-        </div>
-      )}
+    <>
+      <RowMenu label={row.file_name} actions={actions} disabled={pending} />
       <Modal
         open={confirming}
         onClose={() => setConfirming(false)}
@@ -255,6 +298,6 @@ function ReportMenu({ row, status, canDelete }: { row: ReportRow; status: ReadSt
           </>
         }
       />
-    </div>
+    </>
   );
 }

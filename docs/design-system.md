@@ -15,7 +15,7 @@ copied from source; if they ever disagree, the code wins and this file should be
   opacity and size, not hue.
 - **Color means something.** Green / red / amber only for state (good / bad / needs attention).
   The one accent (`--data`: steel teal in dark, deep cyan in light) only for data visualization,
-  data highlights, and RE-IQ's AI moments. Brand blue (`--brand`) marks only the selected nav item. Nothing is colored for decoration. Light is the default theme.
+  data highlights, and RE-IQ's AI moments. Brand blue (`--brand`, `#1273b1`) is the color of interactive elements: primary buttons, text links, table row links and the selected nav item (on a low-opacity fill). It never marks data, state or decoration. Nothing is colored for decoration. Light is the default theme.
 - **Color is never the only cue.** Signed numbers always print their sign; badges carry a
   word; variance can append "fav" / "unfav".
 - **Flat.** Cards have a 1px border and no shadow. Only floating layers (drawers, modals,
@@ -49,11 +49,14 @@ Tailwind name is what components use.
 | `--unfavorable`     | `unfavorable`                 | `#b91c1c`                              | `#e08a80`                              | Bad state, negative impact, destructive actions |
 | `--warning`         | `warning`                     | `#b45309`                              | `#d9a95b`                              | Needs attention, late, low confidence |
 | `--data`            | `data`                        | `#0e7490`                              | `#6c9bad`                              | Chart series, data highlights |
-| `--brand`           | `brand`                       | `#2f5fb3`                              | `#8eaee6`                              | Brand blue: selected nav item text and icon only |
-| `--brand-soft`      | `brand-soft`                  | `rgb(47 95 179 / 0.09)`                | `rgb(142 174 230 / 0.12)`              | Selected nav item fill |
+| `--brand`           | `brand`                       | `#1273b1`                              | `#5aa9e6`                              | Brand blue, for interactive elements: primary buttons, text links, table row links, selected nav item |
+| `--brand-text`      | `brand-fg`                    | `#ffffff`                              | `#08131d`                              | Text on `brand` (primary buttons) |
+| `--brand-soft`      | `brand-soft`                  | `rgb(18 115 177 / 0.1)`                | `rgb(90 169 230 / 0.14)`               | Selected nav item fill |
+| `--property`        | `property`                    | `#4f7d8c`                              | `#8fb2bd`                              | Prototype only. In the app a property name is brand blue when it's a link (`<PropertyTd>`, `<TextLink>`) and plain text otherwise |
+| `--link`            | `link`                        | `#0071e3`                              | `#2997ff`                              | Legacy (prototype panel titles). In the app, text links use `brand` via `<TextLink>`; underline slides in from the left on hover |
 | `--data-soft`       | `data-soft`                   | `rgb(14 116 144 / 0.14)`               | `rgb(34 211 238 / 0.16)`               | Text selection, highlighted inline text |
 | `--file-xls` / `--file-pdf` / `--file-csv` | `file-xls` / `file-pdf` / `file-csv` | `#1d6f42` / `#c2352b` / `#2f5f9e` | `#3f8f62` / `#c9554b` / `#4f7fbf` | File-format tags only (spreadsheet green, PDF red, CSV blue), with `--file-ink` text |
-| `--inverted`        | `inverted`                    | `#0a0a0a`                              | `#ffffff`                              | Primary button, toasts, chart tooltips |
+| `--inverted`        | `inverted`                    | `#0a0a0a`                              | `#ffffff`                              | Toasts, chart tooltips |
 | `--inverted-text`   | `inverted-fg`                 | `#ffffff`                              | `#0a0a0a`                              | Text on `inverted` |
 | `--inverted-muted`  | `inverted-muted`              | `rgb(255 255 255 / 0.62)`              | `rgb(10 10 10 / 0.6)`                  | Secondary text on `inverted` |
 | `--backdrop`        | `backdrop`                    | `rgb(10 10 10 / 0.18)`                 | `rgb(0 0 0 / 0.5)`                     | Scrim behind drawers / modals / mobile nav |
@@ -309,7 +312,7 @@ background / border / opacity / color at 150ms ease-out, disabled at 50% opacity
 
 | Variant     | Classes |
 |-------------|---------|
-| `primary`   | `bg-inverted text-inverted-fg hover:opacity-90` |
+| `primary`   | `bg-brand text-brand-fg hover:opacity-90` |
 | `secondary` (default) | `bg-surface text-fg border-border hover:border-border-strong hover:bg-surface-2` |
 | `ghost`     | `text-fg-2 hover:text-fg hover:bg-surface-2` |
 | `danger`    | `bg-unfavorable text-white dark:text-black hover:opacity-90` |

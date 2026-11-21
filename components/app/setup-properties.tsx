@@ -43,7 +43,7 @@ interface Staged {
 
 const UNASSIGNED = "unassigned";
 const SHORT: Record<string, string> = { "Renovation tracker": "Reno tracker" };
-const CHECKBOX = "size-3.5 cursor-pointer accent-[var(--text-primary)]";
+const CHECKBOX = "size-3.5 cursor-pointer accent-[var(--brand)]";
 
 let seq = 0;
 const uid = () => `s${Date.now().toString(36)}${(seq++).toString(36)}`;
@@ -414,8 +414,8 @@ function FilesDrawer({
       open={unassigned || !!r}
       onClose={close}
       width={520}
-      eyebrow={unassigned ? "Files" : <span className="text-property">Property</span>}
-      icon={unassigned ? undefined : <Building2 className="size-[18px] text-property" strokeWidth={1.75} />}
+      eyebrow={unassigned ? "Files" : "Property"}
+      icon={unassigned ? undefined : <Building2 className="size-[18px] text-fg-3" strokeWidth={1.75} />}
       title={unassigned ? "Files we couldn't match" : r?.name || "Unnamed property"}
       footer={
         <>

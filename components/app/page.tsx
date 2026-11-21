@@ -61,7 +61,7 @@ export function LinkButton({ href, variant = "primary", icon, children }: { href
       href={href}
       className={cn(
         "inline-flex shrink-0 items-center justify-center gap-1.5 rounded-md border px-3 py-1.5 text-[13px] font-medium whitespace-nowrap transition-[background-color,border-color,opacity] duration-150",
-        variant === "primary" ? "border-transparent bg-inverted text-inverted-fg hover:opacity-90" : "border-border bg-surface text-fg hover:border-border-strong hover:bg-surface-2",
+        variant === "primary" ? "border-transparent bg-brand text-brand-fg hover:opacity-90" : "border-border bg-surface text-fg hover:border-border-strong hover:bg-surface-2",
       )}
     >
       {icon}

@@ -1,6 +1,5 @@
 import { Building2 } from "lucide-react";
 import type { Metadata } from "next";
-import Link from "next/link";
 import { Suspense } from "react";
 import { LinkButton, Page } from "@/components/app/page";
 import { Badge } from "@/components/ui/badge";
@@ -10,6 +9,7 @@ import { THead, Table, Td, Th, Tr } from "@/components/ui/table";
 import { closePeriod, dateLabel, monthLabel } from "@/lib/workspace/format";
 import { getUploadsForPeriod, listProperties } from "@/lib/workspace/queries";
 import { requestWorkspace } from "@/lib/workspace/request";
+import { TextLink } from "@/components/app/ui";
 
 export const metadata: Metadata = { title: "Close" };
 
@@ -55,9 +55,7 @@ async function Close() {
                 return (
                   <Tr key={p.id}>
                     <Td>
-                      <Link href={`/app/properties/${p.id}`} className="font-medium text-property underline decoration-property/40 decoration-dashed underline-offset-[3px] hover:decoration-property">
-                        {p.name}
-                      </Link>
+                      <TextLink href={`/app/properties/${p.id}`}>{p.name}</TextLink>
                     </Td>
                     <Td align="right" className="num text-fg-2">
                       {files.length}

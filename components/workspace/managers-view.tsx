@@ -86,7 +86,7 @@ function PropertyChecks({ properties, selected, onChange }: { properties: Proper
     <div className="flex flex-wrap gap-x-4 gap-y-1.5">
       {properties.map((p) => (
         <label key={p.id} className="inline-flex cursor-pointer items-center gap-1.5 text-xs text-fg">
-          <input type="checkbox" className="size-3.5 accent-fg" checked={selected.includes(p.id)} onChange={(e) => onChange(e.target.checked ? [...selected, p.id] : selected.filter((x) => x !== p.id))} />
+          <input type="checkbox" className="size-3.5 accent-[var(--brand)]" checked={selected.includes(p.id)} onChange={(e) => onChange(e.target.checked ? [...selected, p.id] : selected.filter((x) => x !== p.id))} />
           {p.name}
         </label>
       ))}

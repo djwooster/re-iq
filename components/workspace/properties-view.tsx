@@ -1,6 +1,6 @@
 "use client";
 
-import Link from "next/link";
+import { Archive, ArchiveRestore, ExternalLink, Pencil } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 import { Badge } from "@/components/ui/badge";
@@ -8,88 +8,121 @@ import { Button } from "@/components/ui/button";
 import { Card, CardHeader } from "@/components/ui/card";
 import { Field, Input } from "@/components/ui/controls";
 import { EmptyState } from "@/components/ui/empty-state";
-import { THead, Table, Td, Th, Tr } from "@/components/ui/table";
+import { Modal } from "@/components/ui/overlay";
+import { useToast } from "@/components/ui/toast";
 import { createProperty, setPropertyArchived, updateProperty } from "@/lib/workspace/actions";
 import type { Property } from "@/lib/workspace/queries";
-import { ConfirmButton, FormMessage } from "./shared";
+import { FormMessage } from "./shared";
+import { PropertyTd, Row, RowMenu, SelectTd, SelectionBar, Table, Td, useSelection } from "@/components/app/ui";
 
 export function PropertiesView({ properties, canEdit }: { properties: Property[]; canEdit: boolean }) {
   const [editing, setEditing] = useState<string | null>(null);
+  const [archiving, setArchiving] = useState<Property[] | null>(null);
+  const [pending, start] = useTransition();
   const router = useRouter();
+  const toast = useToast();
+  const selection = useSelection(properties);
+  const { selected } = selection;
+  const names = (k: number) => `${k} ${k === 1 ? "property" : "properties"}`;
+
+  /** Archives or restores these properties; says how many didn't save. */
+  const setArchived = (list: Property[], archived: boolean) =>
+    start(async () => {
+      const results = await Promise.all(list.map((p) => setPropertyArchived(p.id, archived)));
+      const failed = results.filter((r) => !r.ok).length;
+      setArchiving(null);
+      if (!failed) selection.clear();
+      toast(failed ? `${names(failed)} couldn't be ${archived ? "archived" : "restored"}` : `${names(list.length)} ${archived ? "archived" : "restored"}`);
+      router.refresh();
+    });
+
+  const active = selected.filter((p) => !p.archived_at);
+  const archived = selected.filter((p) => p.archived_at);
   return (
-    <>
-        <div className="flex flex-col gap-4">
-          {canEdit && (
-            <Card>
-              <CardHeader title="Add a property" />
-              <div className="px-4 pb-4">
-                <PropertyForm submitLabel="Add property" onSubmit={createProperty} resetOnSuccess />
-              </div>
-            </Card>
+    <div className="flex flex-col gap-4">
+      {canEdit && (
+        <Card>
+          <CardHeader title="Add a property" />
+          <div className="px-4 pb-4">
+            <PropertyForm submitLabel="Add property" onSubmit={createProperty} resetOnSuccess />
+          </div>
+        </Card>
+      )}
+      {properties.length === 0 ? (
+        <Card>
+          <EmptyState title="No properties yet" description={canEdit ? "Add your first property above. Then upload its reports yourself, or invite its property manager to." : "An owner adds properties."} />
+        </Card>
+      ) : (
+        <div className="flex flex-col gap-3">
+          {selected.length > 0 && (
+            <SelectionBar count={selected.length} onClear={selection.clear}>
+              {archived.length > 0 && (
+                <Button variant="secondary" icon={<ArchiveRestore className="size-3.5" />} disabled={pending} onClick={() => setArchived(archived, false)}>
+                  Restore{archived.length < selected.length ? ` (${archived.length})` : ""}
+                </Button>
+              )}
+              {active.length > 0 && (
+                <Button variant="danger-ghost" icon={<Archive className="size-3.5" />} disabled={pending} onClick={() => setArchiving(active)}>
+                  Archive{active.length < selected.length ? ` (${active.length})` : ""}
+                </Button>
+              )}
+            </SelectionBar>
           )}
-          <Card>
-            {properties.length === 0 ? (
-              <EmptyState title="No properties yet" description={canEdit ? "Add your first property above. Then upload its reports yourself, or invite its property manager to." : "An owner adds properties."} />
-            ) : (
-              <Table>
-                <THead>
-                  <Th>Property</Th>
-                  <Th>Address</Th>
-                  <Th align="right">Units</Th>
-                  <Th>Status</Th>
-                  {canEdit && <Th />}
-                </THead>
-                <tbody>
-                  {properties.map((p) =>
-                    editing === p.id ? (
-                      <tr key={p.id} className="border-b border-border/70">
-                        <td colSpan={5} className="px-4 py-3">
-                          <PropertyForm
-                            initial={p}
-                            submitLabel="Save"
-                            onSubmit={(fd) => updateProperty(p.id, fd)}
-                            onDone={() => setEditing(null)}
-                            onCancel={() => setEditing(null)}
-                          />
-                        </td>
-                      </tr>
-                    ) : (
-                      <Tr key={p.id}>
-                        <Td>
-                          <Link href={`/app/properties/${p.id}`} className="font-medium text-property underline decoration-property/40 decoration-dashed underline-offset-[3px] hover:decoration-property">
-                            {p.name}
-                          </Link>
-                        </Td>
-                        <Td className="text-fg-2">{p.address ?? "–"}</Td>
-                        <Td align="right" mono>
-                          {p.unit_count ?? "–"}
-                        </Td>
-                        <Td>{p.archived_at ? <Badge tone="muted">Archived</Badge> : <Badge tone="favorable">Active</Badge>}</Td>
-                        {canEdit && (
-                          <Td align="right">
-                            <span className="inline-flex items-center gap-1">
-                              <Button type="button" size="xs" variant="ghost" onClick={() => setEditing(p.id)}>
-                                Edit
-                              </Button>
-                              {p.archived_at ? (
-                                <Button type="button" size="xs" variant="ghost" onClick={async () => (await setPropertyArchived(p.id, false), router.refresh())}>
-                                  Restore
-                                </Button>
-                              ) : (
-                                <ConfirmButton label="Archive" confirmLabel="Archive: stops uploads" onConfirm={async () => (await setPropertyArchived(p.id, true), router.refresh())} />
-                              )}
-                            </span>
-                          </Td>
-                        )}
-                      </Tr>
-                    ),
-                  )}
-                </tbody>
-              </Table>
+          <Table columns={["Property", "Address", { label: "Units", num: true }, "Status", { label: "", sort: false }]} select={canEdit ? selection.select : undefined}>
+            {properties.map((p) =>
+              editing === p.id ? (
+                <tr key={p.id} className="border-b border-border/70 last:border-b-0">
+                  <td colSpan={canEdit ? 6 : 5} className="px-4 py-3">
+                    <PropertyForm initial={p} submitLabel="Save" onSubmit={(fd) => updateProperty(p.id, fd)} onDone={() => setEditing(null)} onCancel={() => setEditing(null)} />
+                  </td>
+                </tr>
+              ) : (
+                <Row key={p.id} href={`/app/properties/${p.id}`} selected={selection.isSelected(p.id)}>
+                  {canEdit && <SelectTd label={`Select ${p.name}`} checked={selection.isSelected(p.id)} onChange={() => selection.toggle(p.id)} />}
+                  <PropertyTd>{p.name}</PropertyTd>
+                  <Td className="text-fg-2">{p.address ?? "–"}</Td>
+                  <Td num>{p.unit_count ?? "–"}</Td>
+                  <Td>{p.archived_at ? <Badge tone="muted">Archived</Badge> : <Badge tone="favorable">Active</Badge>}</Td>
+                  <Td className="w-10 text-right">
+                    <RowMenu
+                      label={p.name}
+                      disabled={pending}
+                      actions={[
+                        { label: "Open", icon: ExternalLink, onSelect: () => router.push(`/app/properties/${p.id}`) },
+                        ...(canEdit
+                          ? [
+                              { label: "Edit", icon: Pencil, onSelect: () => setEditing(p.id) },
+                              p.archived_at
+                                ? { label: "Restore", icon: ArchiveRestore, onSelect: () => setArchived([p], false) }
+                                : { label: "Archive", icon: Archive, onSelect: () => setArchiving([p]), danger: true },
+                            ]
+                          : []),
+                      ]}
+                    />
+                  </Td>
+                </Row>
+              ),
             )}
-          </Card>
+          </Table>
         </div>
-    </>
+      )}
+      <Modal
+        open={!!archiving}
+        onClose={() => setArchiving(null)}
+        title={archiving?.length === 1 ? `Archive ${archiving[0].name}?` : `Archive ${names(archiving?.length ?? 0)}?`}
+        description="Archived properties leave your lists and stop taking uploads. Their reports stay, and you can restore them anytime."
+        footer={
+          <>
+            <Button variant="secondary" onClick={() => setArchiving(null)}>
+              Cancel
+            </Button>
+            <Button variant="danger-ghost" disabled={pending} onClick={() => archiving && setArchived(archiving, true)}>
+              {pending ? "Archiving…" : archiving?.length === 1 ? "Archive property" : `Archive ${names(archiving?.length ?? 0)}`}
+            </Button>
+          </>
+        }
+      />
+    </div>
   );
 }
 

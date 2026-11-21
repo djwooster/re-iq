@@ -7,7 +7,7 @@ import { Progress } from "./progress";
 type Variant = "primary" | "secondary" | "ghost" | "danger" | "danger-ghost";
 
 const VARIANTS: Record<Variant, string> = {
-  primary: "bg-inverted text-inverted-fg hover:opacity-90 border border-transparent",
+  primary: "bg-brand text-brand-fg hover:opacity-90 border border-transparent",
   secondary: "bg-surface text-fg border border-border hover:border-border-strong hover:bg-surface-2",
   ghost: "text-fg-2 hover:text-fg hover:bg-surface-2 border border-transparent",
   danger: "bg-unfavorable text-white hover:opacity-90 border border-transparent dark:text-black",
@@ -44,7 +44,7 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(function Button
       </span>
       {loading && (
         <span className="absolute inset-x-3 top-1/2 -translate-y-1/2">
-          <Progress indeterminate className={variant === "primary" ? "bg-inverted-fg/20 [&>span]:bg-inverted-fg" : undefined} />
+          <Progress indeterminate className={variant === "primary" ? "bg-brand-fg/20 [&>span]:bg-brand-fg" : undefined} />
         </span>
       )}
     </button>

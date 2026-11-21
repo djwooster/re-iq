@@ -60,10 +60,19 @@ write-back, or AI calls. See `README.md`, `TODO.md`, `docs/product.md`.
   `--text-*`, `--favorable`, `--unfavorable`, `--warning`, `--data`) mapped to Tailwind
   (`bg-surface`, `text-fg-2`, `text-favorable`, ...). Never hard-code colors.
 - Light is the default theme. Neutral UI; green/red/amber only for state; the one accent (`--data`, steel
-  teal in dark) only for data viz and RE-IQ's AI moments. Brand blue (`--brand`) only for the selected nav item. No glows, gradients, or decorative color.
+  teal in dark) only for data viz and RE-IQ's AI moments. Brand blue (`--brand`, #1273b1) is for interactive elements: primary buttons, text links, table row links, the selected nav item (low-opacity fill). Never for data, state or decoration. No glows, gradients, or decorative color.
+- Standard pieces, so styles don't drift between screens (`components/app/ui.tsx`): a property name in a
+  table is `<PropertyTd>` (brand blue); a text link that navigates is `<TextLink>` (brand blue,
+  underline slides in on hover; also links inside table cells); dropdowns and filters are `<FilterMenu>` (never a native select in toolbars).
   Hierarchy via opacity and scale.
-- Properties are marked in blue (`--property`, Shepherd Fairey poster blue) across the app: icons, eyebrows,
-  labels that name a property. DJ's call, 2026-11-11; apply it as screens are touched, not in one sweep.
+- No one-off colors (DJ, 2026-11-20). `--property` blue is retired in the app (prototype only): a property
+  name is brand blue when it's a link and plain text otherwise. Fix any table that drifts, everywhere at once.
+- Tables of records people act on (DJ, 2026-11-20): rows open the record (`<Row href>`), start with a
+  checkbox (`useSelection` + `<SelectTd>`), and end with a ⋯ `<RowMenu>`; while rows are checked a
+  `<SelectionBar>` replaces the toolbar with the bulk actions. Destructive actions confirm in a `Modal`.
+  Reports and Properties are the reference. Read-only summary tables (Overview) skip the checkboxes.
+- Empty states use `<SpotEmpty>` (`components/app/ui.tsx`): three fanned icon tiles in the spot colors,
+  a 16px heading that says what's empty, one plain 13px line, and the action. Product voice, not marketing.
 - Geist Sans everywhere, no monospace (DJ's call, 2026-11-11). `num` gives tabular numbers for
   metrics and table columns; `eyebrow` is small uppercase labels. 11–12px body, 13–14px headings.
 - Cards: surface, 1px border, rounded-lg, no shadow. Only modals/drawers get shadows.

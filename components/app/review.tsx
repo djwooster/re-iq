@@ -52,7 +52,7 @@ export function Review({ properties, reads, empty = "No reports to read yet. Exc
         .filter((p) => reads.some((r) => r.property_id === p.id))
         .map((p) => (
           <section key={p.id} className="flex flex-col gap-2">
-            <h2 className="flex items-center gap-1.5 text-[13px] font-semibold text-property">
+            <h2 className="flex items-center gap-1.5 text-[13px] font-semibold text-fg">
               <Building2 className="size-3.5" strokeWidth={1.75} />
               {p.name}
             </h2>

@@ -88,7 +88,7 @@ export function SetupFrame({ step, canContinue, bare, children }: { step: SetupS
             )}
             {next ? (
               canContinue ? (
-                <Link href={href(next.id)} className="inline-flex min-w-[100px] items-center justify-center rounded-md border border-transparent bg-inverted px-3 py-1.5 text-[13px] font-medium text-inverted-fg transition-opacity hover:opacity-90">
+                <Link href={href(next.id)} className="inline-flex min-w-[100px] items-center justify-center rounded-md border border-transparent bg-brand px-3 py-1.5 text-[13px] font-medium text-brand-fg transition-opacity hover:opacity-90">
                   Continue
                 </Link>
               ) : (

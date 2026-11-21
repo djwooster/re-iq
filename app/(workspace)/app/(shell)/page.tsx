@@ -1,9 +1,9 @@
-import { Plus } from "lucide-react";
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { Suspense } from "react";
 import { Overview } from "@/components/app/overview";
-import { LinkButton, Page } from "@/components/app/page";
+import { AddReportsButton } from "@/components/app/add-reports";
+import { Page } from "@/components/app/page";
 import { Card } from "@/components/ui/card";
 import { EmptyState } from "@/components/ui/empty-state";
 import { closePeriod, dateLabel } from "@/lib/workspace/format";
@@ -35,9 +35,7 @@ async function OverviewData() {
             title="Add your first reports"
             description="Drop last month's reports. Each one is matched to its property by file name, then read."
             action={
-              <LinkButton href="/app/reports/new" icon={<Plus className="size-3.5" />}>
-                Add report
-              </LinkButton>
+              <AddReportsButton properties={active} period={closePeriod()} />
             }
           />
         </Card>
@@ -45,16 +43,13 @@ async function OverviewData() {
     );
   }
 
-  // The month being closed, and the twelve months the NOI chart covers.
+  // The month being closed.
   const end = new Date(`${closePeriod()}T00:00:00Z`);
-  const start = new Date(end);
-  start.setUTCMonth(start.getUTCMonth() - 11);
-  const short = (d: Date) => d.toLocaleDateString("en-US", { month: "short", year: "numeric", timeZone: "UTC" });
   return (
     <Overview
       date={dateLabel(new Date().toISOString())}
       month={end.toLocaleDateString("en-US", { month: "long", timeZone: "UTC" })}
-      range={`${short(start)} – ${short(end)}`}
+      closing={closePeriod()}
       properties={active}
       companies={companies}
     />
