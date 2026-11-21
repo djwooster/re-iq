@@ -2,11 +2,13 @@
 
 import { createHash, randomUUID } from "node:crypto";
 import { revalidatePath } from "next/cache";
+import { after } from "next/server";
 import { AccessDenied, getViewer } from "@/lib/auth/access";
 import { checkLimit } from "@/lib/auth/rate-limit";
 import { log } from "@/lib/logger";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
+import { readUpload } from "@/lib/reading/run";
 import { getUploadContext } from "@/lib/workspace/context";
 import { isReportType } from "./report-types";
 import { stripMetadata } from "./strip-metadata";
@@ -21,6 +23,7 @@ import { ACCEPTED_EXTENSIONS, MAX_UPLOAD_BYTES, REJECTION_MESSAGE, checkFile, ex
  *  3. finalizeUpload reads it back, checks the real contents, strips photo metadata, writes the
  *     result to the private "reports" bucket, records it (record_upload re-checks access), and
  *     deletes the incoming copy whatever happens.
+ *  4. After the response, the file is read (lib/reading/run.ts) into a draft for review.
  */
 
 export interface UploadMeta {
@@ -133,6 +136,8 @@ export async function finalizeUpload(meta: UploadMeta, uploadId: string): Promis
     }
     revalidatePath("/upload");
     revalidatePath("/app", "layout");
+    // Read it once the response is sent; the draft shows in Review when it's done.
+    after(() => readUpload(uploadId));
     return { ok: true, version };
   } finally {
     await admin.storage.from("incoming").remove([path]);

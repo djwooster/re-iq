@@ -24,6 +24,8 @@ export interface Reading {
   layout: Layout;
   /** Amounts for the report's month (a T-12's latest month), in dollars. */
   figures: Figures;
+  /** Every row with amounts, for the report's month: what the reviewer sees and can re-map. */
+  lines: { row: number; label: string; kind: string; section: string; account: string; confidence: string; amount: number | null }[];
   /** Operating lines summed by owner account, for the report's month. */
   accounts: Record<string, number>;
   aging: { total: number | null; owed: number | null; buckets: { label: string; amount: number | null }[] } | null;
@@ -113,6 +115,7 @@ export async function readReport(client: Anthropic, fileName: string, bytes: Uin
   return {
     layout,
     figures,
+    lines: layout.lines.map((l) => ({ row: l.row, label: labelOf(l.row), kind: l.kind, section: l.section, account: l.account, confidence: l.confidence, amount: current ? amount(l.row, current.column) : null })),
     accounts,
     aging: layout.aging ? readAging(layout.aging, amount, checks) : null,
     checks,

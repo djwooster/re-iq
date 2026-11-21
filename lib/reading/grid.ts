@@ -46,17 +46,27 @@ export function cellAt(sheet: Sheet, row: number, column: string): Cell | null {
   return sheet.rows[row - 1]?.[columnIndex(column)] ?? null;
 }
 
+/** Column headers whose values are personal details the reader never needs. */
+const PERSONAL = /^(resident|tenant|occupant|lessee)s?( name)?$|^(first |last |full )?name$|phone|e-?mail|ssn|date of birth/i;
+
 /**
  * The sheet as compact text for Claude: one line per non-empty row, only filled cells, each as
- * `C=text`. Leading spaces are kept (indentation shows the account hierarchy). Long sheets are cut
- * at `maxRows` non-empty rows, and the cut is stated.
+ * `C=text`. Leading spaces are kept (indentation shows the account hierarchy). Values under a
+ * personal-details header (resident name, phone, email) are replaced, so they're never sent. Long
+ * sheets are cut at `maxRows` non-empty rows, and the cut is stated.
  */
 export function renderSheet(sheet: Sheet, maxRows = 400): string {
   const lines: string[] = [];
+  const personal = new Map<number, number>();
   let shown = 0;
   let total = 0;
   sheet.rows.forEach((row, r) => {
-    const cells = row.flatMap((cell, c) => (cell ? [`${columnName(c)}=${JSON.stringify(cell.text.replace(/\s+$/, ""))}`] : []));
+    row.forEach((cell, c) => cell && PERSONAL.test(cell.text.trim()) && !personal.has(c) && personal.set(c, r));
+    const cells = row.flatMap((cell, c) => {
+      if (!cell) return [];
+      const text = personal.has(c) && r > personal.get(c)! ? "[removed]" : cell.text.replace(/\s+$/, "");
+      return [`${columnName(c)}=${JSON.stringify(text)}`];
+    });
     if (!cells.length) return;
     total++;
     if (shown >= maxRows) return;

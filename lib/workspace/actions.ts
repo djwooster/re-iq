@@ -3,7 +3,8 @@
 import { headers } from "next/headers";
 import { revalidatePath } from "next/cache";
 import { getWorkspace } from "./context";
-import { KPIS } from "./kpis";
+import { readUpload } from "@/lib/reading/run";
+import { CHART_OF_ACCOUNTS, KPIS } from "./kpis";
 
 /**
  * Owner actions for properties and property managers (uploaders). Each runs as the signed-in user,
@@ -186,6 +187,30 @@ export async function saveThresholds(propertyId: string | null, targets: Record<
     const { error } = await ws.supabase.from("org_thresholds").insert(rows.map((r) => ({ org_id: ws.orgId, property_id: propertyId, ...r })));
     if (error) return TRY_AGAIN;
   }
+  refresh();
+  return { ok: true };
+}
+
+/** Confirms what was read from a report, with any accounts the reviewer changed ({ row: account }). */
+export async function confirmReportRead(id: string, overrides: Record<string, string>): Promise<Result> {
+  const ws = await getWorkspace();
+  if (!UUID.test(id)) return TRY_AGAIN;
+  const accounts = new Set(["none", ...CHART_OF_ACCOUNTS]);
+  const entries = Object.entries(overrides ?? {});
+  if (entries.length > 500 || !entries.every(([row, account]) => /^\d{1,6}$/.test(row) && accounts.has(account))) return TRY_AGAIN;
+  const { error } = await ws.supabase.rpc("confirm_report_read", { read_id: id, account_overrides: Object.fromEntries(entries) });
+  if (error) return TRY_AGAIN;
+  refresh();
+  return { ok: true };
+}
+
+/** Reads a report again after a failed read. The upload must be one the user can see. */
+export async function retryReportRead(uploadId: string): Promise<Result> {
+  const ws = await getWorkspace();
+  if (!UUID.test(uploadId)) return TRY_AGAIN;
+  const { data } = await ws.supabase.from("report_reads").select("id").eq("upload_id", uploadId).eq("org_id", ws.orgId).eq("status", "failed").maybeSingle();
+  if (!data) return TRY_AGAIN;
+  await readUpload(uploadId);
   refresh();
   return { ok: true };
 }

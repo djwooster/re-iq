@@ -118,3 +118,32 @@ export async function getUploaderHistory(ctx: UploaderContext, propertyId: strin
   const { data } = await ctx.supabase.from("uploads").select(UPLOAD_COLUMNS).eq("property_id", propertyId).eq("uploaded_by", ctx.userId).order("created_at", { ascending: false });
   return (data ?? []) as Upload[];
 }
+
+export interface ReportRead {
+  id: string;
+  upload_id: string;
+  property_id: string;
+  status: "reading" | "read" | "failed" | "confirmed";
+  report_type: string | null;
+  period: string | null;
+  result: import("@/lib/reading/read").Reading | null;
+  overrides: Record<string, string>;
+  error: string | null;
+  uploads: { file_name: string; created_at: string } | null;
+}
+
+/** What was read from the org's uploads, newest upload first. */
+export async function getReportReads(ws: Workspace): Promise<ReportRead[]> {
+  const { data } = await ws.supabase.from("report_reads").select("id, upload_id, property_id, status, report_type, period, result, overrides, error, uploads(file_name, created_at)").eq("org_id", ws.orgId).order("created_at", { ascending: false });
+  return (data ?? []) as unknown as ReportRead[];
+}
+
+/** Uploads in the org that have never been read, for starting reads. A failed read is retried on request, not on every visit. */
+export async function getUnreadUploads(ws: Workspace): Promise<Pick<Upload, "id" | "property_id" | "report_type" | "file_name" | "created_at">[]> {
+  const [uploads, reads] = await Promise.all([
+    ws.supabase.from("uploads").select("id, property_id, report_type, file_name, created_at").eq("org_id", ws.orgId),
+    ws.supabase.from("report_reads").select("upload_id").eq("org_id", ws.orgId),
+  ]);
+  const done = new Set(((reads.data ?? []) as { upload_id: string }[]).map((r) => r.upload_id));
+  return ((uploads.data ?? []) as Pick<Upload, "id" | "property_id" | "report_type" | "file_name" | "created_at">[]).filter((u) => !done.has(u.id));
+}
