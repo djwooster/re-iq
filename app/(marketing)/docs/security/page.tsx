@@ -117,7 +117,10 @@ export default function SecurityDocsPage() {
           <H2 id="reading-reports" />
           <Ul>
             <li>Spreadsheet reports (income statements, T-12s and AR aging) are read with Anthropic&apos;s Claude, which doesn&apos;t train on the data we send it.</li>
-            <li>Resident names, phone numbers and email addresses are removed from a report before it&apos;s sent to be read.</li>
+            <li>
+              Resident names, contact details and bank account numbers are removed when a report is read. They&apos;re never in the figures we extract, never in our logs, and never
+              sent to our AI provider.
+            </li>
             <li>
               <strong>Benchmarks</strong>: we never pool customers&apos; private rent or occupancy data into shared benchmarks.
             </li>
@@ -151,7 +154,6 @@ export default function SecurityDocsPage() {
             <strong>Not yet live.</strong> We&apos;ll move each item into the sections above only once it&apos;s done.
           </Callout>
           <Ul>
-            <li>Bank account numbers removed when a report is read, and resident names and bank account numbers kept out of everything we extract from it.</li>
             <li>Payroll totals only, never what an individual is paid.</li>
             <li>Multi-factor sign-in.</li>
             <li>An independent security review.</li>

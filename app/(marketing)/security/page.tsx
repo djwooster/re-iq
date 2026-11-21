@@ -15,11 +15,10 @@ const LIVE = [
   { title: "Careful sign-in", body: "New accounts confirm their email address. You can also sign in with Google or Microsoft. Repeated sign-in attempts are limited to slow down password guessing." },
   { title: "Errors monitored, without personal data", body: "We're alerted when something breaks. Before anything reaches our error monitoring, email addresses are removed and people appear only as an anonymous ID; IP addresses aren't stored." },
   { title: "Hosted in the United States", body: "The app, database and file storage run in the US." },
-  { title: "Reports read without resident names", body: "Spreadsheet reports are read with Anthropic's Claude, which doesn't train on the data we send it. Resident names, phone numbers and email addresses are removed first." },
+  { title: "Reports read without resident names", body: "Spreadsheet reports are read with Anthropic's Claude, which doesn't train on the data we send it. Resident names, contact details and bank account numbers are removed when a report is read: never in the figures we extract, our logs, or what we send to Claude. Original files are kept as uploaded, privately." },
 ];
 
 const ROADMAP = [
-  "Bank account numbers removed when a report is read, and resident names and bank account numbers kept out of everything we extract from it.",
   "Multi-factor sign-in.",
   "An independent security review.",
   "SOC 2.",
