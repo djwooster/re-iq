@@ -1,4 +1,4 @@
-import { scrubBreadcrumb, scrubEvent, scrubLog } from "./scrub";
+import { scrubBreadcrumb, scrubEvent } from "./scrub";
 
 /** local, preview or production. Vercel sets VERCEL_ENV (and NEXT_PUBLIC_VERCEL_ENV for the browser). */
 export function sentryEnvironment(): string {
@@ -7,8 +7,8 @@ export function sentryEnvironment(): string {
 }
 
 /**
- * Shared Sentry settings for the browser, Node and edge runtimes. Errors, tracing and logs (on by
- * default in SDK v11); no session replay. Every trace is kept locally, 10% on preview and production.
+ * Shared Sentry settings for the browser, Node and edge runtimes. Errors only: no tracing, no logs,
+ * no session replay.
  */
 export function sentryOptions(dsn: string) {
   const environment = sentryEnvironment();
@@ -17,10 +17,8 @@ export function sentryOptions(dsn: string) {
     enabled: Boolean(dsn),
     environment,
     sendDefaultPii: false,
-    tracesSampleRate: environment === "local" ? 1 : 0.1,
-    beforeSendLog: scrubLog,
+    enableLogs: false,
     beforeSend: scrubEvent,
-    beforeSendTransaction: scrubEvent,
     beforeBreadcrumb: scrubBreadcrumb,
   };
 }

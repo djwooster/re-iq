@@ -1,13 +1,12 @@
 "use server";
 
-import { cookies, headers } from "next/headers";
+import { headers } from "next/headers";
 import { redirect } from "next/navigation";
-import { SESSION_COOKIE, isSupabaseAuthCookie } from "./demo";
 import { AUTH_ENABLED } from "@/lib/supabase/env";
 import { createClient } from "@/lib/supabase/server";
 import { HOME } from "./access-rules";
 import { checkLimit } from "./rate-limit";
-import { demoTarget, safeNext } from "./redirect";
+import { safeNext } from "./redirect";
 
 export type AuthState = { status: "idle" } | { status: "error"; message: string } | { status: "sent"; email: string };
 
@@ -38,7 +37,6 @@ export async function signIn(_prev: AuthState, fd: FormData): Promise<AuthState>
   if (error) {
     return { status: "error", message: error.code === "email_not_confirmed" ? "Confirm your email first. The link is in your inbox." : "That email and password don't match an account." };
   }
-  (await cookies()).delete(SESSION_COOKIE);
   redirect(next);
 }
 
@@ -116,21 +114,7 @@ export async function updatePassword(_prev: AuthState, fd: FormData): Promise<Au
   redirect(HOME.dashboard);
 }
 
-/**
- * From the /demo confirmation page: sign out of the real session, then start the demo. A POST,
- * so following a link can never sign anyone out.
- */
-export async function enterDemo(fd: FormData): Promise<void> {
-  const target = demoTarget(str(fd, "to"));
-  if (AUTH_ENABLED) await (await createClient()).auth.signOut();
-  const jar = await cookies();
-  jar.getAll().forEach((c) => isSupabaseAuthCookie(c.name) && jar.delete(c.name));
-  jar.set(SESSION_COOKIE, "demo", { path: "/", maxAge: 60 * 60 * 24 * 30, sameSite: "lax" });
-  redirect(str(fd, "fresh") === "1" ? `${target}#fresh` : target);
-}
-
 export async function signOut(): Promise<void> {
   if (AUTH_ENABLED) await (await createClient()).auth.signOut();
-  (await cookies()).delete(SESSION_COOKIE);
   redirect("/login");
 }

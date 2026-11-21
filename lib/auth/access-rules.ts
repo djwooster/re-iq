@@ -30,4 +30,7 @@ export async function fetchRoles(supabase: SupabaseClient, userId: string): Prom
   return (await fetchMemberships(supabase, userId)).map((m) => m.role);
 }
 
+/** Holds an invite token between opening the link and accepting (HTTP-only, /invite only, 7 days). */
+export const INVITE_COOKIE = "reiq_invite";
+
 export const HOME: Record<Access, string> = { dashboard: "/app", uploader: "/upload", none: "/upload" };

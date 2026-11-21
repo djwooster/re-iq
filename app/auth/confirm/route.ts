@@ -1,6 +1,5 @@
 import type { EmailOtpType } from "@supabase/supabase-js";
 import { NextResponse, type NextRequest } from "next/server";
-import { SESSION_COOKIE } from "@/lib/auth/demo";
 import { safeNext } from "@/lib/auth/redirect";
 import { createClient } from "@/lib/supabase/server";
 
@@ -17,9 +16,7 @@ export async function GET(request: NextRequest) {
     const supabase = await createClient();
     const { error } = await supabase.auth.verifyOtp({ type, token_hash: tokenHash });
     if (!error) {
-      const response = NextResponse.redirect(new URL(next, request.url));
-      response.cookies.delete(SESSION_COOKIE);
-      return response;
+      return NextResponse.redirect(new URL(next, request.url));
     }
   }
   return NextResponse.redirect(new URL(`/login?error=${type === "recovery" ? "reset-link" : "confirm-link"}`, request.url));

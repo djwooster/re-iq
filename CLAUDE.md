@@ -1,85 +1,50 @@
-# RE-IQ — project notes
+# RE-IQ
 
-Multi-tenant AI asset-management dashboard for multifamily owners and asset managers.
-Phase 1: read-only intelligence layer on mock data. No real parsing, integrations,
-write-back, or AI calls. See `README.md`, `TODO.md`, `docs/product.md`.
+Multi-tenant asset-management app for multifamily owners. Property managers upload monthly
+reports; RE-IQ reads them and shows owners what changed and what needs attention.
 
-@AGENTS.md
+## Stack
+Next.js 16 App Router (Cache Components), React 19, Tailwind v4, Motion, Recharts, Supabase
+(Postgres, Auth, Storage), Anthropic API (report reading), Resend (email), Sentry (errors only),
+Vercel. Next.js 16 differs from your training data: read `node_modules/next/dist/docs/` before
+using an API.
 
-## Working agreement
-- The user does all visual testing. Do not open the browser, take screenshots, or QA pages.
-  Verify with `npx tsc --noEmit`, `npm run lint`, `npm run build`, and that `npm run dev`
-  starts and routes return 200 (curl with cookie `reiq_session=demo` is fine).
-- Finish the work, then stop and report what's built and what isn't. Refine together after.
-- Treat screens as hypotheses: small components, data access in one place, no logic in pages.
-- Every feature should answer a core question (budget tracking, where money is lost, what
-  needs attention, where NOI can grow, what to do this week). Leave out what doesn't.
-- No lorem ipsum or placeholder copy. Plain, specific language; no hype.
-- Commit at logical milestones on `main` (remote: github.com/djwooster/re-iq). Push only when asked.
+- `/app` is the product. `/prototype` is frozen for feedback sessions: don't change it, and `/app`
+  never imports from `components/prototype`.
+- Data access lives in `lib/workspace`; pages load with `requestWorkspace()`. No logic in pages.
 
-## Building to be acquirable (see `STRATEGY.md`)
-- One codebase for every customer: no customer-specific branches, forks, or hard-coded org IDs.
-  Differences between customers go through plan entitlements or org settings.
-- Pricing, plans, and limits live in one config (future `lib/billing/plans.ts`), never in UI copy
-  or scattered conditionals. Gate paid features through entitlements, not ad-hoc checks.
-- When adding a feature, say whether it's core or an expansion path (units, seats by role, module).
-- Onboarding must be self-serve. Anything that needs our staff to set up a customer is a services
-  cost; prefer fixing it in the product (parsing templates, mapping review) for everyone.
-- Keep it auditable: every record has `org_id`; changes to customer data get an audit trail once
-  there's a real backend.
+## UI
+- Colors are tokens in `app/globals.css`; never hard-code colors. Neutral UI; green/red/amber only
+  for state; `--data` only for charts and AI moments.
+- Brand blue (`--brand`) only for interactive elements: primary buttons, text links, table row
+  links, checkboxes, the selected nav item. Never for data, state or decoration.
+- Use the shared pieces in `components/app/ui.tsx`. Tables of records people act on: rows open the
+  record, a checkbox first (`useSelection`, `SelectTd`), a ⋯ `RowMenu` last, and `SelectionBar` for
+  bulk actions. Destructive actions confirm in a modal. Empty states use `SpotEmpty`.
+- Variance is favorable/unfavorable as NOI impact (positive = favorable); color follows favorability.
 
-## Architecture
-- Next.js 16 App Router (Cache Components on), React 19, Tailwind v4, Motion, Recharts.
-- Two separate flows. `/app` (`app/(workspace)`) is the real product for signed-in users: real records
-  through `lib/workspace` (pages load with `requestWorkspace()`), no sample data, empty states until
-  there's data, setup remembered on the org. All product work happens here.
-- `/prototype` is frozen: the hard-coded prototype that got us here, kept live for feedback sessions.
-  Don't change it or match it unless asked; `/app` never imports from `components/prototype`
-  (tag `archive/prototype-2026-11-20`). `app/_parked-demo` is the old mock demo, unrouted.
-- `proxy.ts` (not middleware) gates `/app` on a Supabase session (`lib/supabase`, `lib/auth`); `/demo` is parked.
-- Mock data (`@/lib/data`, `lib/data/mock/*`) only feeds the parked demo and must never reach `/app`.
-- `lib/types` mirrors future Supabase tables; every record has `org_id`.
-- Mock data is deterministic (`lib/data/mock/*`); user changes persist in localStorage via
-  `lib/data/store.ts`. Components load data with `useData(fn, deps)` from `lib/hooks/use-data`.
-- Insights and AI summaries are computed in `lib/data/insights.ts` from the same ledger as
-  tables; keep it that way so numbers agree across views.
-- Demo clock is fixed: `TODAY` / `LATEST_MONTH` in `lib/dates.ts`. Don't use `new Date()` in render.
-- Client components using `usePathname`/`useSearchParams` must sit under `<Suspense>`,
-  or prerender fails.
+## How we ship
+1. Build on localhost. Localhost uses the production Supabase project (no customer data yet).
+2. Check with `npx tsc --noEmit` and `npm run lint`. Don't open the browser; DJ tests visually.
+3. Commit on `main`. Push only when DJ says "ship it". Vercel deploys `main` to production.
+4. Database changes go in this order: migration in `supabase/migrations` → apply on local
+   Supabase (OrbStack) → apply on production → then ship the code that uses it.
+5. Any production change (migration, Auth config, env vars, storage, deleting data): show the
+   diff or command and wait for DJ's OK.
 
-## Domain conventions
-- Variance is favorable/unfavorable, expressed as NOI impact (positive = favorable).
-  Color follows favorability. Drivers must sum to the NOI variance.
-- Currency abbreviated in summaries ($8.42M, -$290K), full in tables. Percents one decimal.
-- Always distinguish physical vs. economic occupancy.
-- AI statements: show evidence and source one click away, label estimates, show data freshness.
-- Resident data is lease-level only; never store names or personal details.
+## Security rules
+- Every table has `org_id` and row-level security on, with its policies, in the migration that
+  creates it.
+- Internal functions live in the `private` schema and are never callable by `anon` or
+  `authenticated`.
+- Uploaders (property managers) only reach `/upload`. They never reach `/app` or read
+  dashboard data.
+- Original uploads stay in the private reports bucket. Resident names and bank account numbers
+  are stripped when a report is read: never in parsed data, read results or logs, and never sent
+  to the Anthropic API.
+- Secrets stay server-side, never `NEXT_PUBLIC_`. DJ adds secrets himself; never ask for them
+  in chat.
 
-## Design system
-- Tokens are CSS variables in `app/globals.css` (`--bg`, `--surface`, `--border`,
-  `--text-*`, `--favorable`, `--unfavorable`, `--warning`, `--data`) mapped to Tailwind
-  (`bg-surface`, `text-fg-2`, `text-favorable`, ...). Never hard-code colors.
-- Light is the default theme. Neutral UI; green/red/amber only for state; the one accent (`--data`, steel
-  teal in dark) only for data viz and RE-IQ's AI moments. Brand blue (`--brand`, #1273b1) is for interactive elements: primary buttons, text links, table row links, the selected nav item (low-opacity fill). Never for data, state or decoration. No glows, gradients, or decorative color.
-- Standard pieces, so styles don't drift between screens (`components/app/ui.tsx`): a property name in a
-  table is `<PropertyTd>` (brand blue); a text link that navigates is `<TextLink>` (brand blue,
-  underline slides in on hover; also links inside table cells); dropdowns and filters are `<FilterMenu>` (never a native select in toolbars).
-  Hierarchy via opacity and scale.
-- No one-off colors (DJ, 2026-11-20). `--property` blue is retired in the app (prototype only): a property
-  name is brand blue when it's a link and plain text otherwise. Fix any table that drifts, everywhere at once.
-- Tables of records people act on (DJ, 2026-11-20): rows open the record (`<Row href>`), start with a
-  checkbox (`useSelection` + `<SelectTd>`), and end with a ⋯ `<RowMenu>`; while rows are checked a
-  `<SelectionBar>` replaces the toolbar with the bulk actions. Destructive actions confirm in a `Modal`.
-  Reports and Properties are the reference. Read-only summary tables (Overview) skip the checkboxes.
-- Empty states use `<SpotEmpty>` (`components/app/ui.tsx`): three fanned icon tiles in the spot colors,
-  a 16px heading that says what's empty, one plain 13px line, and the action. Product voice, not marketing.
-- Geist Sans everywhere, no monospace (DJ's call, 2026-11-11). `num` gives tabular numbers for
-  metrics and table columns; `eyebrow` is small uppercase labels. 11–12px body, 13–14px headings.
-- Cards: surface, 1px border, rounded-lg, no shadow. Only modals/drawers get shadows.
-- Motion: fade + 8px rise, 0.3s ease-out, 0.05s stagger. No springs or bounce.
-- Primitives live in `components/ui`; reuse them before adding new ones.
-- Charts: one axis, faint horizontal grid, custom legend, inverted tooltip, 2px lines.
-
-## Toolchain
-- ESLint pinned to 9 and TypeScript to 6 (eslint-config-next doesn't support 10/7 yet).
-- Dev tools (role switcher, reset demo data): `NEXT_PUBLIC_SHOW_DEV_TOOLS=true` in `.env.local`.
+## Tests
+Before shipping a change that touches the database, sign-in or permissions, run the isolation
+tests on local Supabase: `npx supabase start`, then `npm test`. Don't ship on a failure.

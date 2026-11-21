@@ -10,16 +10,16 @@ export const metadata: Metadata = {
 
 /** Only what's live goes under "In place today". Roadmap items stay labeled until they ship. */
 const LIVE = [
-  { title: "Your data is kept separate", body: "Each customer's data is isolated in our database, so one organization can't see another's. Automated tests check this on every change we make." },
+  { title: "Your data is kept separate", body: "Each customer's data is isolated in our database, so one organization can't see another's. Automated tests check this before we release changes to data or access." },
   { title: "Encrypted in transit and at rest", body: "Every connection uses HTTPS, and browsers are told to always use it (HSTS). Stored data is encrypted." },
   { title: "Careful sign-in", body: "New accounts confirm their email address. You can also sign in with Google or Microsoft. Repeated sign-in attempts are limited to slow down password guessing." },
   { title: "Errors monitored, without personal data", body: "We're alerted when something breaks. Before anything reaches our error monitoring, email addresses are removed and people appear only as an anonymous ID; IP addresses aren't stored." },
   { title: "Hosted in the United States", body: "The app, database and file storage run in the US." },
+  { title: "Reports read without resident names", body: "Spreadsheet reports are read with Anthropic's Claude, which doesn't train on the data we send it. Resident names, phone numbers and email addresses are removed first." },
 ];
 
 const ROADMAP = [
-  "We won't keep residents' names or bank account numbers from uploaded reports.",
-  "AI providers that don't train on customer data.",
+  "Bank account numbers removed when a report is read, and resident names and bank account numbers kept out of everything we extract from it.",
   "Multi-factor sign-in.",
   "An independent security review.",
   "SOC 2.",

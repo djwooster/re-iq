@@ -9,7 +9,7 @@ import { HAS_TEST_DB, admin } from "./supabase";
 
 const calls = vi.hoisted(() => ({ createClient: 0, verdict: "limited" as "ok" | "limited" | "unavailable" }));
 
-vi.mock("@/lib/supabase/env", () => ({ AUTH_ENABLED: true, SUPABASE_URL: "https://staging.example", SUPABASE_PUBLISHABLE_KEY: "sb_publishable_test" }));
+vi.mock("@/lib/supabase/env", () => ({ AUTH_ENABLED: true, SUPABASE_URL: "https://supabase.test", SUPABASE_PUBLISHABLE_KEY: "sb_publishable_test" }));
 vi.mock("@/lib/auth/rate-limit", () => ({ checkLimit: vi.fn(async () => calls.verdict) }));
 vi.mock("@/lib/supabase/server", () => ({
   createClient: vi.fn(async () => {

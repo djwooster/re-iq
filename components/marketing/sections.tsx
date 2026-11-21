@@ -13,7 +13,7 @@ import { WaitlistForm } from "./waitlist-form";
 
 /*
  * Every example on this page comes from the sample portfolio (Alder Peak
- * Capital, Q3 2026), so it matches what visitors see if they open the demo.
+ * Capital, Q3 2026).
  * The page follows the buyer's month: their reality first, then each pain
  * with the part of the product that answers it.
  */
@@ -54,7 +54,6 @@ function ProductSection({
   visual,
   reverse,
   tinted,
-  demo,
 }: {
   id: string;
   eyebrow: string;
@@ -65,8 +64,6 @@ function ProductSection({
   reverse?: boolean;
   /** A slightly different background, so long runs of sections read as separate bands. */
   tinted?: boolean;
-  /** The demo page that shows this feature, for the section's call to action. */
-  demo: string;
 }) {
   return (
     <section id={id} className={cn("scroll-mt-12 border-t border-border", tinted && "bg-surface")}>
@@ -76,7 +73,7 @@ function ProductSection({
           <h2 className={cn(H2, "mt-2")}>{title}</h2>
           <div className={cn(BODY, "mt-3")}>{body}</div>
           {extra && <div className="mt-6">{extra}</div>}
-          <SectionCta demo={demo} className="mt-8" />
+          <SectionCta className="mt-8" />
         </div>
         <div className={cn("min-w-0", reverse && "lg:order-1")}>{visual}</div>
       </div>
@@ -88,7 +85,6 @@ export function Ingest() {
   return (
     <ProductSection
       id="ingest"
-      demo="/app/data-sources"
       tinted
       eyebrow="Ingest"
       title="Every manager, one format."
@@ -115,7 +111,6 @@ export function Reconcile() {
     <ProductSection
       id="reconcile"
       reverse
-      demo="/app/data-sources"
       eyebrow="Reconcile"
       title="Numbers you can trust."
       body={<p>RE-IQ is designed to tie every total to the manager&apos;s own statements and flag any break, and every number traces back to a source line.</p>}
@@ -139,7 +134,6 @@ export function Explain() {
   return (
     <ProductSection
       id="explain"
-      demo="/app/performance"
       tinted
       eyebrow="Explain"
       title="See where the gap comes from."
@@ -155,7 +149,6 @@ export function Grow() {
       id="grow"
       reverse
       tinted
-      demo="/app/properties/prop_brookstone"
       eyebrow="Grow"
       title="Find the NOI you're leaving on the table."
       body={
@@ -188,10 +181,6 @@ export function FinalCta() {
           <h2 className={H2}>See your portfolio this week.</h2>
           <p className={cn(BODY, "mt-3")}>
             Book a call, then forward last quarter&apos;s packages. We&apos;ll send back a free portfolio review: a ranked list of issues and NOI opportunities.
-            {/* Demo parked (see proxy.ts).{" "}
-            <a href="/demo" className="text-fg underline-offset-2 hover:underline">
-              Or explore the sample portfolio.
-            </a> */}
           </p>
         </div>
         <div className="flex w-full max-w-[420px] flex-col gap-4">

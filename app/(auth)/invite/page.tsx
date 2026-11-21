@@ -4,7 +4,7 @@ import { Suspense } from "react";
 import { AuthForm } from "@/components/shell/auth-form";
 import { AcceptInvite } from "@/components/uploads/accept-invite";
 import { getViewer } from "@/lib/auth/access";
-import { INVITE_COOKIE } from "@/lib/auth/demo";
+import { INVITE_COOKIE } from "@/lib/auth/access-rules";
 
 export const metadata: Metadata = { title: "Accept invitation" };
 

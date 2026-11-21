@@ -1,5 +1,5 @@
 # Runs the full test suite, including the database tests, against a local Supabase started in the
-# runner from supabase/migrations. No staging or production secrets live in GitHub: the local
+# runner from supabase/migrations. No production secrets live in GitHub: the local
 # stack's keys are generated per run.
 name: Tests
 

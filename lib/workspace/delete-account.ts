@@ -1,8 +1,6 @@
 "use server";
 
-import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
-import { SESSION_COOKIE } from "@/lib/auth/demo";
 import { log } from "@/lib/logger";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
@@ -47,8 +45,7 @@ export async function deleteMyAccount(confirmation: string): Promise<{ ok: false
   }
   log.info("account.deleted", { org_deleted: lastOwner, files: lastOwner });
 
-  // The session belongs to a user that no longer exists: clear its cookies on the way out.
+  // The session belongs to a user that no longer exists: sign it out on the way out.
   await (await createClient()).auth.signOut().catch(() => undefined);
-  (await cookies()).delete(SESSION_COOKIE);
   redirect("/");
 }

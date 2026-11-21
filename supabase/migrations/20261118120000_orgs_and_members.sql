@@ -1,6 +1,6 @@
 -- Organizations and their members. Every customer-data table added later carries org_id and
 -- copies the policy pattern below: rows are visible only to members of that org.
--- Apply to the STAGING project first (SQL editor or `supabase db push`), never straight to production.
+-- Try it on local Supabase first, never straight to production.
 
 create table public.orgs (
   id uuid primary key default gen_random_uuid(),

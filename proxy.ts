@@ -1,37 +1,14 @@
 import { NextResponse, type NextRequest } from "next/server";
-import { HOME, fetchRoles, resolveAccess, viaOAuth } from "@/lib/auth/access-rules";
-import { INVITE_COOKIE, SESSION_COOKIE, isDemoSession } from "@/lib/auth/demo";
-// Used by the parked /demo block: import { isSupabaseAuthCookie } from "@/lib/auth/demo"; import { demoTarget } from "@/lib/auth/redirect";
+import { HOME, INVITE_COOKIE, fetchRoles, resolveAccess, viaOAuth } from "@/lib/auth/access-rules";
 import { updateSession } from "@/lib/supabase/proxy";
 
 /**
- * Auth gate.
- * - Demo sessions (the /demo cookie) only see /app's mock data and never touch Supabase.
- * - Signed-in users: owners and members get /app; uploaders get /upload, and only with an
- *   email-and-password session. /prototype is a standalone demo and isn't gated. The session is refreshed here on every request.
- * /demo is parked while /app's mock data is out of date: it sends visitors home. Server Actions and
- * Route Handlers check access themselves too.
+ * Auth gate. Signed-in owners and members get /app; uploaders get /upload, and only with an
+ * email-and-password session. /prototype is a standalone demo and isn't gated. The session is
+ * refreshed here on every request. Server Actions and Route Handlers check access themselves too.
  */
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
-
-  // The live demo is parked (its mock data no longer matches the product). To bring it back, delete
-  // the redirect below and uncomment the block after it.
-  if (pathname === "/demo") return NextResponse.redirect(new URL("/", request.url));
-  // if (pathname === "/demo") {
-  //   const fresh = request.nextUrl.searchParams.has("fresh");
-  //   const target = demoTarget(request.nextUrl.searchParams.get("to"));
-  //   // Signed in for real: a GET never signs anyone out. Ask first; the page posts to enterDemo.
-  //   if (request.cookies.getAll().some((c) => isSupabaseAuthCookie(c.name))) {
-  //     const confirm = new URL("/demo/switch", request.url);
-  //     confirm.searchParams.set("to", target);
-  //     if (fresh) confirm.searchParams.set("fresh", "1");
-  //     return NextResponse.redirect(confirm);
-  //   }
-  //   const response = NextResponse.redirect(new URL(fresh ? `${target}#fresh` : target, request.url));
-  //   response.cookies.set(SESSION_COOKIE, "demo", { path: "/", maxAge: 60 * 60 * 24 * 30, sameSite: "lax" });
-  //   return response;
-  // }
 
   // Invite links: keep the token in an HTTP-only cookie and continue at a clean /invite URL, so the
   // token never sits in the address bar, a confirmation email's link or a log.
@@ -42,17 +19,6 @@ export async function proxy(request: NextRequest) {
       response.cookies.set(INVITE_COOKIE, token, { path: "/invite", httpOnly: true, sameSite: "lax", secure: request.nextUrl.protocol === "https:", maxAge: 60 * 60 * 24 * 7 });
     }
     return response;
-  }
-
-  // The demo is parked, and /app is the real workspace now: a leftover demo cookie goes home and is cleared.
-  if (isDemoSession(request.cookies.getAll())) {
-    if (isDashboard(pathname) || pathname === "/upload") {
-      const home = NextResponse.redirect(new URL("/", request.url));
-      home.cookies.delete(SESSION_COOKIE);
-      return home;
-    }
-    if (pathname === "/reset-password") return NextResponse.redirect(new URL("/forgot-password", request.url));
-    return NextResponse.next();
   }
 
   const { response, claims, supabase } = await updateSession(request);
@@ -67,9 +33,6 @@ export async function proxy(request: NextRequest) {
     if (pathname === "/reset-password") return NextResponse.redirect(new URL("/forgot-password", request.url));
     return response;
   }
-
-  // A real session wins over a stale demo cookie.
-  if (request.cookies.has(SESSION_COOKIE)) response.cookies.delete(SESSION_COOKIE);
 
   if (isDashboard(pathname) || pathname === "/upload" || pathname === "/login" || pathname === "/signup") {
     const access = resolveAccess(await fetchRoles(supabase, userId), viaOAuth(claims));
@@ -94,5 +57,5 @@ function redirectKeepingCookies(url: URL, from: NextResponse) {
 }
 
 export const config = {
-  matcher: ["/demo", "/app/:path*", "/upload", "/invite", "/login", "/signup", "/forgot-password", "/reset-password", "/auth/:path*"],
+  matcher: ["/app/:path*", "/upload", "/invite", "/login", "/signup", "/forgot-password", "/reset-password", "/auth/:path*"],
 };

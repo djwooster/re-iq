@@ -1,6 +1,6 @@
 -- Roles: owner, member, uploader. Owners and members use the dashboards; uploaders are property
 -- managers who only send reports. Uploaders never create an org: they join one by invitation.
--- Run after 20261118120000_orgs_and_members.sql, on STAGING first.
+-- Run after 20261118120000_orgs_and_members.sql, on local Supabase first.
 
 alter table public.org_members drop constraint org_members_role_check;
 update public.org_members set role = 'member' where role = 'admin';

@@ -2,7 +2,6 @@ import type { Metadata, Viewport } from "next";
 import { Geist } from "next/font/google";
 import { InlineScript } from "@/components/theme/inline-script";
 import { ThemeProvider, themeScript } from "@/components/theme/theme-provider";
-import { freshStartScript } from "@/lib/data/store";
 import { PRODUCT_NAME } from "@/lib/labels";
 import "./globals.css";
 
@@ -21,7 +20,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en" className={geistSans.variable} suppressHydrationWarning>
       <head>
-        <InlineScript html={freshStartScript} />
         <InlineScript html={themeScript} />
       </head>
       <body>

@@ -6,16 +6,14 @@ export type ThemePreference = "light" | "dark" | "system";
 
 const STORAGE_KEY = "reiq.theme";
 /** Set once the user has seen the dark-mode prompt or picked a theme themselves. */
-export const THEME_PROMPT_KEY = "reiq.theme-prompted";
-/** Pages that always render light, whatever theme the user picked in the app: the homepage and the wireframe. */
+/** Pages that always render light, whatever theme the user picked in the app: the homepage. */
 const LIGHT_ONLY_PATHS = ["/"];
-const LIGHT_ONLY_PREFIX = "/wireframe";
 
 /**
  * Runs before first paint (see InlineScript) so the right theme class is on
  * <html> before anything renders. Kept tiny and dependency-free.
  */
-export const themeScript = `(function(){try{var p=localStorage.getItem("${STORAGE_KEY}")||"light";var d=${JSON.stringify(LIGHT_ONLY_PATHS)}.indexOf(location.pathname)<0&&location.pathname.indexOf("${LIGHT_ONLY_PREFIX}")!==0&&(p==="dark"||(p==="system"&&matchMedia("(prefers-color-scheme: dark)").matches));document.documentElement.classList.toggle("dark",d);document.documentElement.style.colorScheme=d?"dark":"light"}catch(e){}})()`;
+export const themeScript = `(function(){try{var p=localStorage.getItem("${STORAGE_KEY}")||"light";var d=${JSON.stringify(LIGHT_ONLY_PATHS)}.indexOf(location.pathname)<0&&(p==="dark"||(p==="system"&&matchMedia("(prefers-color-scheme: dark)").matches));document.documentElement.classList.toggle("dark",d);document.documentElement.style.colorScheme=d?"dark":"light"}catch(e){}})()`;
 
 interface ThemeContextValue {
   preference: ThemePreference;
@@ -93,7 +91,6 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     try {
       if (p === "light") window.localStorage.removeItem(STORAGE_KEY);
       else window.localStorage.setItem(STORAGE_KEY, p);
-      window.localStorage.setItem(THEME_PROMPT_KEY, "1");
     } catch {
       // Storage unavailable: the choice lasts for this page view.
     }

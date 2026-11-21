@@ -1,15 +1,15 @@
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 
 /**
- * Database tests run against a throwaway STAGING project, never production. Set TEST_SUPABASE_URL,
- * TEST_SUPABASE_PUBLISHABLE_KEY and TEST_SUPABASE_SECRET_KEY (staging's keys) to run them.
+ * Database tests run against local Supabase, never production. Set TEST_SUPABASE_URL,
+ * TEST_SUPABASE_PUBLISHABLE_KEY and TEST_SUPABASE_SECRET_KEY (from `npx supabase status -o env`) to run them.
  */
 const URL = process.env.TEST_SUPABASE_URL ?? "";
 const PUBLISHABLE = process.env.TEST_SUPABASE_PUBLISHABLE_KEY ?? "";
 const SECRET = process.env.TEST_SUPABASE_SECRET_KEY ?? "";
 const PRODUCTION_REF = "dixlcrxxnmoivfrnvaqv";
 
-if (URL.includes(PRODUCTION_REF)) throw new Error("TEST_SUPABASE_URL points at production. Use the staging project.");
+if (URL.includes(PRODUCTION_REF)) throw new Error("TEST_SUPABASE_URL points at production. Use local Supabase.");
 
 export const HAS_TEST_DB = Boolean(URL && PUBLISHABLE && SECRET);
 

@@ -5,7 +5,7 @@
 -- copies it into the private "reports" bucket and records it (record_upload). Clients can't write to
 -- either bucket and can't read "incoming"; reading "reports" follows the org and property grants.
 
--- Cancellation: originals are deleted 90 days after this (deletion job: TODO, see SECURITY.md).
+-- Cancellation: originals are deleted 90 days after this (deletion job not built yet).
 alter table public.orgs add column cancelled_at timestamptz;
 
 -- ---- Properties -------------------------------------------------------------------------------

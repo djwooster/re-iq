@@ -4,7 +4,7 @@ import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { AccessDenied, getViewer } from "./access";
-import { INVITE_COOKIE } from "./demo";
+import { INVITE_COOKIE } from "./access-rules";
 import { checkLimit } from "./rate-limit";
 
 /**
