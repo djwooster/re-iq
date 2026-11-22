@@ -8,7 +8,7 @@ export function BookCall({ className }: { className?: string }) {
       href={BOOKING_URL || "/#book-a-call"}
       {...(BOOKING_URL ? { target: "_blank", rel: "noopener noreferrer" } : {})}
       className={cn(
-        "inline-flex h-9 items-center rounded-md bg-inverted px-4 text-[13px] font-medium text-inverted-fg transition-opacity duration-150 hover:opacity-90",
+        "inline-flex h-9 items-center rounded-md bg-brand px-4 text-[13px] font-medium text-brand-fg transition-opacity duration-150 hover:opacity-90",
         className,
       )}
     >
