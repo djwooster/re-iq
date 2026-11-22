@@ -1,11 +1,11 @@
+import { FileSpreadsheet, LineChart, ScanText } from "lucide-react";
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { Suspense } from "react";
 import { Overview } from "@/components/app/overview";
 import { AddReportsButton } from "@/components/app/add-reports";
 import { Page } from "@/components/app/page";
-import { Card } from "@/components/ui/card";
-import { EmptyState } from "@/components/ui/empty-state";
+import { SpotEmpty } from "@/components/app/ui";
 import { closePeriod, dateLabel } from "@/lib/workspace/format";
 import { listCompanies, listProperties } from "@/lib/workspace/queries";
 import { requestWorkspace } from "@/lib/workspace/request";
@@ -30,15 +30,9 @@ async function OverviewData() {
   if (!active.length) {
     return (
       <Page title="Overview" subtitle={ws.orgName}>
-        <Card>
-          <EmptyState
-            title="Add your first reports"
-            description="Drop last month's reports. Each one is matched to its property by file name, then read."
-            action={
-              <AddReportsButton properties={active} period={closePeriod()} />
-            }
-          />
-        </Card>
+        <SpotEmpty icons={[FileSpreadsheet, ScanText, LineChart]} title="Add your first reports" action={<AddReportsButton properties={active} period={closePeriod()} />}>
+          Drop last month&apos;s reports. Each one is matched to its property by file name, then read.
+        </SpotEmpty>
       </Page>
     );
   }
