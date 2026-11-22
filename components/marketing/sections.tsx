@@ -3,6 +3,7 @@ import Link from "next/link";
 import { FadeIn } from "@/components/ui/motion";
 import { cn } from "@/lib/cn";
 import { BOOKING_URL } from "@/lib/marketing";
+import { FactIcon } from "./fact-icon";
 import { HeroFlow } from "./hero-flow";
 import { BookCall } from "./book-call";
 import { BridgeArt } from "./bridge-art";
@@ -79,10 +80,12 @@ function FactsSection({
         </FadeIn>
         <FadeIn delay={0.05}>
           <ul className="grid gap-x-8 gap-y-7 sm:grid-cols-2">
-            {facts.map(({ icon: Icon, title, body }) => (
+            {facts.map(({ icon: Icon, title, body }, i) => (
               <li key={title}>
-                <Icon className="size-5 text-fg-2" strokeWidth={1.75} aria-hidden />
-                <h3 className="mt-2.5 text-[14px] font-semibold text-fg">{title}</h3>
+                <FactIcon index={i}>
+                  <Icon className="size-6 text-brand" strokeWidth={1.6} aria-hidden />
+                </FactIcon>
+                <h3 className="mt-3 text-[14px] font-semibold text-fg">{title}</h3>
                 <p className="mt-1 text-[13px] leading-[1.55] text-fg-2">{body}</p>
               </li>
             ))}
@@ -175,7 +178,7 @@ export function Ingest() {
       title="Every manager, one format."
       body={
         <p>
-          T-12s, rent rolls, and work orders from Yardi, Entrata, AppFolio, ResMan, and Rent Manager map to one standard chart of accounts. Lines RE-IQ isn't sure about wait
+          T-12s, rent rolls, and work orders from Yardi, Entrata, AppFolio, ResMan, and Rent Manager map to one standard chart of accounts. Lines RE-IQ isn&apos;t sure about wait
           for you, so nothing is guessed silently.
         </p>
       }
