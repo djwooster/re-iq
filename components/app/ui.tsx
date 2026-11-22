@@ -352,14 +352,14 @@ export function SelectTd({ checked, onChange, label }: { checked: boolean; onCha
  * heading that says what's empty, one plain line on how to fill it, and the action.
  */
 /**
- * Icons are passed drawn (`<FileText />`), so server pages can use this too. `fill` makes it take
- * the rest of the screen, for a page that has nothing else on it.
+ * Icons are passed drawn (`<FileText />`), so server pages can use this too. `fill` gives it more
+ * height, for a page that has nothing else on it.
  */
 export function SpotEmpty({ icons, title, children, action, fill, className }: { icons: [React.ReactNode, React.ReactNode, React.ReactNode]; title: string; children: React.ReactNode; action?: React.ReactNode; fill?: boolean; className?: string }) {
   const [A, B, C] = icons;
   const tile = "flex size-11 items-center justify-center rounded-xl border border-border bg-bg [&>svg]:size-5 [&>svg]:stroke-[1.5]";
   return (
-    <div className={cn("flex min-h-[220px] flex-col items-center justify-center rounded-lg border border-dashed border-border bg-surface px-6 py-10 text-center", fill && "min-h-[calc(100dvh-8.5rem)]", className)}>
+    <div className={cn("flex min-h-[220px] flex-col items-center justify-center rounded-lg border border-dashed border-border bg-surface px-6 py-10 text-center", fill && "min-h-[320px]", className)}>
       <div className="flex items-end" aria-hidden>
         <span className={cn(tile, "translate-y-1 -rotate-6 text-spot-coral")}>{A}</span>
         <span className={cn(tile, "z-10 -mx-1.5 -translate-y-1 text-spot-sun")}>{B}</span>
