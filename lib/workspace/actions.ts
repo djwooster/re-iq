@@ -96,6 +96,34 @@ export async function setPropertyArchived(id: string, archived: boolean): Promis
   return { ok: true };
 }
 
+/**
+ * Deletes a property for good: its stored files, its reports and what was read from them, and
+ * manager access to it. Owners only; the person types DELETE to confirm.
+ */
+export async function deleteProperty(id: string, confirm: string): Promise<Result> {
+  const ws = await getWorkspace();
+  if (ws.role !== "owner" || !UUID.test(id)) return OWNERS_ONLY;
+  if (confirm.trim() !== "DELETE") return { ok: false, message: "Type DELETE to confirm." };
+  // Read as the user first: row-level security confirms the property is in their org.
+  const { data: property } = await ws.supabase.from("properties").select("id").eq("id", id).eq("org_id", ws.orgId).maybeSingle();
+  if (!property) return TRY_AGAIN;
+  const admin = createAdminClient();
+  if (!admin) return TRY_AGAIN;
+  const { data: uploads, error: listError } = await admin.from("uploads").select("storage_path").eq("property_id", id).eq("org_id", ws.orgId);
+  if (listError) return TRY_AGAIN;
+  const paths = (uploads ?? []).map((u) => u.storage_path as string);
+  for (let i = 0; i < paths.length; i += 500) {
+    const { error } = await admin.storage.from("reports").remove(paths.slice(i, i + 500));
+    if (error) return TRY_AGAIN;
+  }
+  // Uploads, reads and manager access go with it (on delete cascade).
+  const { error } = await admin.from("properties").delete().eq("id", id).eq("org_id", ws.orgId);
+  if (error) return TRY_AGAIN;
+  log.info("property.deleted", { property: id, org: ws.orgId, by: ws.userId, files: paths.length });
+  refresh();
+  return { ok: true };
+}
+
 /** Invites a property manager to upload to the chosen properties. Returns the link, shown once. */
 export async function inviteUploader(email: string, propertyIds: string[]): Promise<InviteResult> {
   const ws = await getWorkspace();

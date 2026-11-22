@@ -1,6 +1,6 @@
 "use client";
 
-import { Archive, ArchiveRestore, ExternalLink, Pencil } from "lucide-react";
+import { Archive, ArchiveRestore, ExternalLink, Pencil, Trash2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 import { Badge } from "@/components/ui/badge";
@@ -10,7 +10,7 @@ import { Field, Input } from "@/components/ui/controls";
 import { EmptyState } from "@/components/ui/empty-state";
 import { Modal } from "@/components/ui/overlay";
 import { useToast } from "@/components/ui/toast";
-import { createProperty, setPropertyArchived, updateProperty } from "@/lib/workspace/actions";
+import { createProperty, deleteProperty, setPropertyArchived, updateProperty } from "@/lib/workspace/actions";
 import type { Property } from "@/lib/workspace/queries";
 import { FormMessage } from "./shared";
 import { PropertyTd, Row, RowMenu, SelectTd, SelectionBar, Table, Td, useSelection } from "@/components/app/ui";
@@ -18,6 +18,8 @@ import { PropertyTd, Row, RowMenu, SelectTd, SelectionBar, Table, Td, useSelecti
 export function PropertiesView({ properties, canEdit }: { properties: Property[]; canEdit: boolean }) {
   const [editing, setEditing] = useState<string | null>(null);
   const [archiving, setArchiving] = useState<Property[] | null>(null);
+  const [deleting, setDeleting] = useState<Property[] | null>(null);
+  const [typed, setTyped] = useState("");
   const [pending, start] = useTransition();
   const router = useRouter();
   const toast = useToast();
@@ -33,6 +35,22 @@ export function PropertiesView({ properties, canEdit }: { properties: Property[]
       setArchiving(null);
       if (!failed) selection.clear();
       toast(failed ? `${names(failed)} couldn't be ${archived ? "archived" : "restored"}` : `${names(list.length)} ${archived ? "archived" : "restored"}`);
+      router.refresh();
+    });
+
+  const askDelete = (list: Property[]) => {
+    setTyped("");
+    setDeleting(list);
+  };
+
+  /** Deletes these properties and everything uploaded to them; says how many didn't go. */
+  const remove = (list: Property[]) =>
+    start(async () => {
+      const results = await Promise.all(list.map((p) => deleteProperty(p.id, typed)));
+      const failed = results.filter((r) => !r.ok).length;
+      setDeleting(null);
+      if (!failed) selection.clear();
+      toast(failed ? `${names(failed)} couldn't be deleted` : `${names(list.length)} deleted`);
       router.refresh();
     });
 
@@ -66,6 +84,9 @@ export function PropertiesView({ properties, canEdit }: { properties: Property[]
                   Archive{active.length < selected.length ? ` (${active.length})` : ""}
                 </Button>
               )}
+              <Button variant="danger-ghost" icon={<Trash2 className="size-3.5" />} disabled={pending} onClick={() => askDelete(selected)}>
+                Delete
+              </Button>
             </SelectionBar>
           )}
           <Table columns={["Property", "Address", { label: "Units", num: true }, "Status", { label: "", sort: false }]} select={canEdit ? selection.select : undefined}>
@@ -95,6 +116,7 @@ export function PropertiesView({ properties, canEdit }: { properties: Property[]
                               p.archived_at
                                 ? { label: "Restore", icon: ArchiveRestore, onSelect: () => setArchived([p], false) }
                                 : { label: "Archive", icon: Archive, onSelect: () => setArchiving([p]), danger: true },
+                              { label: "Delete", icon: Trash2, onSelect: () => askDelete([p]), danger: true },
                             ]
                           : []),
                       ]}
@@ -122,6 +144,24 @@ export function PropertiesView({ properties, canEdit }: { properties: Property[]
           </>
         }
       />
+      <Modal
+        open={!!deleting}
+        onClose={() => setDeleting(null)}
+        title={deleting?.length === 1 ? `Delete ${deleting[0].name}?` : `Delete ${names(deleting?.length ?? 0)}?`}
+        description="This deletes every report and file uploaded to them, what was read from those reports, and property managers' access. It can't be undone. To keep the reports, archive instead."
+        footer={
+          <>
+            <Button variant="secondary" onClick={() => setDeleting(null)}>
+              Cancel
+            </Button>
+            <Button variant="danger-ghost" disabled={pending || typed.trim() !== "DELETE"} onClick={() => deleting && remove(deleting)}>
+              {pending ? "Deleting…" : deleting?.length === 1 ? "Delete property" : `Delete ${names(deleting?.length ?? 0)}`}
+            </Button>
+          </>
+        }
+      >
+        <Field label="Type DELETE to confirm">{(id) => <Input id={id} value={typed} onChange={(e) => setTyped(e.target.value)} autoComplete="off" />}</Field>
+      </Modal>
     </div>
   );
 }
