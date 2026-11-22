@@ -81,8 +81,8 @@ function FactsSection({
           <ul className="grid gap-x-8 gap-y-7 sm:grid-cols-2">
             {facts.map(({ icon: Icon, title, body }) => (
               <li key={title}>
-                <Icon className="size-4 text-fg-3" strokeWidth={1.75} aria-hidden />
-                <h3 className="mt-2 text-[14px] font-medium text-fg">{title}</h3>
+                <Icon className="size-5 text-fg-2" strokeWidth={1.75} aria-hidden />
+                <h3 className="mt-2.5 text-[14px] font-semibold text-fg">{title}</h3>
                 <p className="mt-1 text-[13px] leading-[1.55] text-fg-2">{body}</p>
               </li>
             ))}
@@ -100,7 +100,7 @@ export function Accuracy() {
       tinted
       eyebrow="Accuracy"
       title="Every number comes from the report itself."
-      body={<p>AI is good at reading messy layouts and bad at arithmetic, so RE-IQ uses it only for the first. Every amount is read straight from the manager&apos;s file.</p>}
+      body={<p>AI is good at reading messy layouts. Every amount is read straight from the manager&apos;s file.</p>}
       facts={[
         { icon: Table2, title: "AI reads the layout, not the numbers", body: "It says which row and column hold what. Our code then takes each amount directly from those cells." },
         { icon: Calculator, title: "The report has to agree with itself", body: "Subtotals add up, NOI equals income minus expenses, a T-12 has twelve months in a row. Any break is flagged with its row." },
@@ -175,8 +175,8 @@ export function Ingest() {
       title="Every manager, one format."
       body={
         <p>
-          T-12s, rent rolls, and work orders from Yardi, Entrata, AppFolio, ResMan, and Rent Manager map to one standard chart of accounts. Lines under 75% confidence wait for
-          you, so nothing is guessed silently.
+          T-12s, rent rolls, and work orders from Yardi, Entrata, AppFolio, ResMan, and Rent Manager map to one standard chart of accounts. Lines RE-IQ isn't sure about wait
+          for you, so nothing is guessed silently.
         </p>
       }
       visual={<IngestArt />}
