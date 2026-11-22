@@ -124,13 +124,13 @@ export async function deleteProperty(id: string, confirm: string): Promise<Resul
   return { ok: true };
 }
 
-/** Invites a property manager to upload to the chosen properties. Returns the link, shown once. */
+/** Invites a property manager to upload to the chosen properties (none is fine: grant access later). Returns the link, shown once. */
 export async function inviteUploader(email: string, propertyIds: string[]): Promise<InviteResult> {
   const ws = await getWorkspace();
   if (ws.role !== "owner") return OWNERS_ONLY;
   const normalized = email.trim().toLowerCase();
   if (normalized.length > 254 || !EMAIL.test(normalized)) return { ok: false, message: "That doesn't look like an email address." };
-  if (!propertyIds.length || !propertyIds.every((p) => UUID.test(p))) return { ok: false, message: "Choose at least one property." };
+  if (!propertyIds.every((p) => UUID.test(p))) return TRY_AGAIN;
   const { data: token, error } = await ws.supabase.rpc("create_org_invite", { target_org: ws.orgId, invite_email: normalized, invite_role: "uploader", property_ids: propertyIds });
   if (error || typeof token !== "string") return { ok: false, message: "This person can't be invited to your organization." };
   const h = await headers();

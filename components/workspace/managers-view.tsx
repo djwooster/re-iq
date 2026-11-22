@@ -1,12 +1,12 @@
 "use client";
 
-import { Check, Copy } from "lucide-react";
+import { Building2, Check, Copy, Mail, Users } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader } from "@/components/ui/card";
 import { Field, Input } from "@/components/ui/controls";
-import { EmptyState } from "@/components/ui/empty-state";
+import { SpotEmpty } from "@/components/app/ui";
 import { THead, Table, Td, Th, Tr } from "@/components/ui/table";
 import { inviteUploader, removeUploader, revokePendingInvite, setUploaderAccess } from "@/lib/workspace/actions";
 import type { PendingInvite, Person, Property } from "@/lib/workspace/queries";
@@ -22,19 +22,14 @@ export function ManagersView({ properties, uploaders, invites, canEdit }: { prop
   return (
     <>
         <div className="flex flex-col gap-4">
-          {canEdit &&
-            (active.length ? (
-              <InviteCard properties={active} />
-            ) : (
-              <Card>
-                <EmptyState title="Add a property first" description="Property managers upload to specific properties, so add one before inviting anyone." />
-              </Card>
-            ))}
+          {canEdit && <InviteCard properties={active} />}
 
           <Card>
             <CardHeader title="Uploaders" description="Access changes take effect immediately." />
             {uploaders.length === 0 ? (
-              <EmptyState title="No property managers yet" description="Invited managers appear here once they accept." />
+              <SpotEmpty icons={[<Users key="a" />, <Mail key="b" />, <Building2 key="c" />]} title="No property managers yet" className="m-4 mt-0">
+                Invited managers appear here once they accept.
+              </SpotEmpty>
             ) : (
               <Table>
                 <THead>
@@ -126,7 +121,11 @@ function InviteCard({ properties }: { properties: Property[] }) {
         </div>
         <div className="flex flex-col gap-1.5">
           <span className="text-[11px] font-medium text-fg-2">Properties they can upload to</span>
-          <PropertyChecks properties={properties} selected={selected} onChange={setSelected} />
+          {properties.length ? (
+            <PropertyChecks properties={properties} selected={selected} onChange={setSelected} />
+          ) : (
+            <span className="text-xs text-fg-3">No properties yet. Invite them now and choose their properties once you&apos;ve added some.</span>
+          )}
         </div>
         <FormMessage message={message} />
         <div>

@@ -94,7 +94,7 @@ function AllReports({ rows, statuses, properties, period, canDelete }: { rows: R
   if (!rows.length)
     return (
       <SpotEmpty
-        icons={[FileSpreadsheet, ScanText, CircleCheck]}
+        icons={[<FileSpreadsheet key="FileSpreadsheet" />, <ScanText key="ScanText" />, <CircleCheck key="CircleCheck" />]}
         title="No reports yet"
         action={<AddReportsButton properties={properties.filter((p) => !p.archived_at)} period={period} variant="secondary" />}
       >

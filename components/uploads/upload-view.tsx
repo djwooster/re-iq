@@ -1,12 +1,12 @@
 "use client";
 
-import { CheckCircle2, CircleAlert, FileUp, Loader2 } from "lucide-react";
+import { CheckCircle2, CircleAlert, FileSpreadsheet, FileUp, Loader2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useDropzone } from "react-dropzone";
 import { Card, CardHeader } from "@/components/ui/card";
 import { Field, Input, Select } from "@/components/ui/controls";
-import { EmptyState } from "@/components/ui/empty-state";
+import { SpotEmpty } from "@/components/app/ui";
 import { THead, Table, Td, Th, Tr } from "@/components/ui/table";
 import { DownloadButton } from "@/components/workspace/download-button";
 import { dateLabel, monthLabel } from "@/components/workspace/shared";
@@ -181,7 +181,9 @@ function History({ history }: { history: Upload[] }) {
     <Card>
       <CardHeader title="Your uploads for this property" description="Everything you've uploaded here, any month." />
       {history.length === 0 ? (
-        <EmptyState title="Nothing uploaded yet" description="Files you upload for this property appear here." />
+        <SpotEmpty icons={[<FileUp key="a" />, <FileSpreadsheet key="b" />, <CheckCircle2 key="c" />]} title="Nothing uploaded yet" className="m-4 mt-0">
+          Files you upload for this property appear here.
+        </SpotEmpty>
       ) : (
         <Table>
           <THead>

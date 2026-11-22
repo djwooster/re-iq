@@ -1,5 +1,6 @@
 import { Card, CardHeader } from "@/components/ui/card";
-import { EmptyState } from "@/components/ui/empty-state";
+import { CircleCheck, FileSpreadsheet, ScanText } from "lucide-react";
+import { SpotEmpty } from "@/components/app/ui";
 import { THead, Table, Td, Th, Tr } from "@/components/ui/table";
 import { reportTypeLabel } from "@/lib/uploads/report-types";
 import type { Upload } from "@/lib/workspace/queries";
@@ -13,9 +14,9 @@ export function PropertyReportsView({ uploads, names }: { uploads: Upload[]; nam
     <>
         <div className="flex flex-col gap-4">
           {months.length === 0 && (
-            <Card>
-              <EmptyState title="No reports yet" description="Reports appear here once they're uploaded, by your team or this property's manager." />
-            </Card>
+            <SpotEmpty icons={[<FileSpreadsheet key="a" />, <ScanText key="b" />, <CircleCheck key="c" />]} title="No reports yet">
+              Reports appear here once they&apos;re uploaded, by your team or this property&apos;s manager.
+            </SpotEmpty>
           )}
           {months.map((month) => {
             const rows = uploads.filter((u) => u.period === month);

@@ -1,15 +1,14 @@
-import { Building2 } from "lucide-react";
+import { Building2, ClipboardCheck, FileSpreadsheet } from "lucide-react";
 import type { Metadata } from "next";
 import { Suspense } from "react";
 import { LinkButton, Page } from "@/components/app/page";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardHeader } from "@/components/ui/card";
-import { EmptyState } from "@/components/ui/empty-state";
 import { THead, Table, Td, Th, Tr } from "@/components/ui/table";
 import { closePeriod, dateLabel, monthLabel } from "@/lib/workspace/format";
 import { getUploadsForPeriod, listProperties } from "@/lib/workspace/queries";
 import { requestWorkspace } from "@/lib/workspace/request";
-import { TextLink } from "@/components/app/ui";
+import { SpotEmpty, TextLink } from "@/components/app/ui";
 
 export const metadata: Metadata = { title: "Close" };
 
@@ -31,14 +30,9 @@ async function Close() {
   return (
     <Page title="Close" subtitle={active.length ? `${monthLabel(period)} · ${received} of ${active.length} ${active.length === 1 ? "property has" : "properties have"} sent reports` : monthLabel(period)}>
       {active.length === 0 ? (
-        <Card>
-          <EmptyState
-            icon={<Building2 className="size-4" strokeWidth={1.75} />}
-            title="No properties yet"
-            description="Each month's close tracks the reports every property sends. Add a property to start."
-            action={<LinkButton href="/app/properties">Add a property</LinkButton>}
-          />
-        </Card>
+        <SpotEmpty icons={[<Building2 key="a" />, <ClipboardCheck key="b" />, <FileSpreadsheet key="c" />]} title="No properties yet" action={<LinkButton href="/app/properties">Add a property</LinkButton>}>
+          Each month&apos;s close tracks the reports every property sends. Add a property to start.
+        </SpotEmpty>
       ) : (
         <Card>
           <CardHeader title={`${monthLabel(period)} reports`} description="Reports for the month, by property, uploaded by your team or the property's manager." />

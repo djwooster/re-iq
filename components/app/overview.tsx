@@ -56,7 +56,7 @@ export function Overview({ date, month, closing, properties, companies }: { date
               { key: "plan", label: compare, style: "reference" },
             ]}
           />
-          <SpotEmpty icons={[FileSpreadsheet, CircleCheck, LineChart]} title="No NOI data yet" action={<AddReportsButton properties={properties} period={closing} variant="secondary" />}>
+          <SpotEmpty icons={[<FileSpreadsheet key="FileSpreadsheet" />, <CircleCheck key="CircleCheck" />, <LineChart key="LineChart" />]} title="No NOI data yet" action={<AddReportsButton properties={properties} period={closing} variant="secondary" />}>
             Add T-12s or monthly P&amp;Ls to chart NOI by month against {compare.toLowerCase()}.
           </SpotEmpty>
         </div>

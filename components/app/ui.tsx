@@ -351,21 +351,16 @@ export function SelectTd({ checked, onChange, label }: { checked: boolean; onCha
  * An empty state: three fanned icon tiles in the illustration colors (the story in three steps), a
  * heading that says what's empty, one plain line on how to fill it, and the action.
  */
-export function SpotEmpty({ icons, title, children, action, className }: { icons: [LucideIcon, LucideIcon, LucideIcon]; title: string; children: React.ReactNode; action?: React.ReactNode; className?: string }) {
+/** Icons are passed drawn (`<FileText />`), so server pages can use this too. */
+export function SpotEmpty({ icons, title, children, action, className }: { icons: [React.ReactNode, React.ReactNode, React.ReactNode]; title: string; children: React.ReactNode; action?: React.ReactNode; className?: string }) {
   const [A, B, C] = icons;
-  const tile = "flex size-11 items-center justify-center rounded-xl border border-border bg-bg";
+  const tile = "flex size-11 items-center justify-center rounded-xl border border-border bg-bg [&>svg]:size-5 [&>svg]:stroke-[1.5]";
   return (
     <div className={cn("flex min-h-[220px] flex-col items-center justify-center rounded-md border border-dashed border-border px-6 py-10 text-center", className)}>
       <div className="flex items-end" aria-hidden>
-        <span className={cn(tile, "translate-y-1 -rotate-6 text-spot-coral")}>
-          <A className="size-5" strokeWidth={1.5} />
-        </span>
-        <span className={cn(tile, "z-10 -mx-1.5 -translate-y-1 text-spot-sun")}>
-          <B className="size-5" strokeWidth={1.5} />
-        </span>
-        <span className={cn(tile, "translate-y-1 rotate-6 text-spot-violet")}>
-          <C className="size-5" strokeWidth={1.5} />
-        </span>
+        <span className={cn(tile, "translate-y-1 -rotate-6 text-spot-coral")}>{A}</span>
+        <span className={cn(tile, "z-10 -mx-1.5 -translate-y-1 text-spot-sun")}>{B}</span>
+        <span className={cn(tile, "translate-y-1 rotate-6 text-spot-violet")}>{C}</span>
       </div>
       <h3 className="mt-5 text-[16px] font-semibold text-fg">{title}</h3>
       <p className="mt-1 max-w-md text-[13px] text-balance text-fg-3">{children}</p>

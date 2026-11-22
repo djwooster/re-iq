@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { FadeIn } from "@/components/ui/motion";
-import { EmptyState } from "@/components/ui/empty-state";
 import { cn } from "@/lib/cn";
+import { SpotEmpty } from "./ui";
 
 export interface Crumb {
   label: string;
@@ -43,13 +43,13 @@ export function Page({ title, subtitle, crumbs, actions, tabs, children }: { tit
   );
 }
 
-/** A whole page with nothing in it yet: one bordered panel with an icon, a title and what will show here. */
-export function EmptyPage({ title, icon, heading, description, action }: { title: string; icon: React.ReactNode; heading: string; description: string; action?: React.ReactNode }) {
+/** A whole page with nothing in it yet: the standard empty state, saying what will show here. */
+export function EmptyPage({ title, icons, heading, description, action }: { title: string; icons: [React.ReactNode, React.ReactNode, React.ReactNode]; heading: string; description: string; action?: React.ReactNode }) {
   return (
     <Page title={title}>
-      <div className="rounded-lg border border-border bg-surface">
-        <EmptyState icon={icon} title={heading} description={description} action={action} className="py-20" />
-      </div>
+      <SpotEmpty icons={icons} title={heading} action={action} className="min-h-[320px]">
+        {description}
+      </SpotEmpty>
     </Page>
   );
 }

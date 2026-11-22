@@ -1,19 +1,18 @@
 "use client";
 
-import { Archive, ArchiveRestore, ExternalLink, Pencil, Trash2 } from "lucide-react";
+import { Archive, ArchiveRestore, Building2, ExternalLink, FileSpreadsheet, Pencil, Trash2, Users } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader } from "@/components/ui/card";
 import { Field, Input } from "@/components/ui/controls";
-import { EmptyState } from "@/components/ui/empty-state";
 import { Modal } from "@/components/ui/overlay";
 import { useToast } from "@/components/ui/toast";
 import { createProperty, deleteProperty, setPropertyArchived, updateProperty } from "@/lib/workspace/actions";
 import type { Property } from "@/lib/workspace/queries";
 import { FormMessage } from "./shared";
-import { PropertyTd, Row, RowMenu, SelectTd, SelectionBar, Table, Td, useSelection } from "@/components/app/ui";
+import { PropertyTd, Row, RowMenu, SelectTd, SelectionBar, SpotEmpty, Table, Td, useSelection } from "@/components/app/ui";
 
 export function PropertiesView({ properties, canEdit }: { properties: Property[]; canEdit: boolean }) {
   const [editing, setEditing] = useState<string | null>(null);
@@ -67,9 +66,9 @@ export function PropertiesView({ properties, canEdit }: { properties: Property[]
         </Card>
       )}
       {properties.length === 0 ? (
-        <Card>
-          <EmptyState title="No properties yet" description={canEdit ? "Add your first property above. Then upload its reports yourself, or invite its property manager to." : "An owner adds properties."} />
-        </Card>
+        <SpotEmpty icons={[<Building2 key="a" />, <FileSpreadsheet key="b" />, <Users key="c" />]} title="No properties yet">
+          {canEdit ? "Add your first property above. Then upload its reports yourself, or invite its property manager to." : "An owner adds properties."}
+        </SpotEmpty>
       ) : (
         <div className="flex flex-col gap-3">
           {selected.length > 0 && (
