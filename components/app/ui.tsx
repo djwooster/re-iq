@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowDown, ArrowUp, ArrowUpDown, Check, ChevronDown, ChevronRight, MoreHorizontal, Search, X, type LucideIcon } from "lucide-react";
+import { ArrowDown, ArrowUp, ArrowUpDown, Check, ChevronDown, ChevronRight, MoreHorizontal, Plus, Search, X, type LucideIcon } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { createContext, useContext, useEffect, useId, useRef, useState } from "react";
@@ -46,7 +46,7 @@ export interface FilterOption {
  * and once set shows its value on a filled button ("Property  Lofts"); the first option clears it.
  * Without `allLabel` it's a picker that always has a value ("Period  Month"), so it stays unfilled.
  * The menu checks the current option. Long lists (over 8) get a search box. Arrow keys move, Enter
- * picks, Escape closes.
+ * picks, Escape closes. With `onCreate`, typing a name that isn't listed offers "Add …" (Enter adds it).
  */
 export function FilterMenu({
   label,
@@ -57,6 +57,7 @@ export function FilterMenu({
   hideLabel,
   placeholder,
   invalid,
+  onCreate,
 }: {
   label: string;
   allLabel?: string;
@@ -69,6 +70,8 @@ export function FilterMenu({
   placeholder?: string;
   /** Nothing picked yet and something must be: amber. */
   invalid?: boolean;
+  /** Turns typed text into a new option's value, which is then picked. */
+  onCreate?: (text: string) => string;
 }) {
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
@@ -76,10 +79,14 @@ export function FilterMenu({
   const ref = useRef<HTMLDivElement>(null);
   const listId = useId();
   const current = options.find((o) => o.value === value);
-  const searchable = options.length > 8;
+  const searchable = options.length > 8 || !!onCreate;
   const all: FilterOption[] = allLabel ? [{ value: "", label: allLabel }, ...options] : options;
   const filled = !!current && !!allLabel;
-  const items = query ? all.filter((o) => o.value && o.label.toLowerCase().includes(query.toLowerCase())) : all;
+  const typed = query.trim();
+  const matches = query ? all.filter((o) => o.value && o.label.toLowerCase().includes(typed.toLowerCase())) : all;
+  const creatable = !!onCreate && !!typed && !all.some((o) => o.label.toLowerCase() === typed.toLowerCase());
+  const CREATE = "\u0000create";
+  const items: FilterOption[] = creatable ? [...matches, { value: CREATE, label: `Add “${typed}”` }] : matches;
 
   useEffect(() => {
     if (!open) return;
@@ -94,7 +101,7 @@ export function FilterMenu({
     setOpen(true);
   };
   const pick = (v: string) => {
-    onChange(v);
+    onChange(v === CREATE && onCreate ? onCreate(typed) : v);
     setOpen(false);
   };
   const onKeyDown = (e: React.KeyboardEvent) => {
@@ -149,7 +156,7 @@ export function FilterMenu({
               <input
                 autoFocus
                 aria-label={`Search ${label.toLowerCase()}`}
-                placeholder="Search"
+                placeholder={onCreate ? "Search or add" : "Search"}
                 value={query}
                 onChange={(e) => {
                   setQuery(e.target.value);
@@ -169,6 +176,7 @@ export function FilterMenu({
                 onClick={() => pick(o.value)}
                 className={cn("flex h-7 cursor-pointer items-center gap-2 rounded-md px-2 text-xs", i === active ? "bg-fg/[0.05] text-fg" : "text-fg-2")}
               >
+                {o.value === CREATE && <Plus className="size-3.5 shrink-0 text-fg-3" />}
                 <span className="flex-1 truncate">{o.label}</span>
                 {o.value === value && <Check className="size-3.5 shrink-0 text-fg" />}
               </li>

@@ -73,6 +73,8 @@ function AddReports({ properties, period, onClose }: { properties: Property[]; p
   // New properties suggested by file names, offered to every row.
   const suggested = [...new Set(files.map((f) => f.property).filter((p) => p.startsWith(NEW)))];
   const propertyOptions = [...properties.map((p) => ({ value: p.id, label: p.name })), ...suggested.map((p) => ({ value: p, label: `New: ${p.slice(NEW.length)}` }))];
+  /** A typed property name: an existing property or suggestion when it's the same one, otherwise a new one. */
+  const newProperty = (name: string) => properties.find((p) => sameProperty(p.name, name))?.id ?? suggested.find((p) => sameProperty(p.slice(NEW.length), name)) ?? `${NEW}${name}`;
   const waiting = files.filter((f) => f.state !== "done");
   const ready = waiting.length > 0 && waiting.every((f) => f.property);
 
@@ -173,7 +175,7 @@ function AddReports({ properties, period, onClose }: { properties: Property[]; p
                         {locked ? (
                           <span className="block truncate text-fg-2">{propertyOptions.find((o) => o.value === f.property)?.label}</span>
                         ) : (
-                          <FilterMenu label="Property" hideLabel placeholder="Choose property" invalid value={f.property} options={propertyOptions} onChange={(v) => patch(f.id, { property: v })} />
+                          <FilterMenu label="Property" hideLabel placeholder="Choose property" invalid value={f.property} options={propertyOptions} onChange={(v) => patch(f.id, { property: v })} onCreate={newProperty} />
                         )}
                       </td>
                       <td className="w-40 px-2 py-2">
