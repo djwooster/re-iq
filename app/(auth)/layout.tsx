@@ -1,17 +1,22 @@
 import Link from "next/link";
+import { AuthShowcase } from "@/components/shell/auth-showcase";
 import { PRODUCT_NAME } from "@/lib/labels";
 
+/** Sign-in pages: the form on the left, what RE-IQ does on the right (wide screens only). */
 export default function AuthLayout({ children }: { children: React.ReactNode }) {
   return (
-    <div className="flex min-h-screen flex-col bg-bg">
-      <header className="flex h-12 items-center px-6">
-        <Link href="/" className="num text-[13px] font-semibold tracking-[0.06em] text-fg">
+    <div className="grid min-h-screen bg-bg lg:grid-cols-2">
+      <main className="flex flex-col items-center px-4 pt-[12vh] pb-12">
+        <Link href="/" className="num text-[15px] font-semibold tracking-[0.06em] text-fg">
           {PRODUCT_NAME}
         </Link>
-      </header>
-      <main className="flex flex-1 items-start justify-center px-4 pt-[14vh] pb-16">
-        <div className="w-full max-w-[340px]">{children}</div>
+        <div className="mt-8 w-full max-w-[400px]">{children}</div>
       </main>
+      <aside className="hidden p-3 lg:block">
+        <div className="sticky top-3 h-[calc(100vh-1.5rem)]">
+          <AuthShowcase />
+        </div>
+      </aside>
     </div>
   );
 }

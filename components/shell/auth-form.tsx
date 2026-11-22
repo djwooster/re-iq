@@ -1,10 +1,11 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import { useActionState, useState, useTransition } from "react";
 import { Button } from "@/components/ui/button";
-import { Field, Input, Tabs } from "@/components/ui/controls";
+import { Field, Input } from "@/components/ui/controls";
+import { cn } from "@/lib/cn";
 import { requestPasswordReset, signIn, signInWithProvider, signUp, updatePassword, type AuthState, type Provider } from "@/lib/auth/actions";
 
 type Mode = "login" | "signup" | "forgot" | "reset";
@@ -42,21 +43,23 @@ export function AuthForm({ mode, invite }: { mode: Mode; invite?: boolean }) {
 
   if (state.status === "sent") {
     return (
-      <div>
-        <h1 className="text-[15px] font-semibold text-fg">Check your email</h1>
-        <p className="mt-1 text-xs text-fg-2">
-          {mode === "signup" ? (
-            <>
-              We sent a confirmation link to <span className="font-medium text-fg">{state.email}</span>. Open it to {invite ? "accept your invitation" : "finish creating your workspace"}.
-            </>
-          ) : (
-            <>
-              If <span className="font-medium text-fg">{state.email}</span> has an account, a reset link is on its way.
-            </>
-          )}
-        </p>
-        <p className="mt-6 text-xs text-fg-3">
-          <Link href={invite ? "/invite?mode=login" : "/login"} className="text-fg-2 underline-offset-2 hover:text-fg hover:underline">
+      <div className="text-center">
+        <h1 className="text-[20px] font-semibold tracking-[-0.01em] text-fg">Check your email</h1>
+        <div className={cn(CARD, "mt-6 text-left")}>
+          <p className="text-[13px] leading-[1.6] text-fg-2">
+            {mode === "signup" ? (
+              <>
+                We sent a confirmation link to <span className="font-medium text-fg">{state.email}</span>. Open it to {invite ? "accept your invitation" : "finish creating your workspace"}.
+              </>
+            ) : (
+              <>
+                If <span className="font-medium text-fg">{state.email}</span> has an account, a reset link is on its way.
+              </>
+            )}
+          </p>
+        </div>
+        <p className="mt-5 text-xs text-fg-3">
+          <Link href={invite ? "/invite?mode=login" : "/login"} className="font-medium text-fg-2 hover:text-fg">
             Back to sign in
           </Link>
         </p>
@@ -64,88 +67,97 @@ export function AuthForm({ mode, invite }: { mode: Mode; invite?: boolean }) {
     );
   }
 
+  const withProviders = (mode === "login" || mode === "signup") && !invite;
   return (
     <div>
-      {(mode === "login" || mode === "signup") && <AuthTabs mode={mode} invite={invite} />}
-      <h1 className="text-[15px] font-semibold text-fg">{invite ? (mode === "signup" ? "Create your account" : "Sign in to accept") : copy.title}</h1>
-      <p className="mt-1 text-xs text-fg-3">{invite ? "You've been invited to upload monthly reports. Use the email address the invite was sent to." : copy.sub}</p>
+      <div className="text-center">
+        <h1 className="text-[20px] font-semibold tracking-[-0.01em] text-fg">{invite ? (mode === "signup" ? "Create your account" : "Sign in to accept") : copy.title}</h1>
+        <p className="mx-auto mt-1.5 max-w-[340px] text-[13px] leading-[1.5] text-fg-3">
+          {invite ? "You've been invited to upload monthly reports. Use the email address the invite was sent to." : copy.sub}
+        </p>
+      </div>
 
-      {(mode === "login" || mode === "signup") && !invite && (
-        <>
-          <div className="mt-6 flex flex-col gap-2">
-            <ProviderButton provider="google" next={next} onError={setProviderError} />
-            <ProviderButton provider="azure" next={next} onError={setProviderError} />
-            {providerError && (
-              <p role="alert" className="text-xs text-unfavorable">
-                {providerError}
-              </p>
-            )}
-          </div>
-          <div className="my-5 flex items-center gap-3 text-[11px] text-fg-3">
-            <span className="h-px flex-1 bg-border" />
-            or
-            <span className="h-px flex-1 bg-border" />
-          </div>
-        </>
-      )}
+      <div className={cn(CARD, "mt-6")}>
+        <form action={action} className="flex flex-col gap-3">
+          <input type="hidden" name="next" value={next} />
+          {invite && <input type="hidden" name="invite" value="1" />}
+          {mode === "signup" && (
+            <div className={cn("grid gap-3", !invite && "sm:grid-cols-2")}>
+              <Field label="Full name">{(id) => <Input id={id} name="name" autoComplete="name" placeholder="Jordan Reyes" required />}</Field>
+              {!invite && <Field label="Company">{(id) => <Input id={id} name="company" autoComplete="organization" placeholder="Alder Peak Capital" required />}</Field>}
+            </div>
+          )}
+          {mode !== "reset" && <Field label="Work email">{(id) => <Input id={id} name="email" type="email" autoComplete="email" placeholder="you@company.com" required />}</Field>}
+          {mode !== "forgot" && (
+            <Field
+              label={mode === "reset" ? "New password" : "Password"}
+              hint={
+                mode === "login" ? (
+                  <Link href="/forgot-password" className="underline-offset-2 hover:text-fg hover:underline">
+                    Forgot your password?
+                  </Link>
+                ) : undefined
+              }
+            >
+              {(id) => <Input id={id} name="password" type="password" autoComplete={mode === "login" ? "current-password" : "new-password"} minLength={mode === "login" ? undefined : 8} required />}
+            </Field>
+          )}
+          {error && (
+            <p role="alert" className="text-xs text-unfavorable">
+              {error}
+            </p>
+          )}
+          <Button type="submit" variant="primary" loading={pending} className="mt-2 w-full">
+            {copy.submit}
+          </Button>
+        </form>
 
-      <form action={action} className={mode === "forgot" || mode === "reset" || invite ? "mt-6 flex flex-col gap-3" : "flex flex-col gap-3"}>
-        <input type="hidden" name="next" value={next} />
-        {invite && <input type="hidden" name="invite" value="1" />}
-        {mode === "signup" && (
+        {withProviders && (
           <>
-            <Field label="Full name">{(id) => <Input id={id} name="name" autoComplete="name" placeholder="Jordan Reyes" required />}</Field>
-            {!invite && <Field label="Company">{(id) => <Input id={id} name="company" autoComplete="organization" placeholder="Alder Peak Capital" required />}</Field>}
+            <div className="my-5 flex items-center gap-3 text-[10px] tracking-[0.08em] text-fg-3 uppercase">
+              <span className="h-px flex-1 bg-border" />
+              or
+              <span className="h-px flex-1 bg-border" />
+            </div>
+            <div className="flex flex-col gap-2">
+              <ProviderButton provider="google" next={next} onError={setProviderError} />
+              <ProviderButton provider="azure" next={next} onError={setProviderError} />
+              {providerError && (
+                <p role="alert" className="text-xs text-unfavorable">
+                  {providerError}
+                </p>
+              )}
+            </div>
           </>
         )}
-        {mode !== "reset" && <Field label="Work email">{(id) => <Input id={id} name="email" type="email" autoComplete="email" placeholder="you@company.com" required />}</Field>}
-        {mode !== "forgot" && (
-          <Field
-            label={mode === "reset" ? "New password" : "Password"}
-            hint={
-              mode === "login" ? (
-                <Link href="/forgot-password" className="underline-offset-2 hover:text-fg hover:underline">
-                  Forgot your password?
-                </Link>
-              ) : undefined
-            }
-          >
-            {(id) => <Input id={id} name="password" type="password" autoComplete={mode === "login" ? "current-password" : "new-password"} minLength={mode === "login" ? undefined : 8} required />}
-          </Field>
-        )}
-        {error && (
-          <p role="alert" className="text-xs text-unfavorable">
-            {error}
-          </p>
-        )}
-        <Button type="submit" variant="primary" loading={pending} className="mt-2 w-full">
-          {copy.submit}
-        </Button>
-        {mode === "signup" && (
-          <p className="text-[11px] text-fg-3">
-            By creating an account you agree to the{" "}
-            <Link href="/terms" className="text-fg-2 underline underline-offset-2 hover:text-fg">
-              Terms
-            </Link>{" "}
-            and{" "}
-            <Link href="/privacy" className="text-fg-2 underline underline-offset-2 hover:text-fg">
-              Privacy Policy
-            </Link>
-            .
-          </p>
-        )}
-      </form>
 
-      {(mode === "forgot" || mode === "reset") && (
-        <p className="mt-6 text-xs text-fg-3">
-          <Link href="/login" className="text-fg-2 underline-offset-2 hover:text-fg hover:underline">
-            Back to sign in
+        <p className="mt-6 text-center text-xs text-fg-3">
+          {mode === "login" || mode === "signup" ? <SwitchMode mode={mode} invite={invite} /> : (
+            <Link href="/login" className="font-medium text-fg-2 hover:text-fg">
+              Back to sign in
+            </Link>
+          )}
+        </p>
+      </div>
+
+      {mode === "signup" && (
+        <p className="mx-auto mt-6 max-w-[300px] text-center text-[11px] leading-[1.6] text-fg-3">
+          By creating an account, you agree to the{" "}
+          <Link href="/terms" className="text-fg-2 underline underline-offset-2 hover:text-fg">
+            Terms
+          </Link>{" "}
+          and{" "}
+          <Link href="/privacy" className="text-fg-2 underline underline-offset-2 hover:text-fg">
+            Privacy Policy
           </Link>
+          .
         </p>
       )}
     </div>
   );
 }
+
+const CARD = "rounded-xl border border-border bg-surface p-6 sm:p-8";
 
 const PROVIDER_ERROR = "We couldn't start that sign-in. Try again, or use your email and password.";
 
@@ -192,25 +204,18 @@ function MicrosoftMark() {
   );
 }
 
-/** Switches between sign-in and sign-up, keeping where the person was headed (`next`). */
-function AuthTabs({ mode, invite }: { mode: "login" | "signup"; invite?: boolean }) {
-  const router = useRouter();
+/** "Already have an account? Sign in", keeping where the person was headed (`next`). */
+function SwitchMode({ mode, invite }: { mode: "login" | "signup"; invite?: boolean }) {
   const params = useSearchParams();
-  const go = (to: "login" | "signup") => {
-    if (to === mode) return;
-    if (invite) return router.replace(to === "login" ? "/invite?mode=login" : "/invite");
-    const next = params.get("next");
-    router.replace(`/${to}${next ? `?next=${encodeURIComponent(next)}` : ""}`);
-  };
+  const to = mode === "login" ? "signup" : "login";
+  const next = params.get("next");
+  const href = invite ? (to === "login" ? "/invite?mode=login" : "/invite") : `/${to}${next ? `?next=${encodeURIComponent(next)}` : ""}`;
   return (
-    <Tabs
-      value={mode}
-      onChange={go}
-      tabs={[
-        { id: "login", label: "Sign in" },
-        { id: "signup", label: invite ? "Create account" : "Sign up" },
-      ]}
-      className="mb-6"
-    />
+    <>
+      {mode === "login" ? "Don't have an account? " : "Already have an account? "}
+      <Link href={href} replace className="font-medium text-fg hover:underline hover:underline-offset-2">
+        {to === "login" ? "Sign in" : invite ? "Create one" : "Sign up"}
+      </Link>
+    </>
   );
 }
