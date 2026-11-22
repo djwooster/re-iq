@@ -99,13 +99,13 @@ export function Accuracy() {
       id="accuracy"
       tinted
       eyebrow="Accuracy"
-      title="Every number comes from the report itself."
-      body={<p>AI is good at reading messy layouts. Every amount is read straight from the manager&apos;s file.</p>}
+      title="Accurate to the cent."
+      body={<p>Every figure comes straight from your manager&apos;s report and is checked before you see it. No retyping, no guesswork, no second-guessing.</p>}
       facts={[
-        { icon: Table2, title: "AI reads the layout, not the numbers", body: "It says which row and column hold what. Our code then takes each amount directly from those cells." },
-        { icon: Calculator, title: "The report has to agree with itself", body: "Subtotals add up, NOI equals income minus expenses, a T-12 has twelve months in a row. Any break is flagged with its row." },
-        { icon: UserCheck, title: "Nothing counts until you confirm it", body: "Each report is a draft until you approve it. Lines RE-IQ isn't sure how to map wait for your call." },
-        { icon: CalendarCheck, title: "Month and property from the contents", body: "Read from the report, not its file name, and flagged when the two disagree." },
+        { icon: Table2, title: "Straight from the source", body: "Each amount is pulled from its exact cell in the report. Nothing is retyped, estimated, or made up by AI." },
+        { icon: Calculator, title: "Checked before you see it", body: "Subtotals, NOI and all twelve months of a T-12 are tested. If a report doesn't add up, you'll know which line." },
+        { icon: UserCheck, title: "You have the final say", body: "Reports stay drafts until you approve them. Anything uncertain is flagged for a quick look, never guessed." },
+        { icon: CalendarCheck, title: "Right month, right property", body: "Read from what's inside the report, not the file name. Mismatches are flagged." },
       ]}
     />
   );
