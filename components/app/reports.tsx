@@ -96,6 +96,7 @@ function AllReports({ rows, statuses, properties, period, canDelete }: { rows: R
       <SpotEmpty
         icons={[<FileSpreadsheet key="FileSpreadsheet" />, <ScanText key="ScanText" />, <CircleCheck key="CircleCheck" />]}
         title="No reports yet"
+        fill
         action={<AddReportsButton properties={properties.filter((p) => !p.archived_at)} period={period} variant="secondary" />}
       >
         Add last month&apos;s P&amp;Ls, T-12s and rent rolls. RE-IQ reads each one and lists anything to review.

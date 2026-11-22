@@ -30,7 +30,7 @@ async function Close() {
   return (
     <Page title="Close" subtitle={active.length ? `${monthLabel(period)} · ${received} of ${active.length} ${active.length === 1 ? "property has" : "properties have"} sent reports` : monthLabel(period)}>
       {active.length === 0 ? (
-        <SpotEmpty icons={[<Building2 key="a" />, <ClipboardCheck key="b" />, <FileSpreadsheet key="c" />]} title="No properties yet" action={<LinkButton href="/app/properties">Add a property</LinkButton>}>
+        <SpotEmpty icons={[<Building2 key="a" />, <ClipboardCheck key="b" />, <FileSpreadsheet key="c" />]} title="No properties yet" fill action={<LinkButton href="/app/properties">Add a property</LinkButton>}>
           Each month&apos;s close tracks the reports every property sends. Add a property to start.
         </SpotEmpty>
       ) : (

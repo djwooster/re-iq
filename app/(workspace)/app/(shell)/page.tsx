@@ -30,7 +30,7 @@ async function OverviewData() {
   if (!active.length) {
     return (
       <Page title="Overview" subtitle={ws.orgName}>
-        <SpotEmpty icons={[<FileSpreadsheet key="FileSpreadsheet" />, <ScanText key="ScanText" />, <LineChart key="LineChart" />]} title="Add your first reports" action={<AddReportsButton properties={active} period={closePeriod()} />}>
+        <SpotEmpty icons={[<FileSpreadsheet key="FileSpreadsheet" />, <ScanText key="ScanText" />, <LineChart key="LineChart" />]} title="Add your first reports" fill action={<AddReportsButton properties={active} period={closePeriod()} />}>
           Drop last month&apos;s reports. Each one is matched to its property by file name, then read.
         </SpotEmpty>
       </Page>

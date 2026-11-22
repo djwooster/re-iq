@@ -47,7 +47,7 @@ export function Page({ title, subtitle, crumbs, actions, tabs, children }: { tit
 export function EmptyPage({ title, icons, heading, description, action }: { title: string; icons: [React.ReactNode, React.ReactNode, React.ReactNode]; heading: string; description: string; action?: React.ReactNode }) {
   return (
     <Page title={title}>
-      <SpotEmpty icons={icons} title={heading} action={action} className="min-h-[320px]">
+      <SpotEmpty icons={icons} title={heading} action={action} fill>
         {description}
       </SpotEmpty>
     </Page>
